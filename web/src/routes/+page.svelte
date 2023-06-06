@@ -25,7 +25,7 @@
 		<br />
 		<p>This is how you call the colors schemes</p>
 		<div class="w-max text-center flex flex-col gap-3 justify-center">
-			<p class="bg-white text-dark">dark</p>
+			<p class="bg-light text-dark">dark</p>
 			<p class="bg-dark text-light">light</p>
 			<p class="text-accent-blue bg-accent-fuchsia">accent-blue</p>
 			<p class="text-accent-fuchsia bg-accent-blue">accent-fuchsia</p>
