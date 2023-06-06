@@ -2,35 +2,37 @@
 import Html from "@mod/layout/html.astro";
 
 const queries = new URLSearchParams({
-  client_id: "567d9b90135f2031eb22",
-  scope: "repo:read user:read",
+	client_id: "567d9b90135f2031eb22",
+	scope: "repo:read user:read",
 });
 const oauth = new URL("/login/oauth/authorize", "https://github.com");
 oauth.search = queries.toString();
 ---
 
 <Html title="All my Env">
-  <section class="flex flex-col gap-3 justify-center items-center">
-    <h1 class="text-2xl m-3">Company name or something</h1>
-    <a
-      class="btn-main px-12 py-2 rounded-2xl"
-      href={oauth.toString()}
-      target="_blank"
-    >
-      Log In
-    </a>
-  </section>
+	<section class="flex flex-col gap-3 justify-center items-center">
+		<h1 class="text-2xl m-3">Company name or something</h1>
+		<a
+			class="btn-main px-12 py-2 rounded-2xl"
+			href={oauth.toString()}
+			target="_blank"
+		>
+			Log In
+		</a>
+	</section>
 
-  <section class="mx-auto w-max">
-    <h2 class="text-lg font-bold font-main">tailwind crash course</h2>
-    <p class="font-regular">Default font is set, but you can also set them</p>
-    <br />
-    <p>This is how you call the colors schemes</p>
-    <div class="w-max text-center flex flex-col gap-3 justify-center">
-      <p class="bg-light text-dark">dark</p>
-      <p class="bg-dark text-light">light</p>
-      <p class="text-accent-blue bg-accent-fuchsia">accent-blue</p>
-      <p class="text-accent-fuchsia bg-accent-blue">accent-fuchsia</p>
-    </div>
-  </section>
+	<section class="mx-auto w-max">
+		<h2 class="text-lg font-bold font-main">tailwind crash course</h2>
+		<p class="font-regular">
+			Default font is set, but you can also set them
+		</p>
+		<br />
+		<p>This is how you call the colors schemes</p>
+		<div class="w-max text-center flex flex-col gap-3 justify-center">
+			<p class="bg-light text-dark">dark</p>
+			<p class="bg-dark text-light">light</p>
+			<p class="text-accent-blue bg-accent-fuchsia">accent-blue</p>
+			<p class="text-accent-fuchsia bg-accent-blue">accent-fuchsia</p>
+		</div>
+	</section>
 </Html>
