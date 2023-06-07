@@ -5,6 +5,7 @@ export default {
     extend: {
       fontFamily: {
         main: ["Monomaniac One", "sans-serif"],
+        accent: ["Exo 2", "sans-serif"],
         regular: ["Cabin", "sans-serif"],
       },
       colors: {
