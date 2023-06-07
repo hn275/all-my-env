@@ -1,25 +1,33 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { Cipher, SecretKeys } from "@mod/lib/cipher";
+	import { API } from "@mod/lib/routes";
 
 	let code = "";
-	let encrypted: string = "";
-	let decrypted: string = "";
+	let encryptedStr: string = "";
+	let decryptedStr: string = "";
+	let ivStr: string = "";
+	let status = "";
 
 	onMount(() => {
-		code = new URLSearchParams(window.location.search).get("code") as string;
-		const aesEncryptor = new Cipher(code);
-		aesEncryptor.setKey(SecretKeys.Auth);
-		encrypted = aesEncryptor.encrypt();
+		code = new URLSearchParams(window.location.search).get(
+			"code",
+		) as string;
 
-		const aesDecryptor = new Cipher(encrypted);
-		aesDecryptor.setKey(SecretKeys.Auth);
-		decrypted = aesDecryptor.decrypt();
+		(async () => {
+			const url = `${API}/auth`;
+			console.log(url);
+			const response = await fetch(url, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ code }),
+			});
+			status = response.statusText;
+		})();
 	});
 </script>
 
 <p>verifying</p>
 <p>{code}</p>
-<p>encrypted {encrypted}</p>
-<p>decrypted {decrypted}</p>
-<p>{decrypted === code}</p>
+<p>{status}</p>
+<p>{decryptedStr === code}</p>
