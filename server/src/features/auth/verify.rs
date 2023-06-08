@@ -15,8 +15,6 @@ pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiErr
         .get_auth_token()
         .await?;
 
-    println!("{}", result);
-
     let response = HttpResponseBuilder::new(StatusCode::OK)
         .insert_header(header::ContentType::plaintext())
         .body(result);
