@@ -1,25 +1,37 @@
-use actix_web::{body, http, HttpResponse, HttpResponseBuilder, Responder};
+use actix_web::{body, http, HttpResponse, HttpResponseBuilder, ResponseError};
 use serde;
 
-pub struct ApiError<'a> {
-    code: http::StatusCode,
-    message: Option<&'a str>,
+#[derive(Debug)]
+pub struct ApiError {
+    pub code: http::StatusCode,
+    pub message: Option<String>,
+}
+
+impl std::fmt::Display for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "")
+    }
 }
 
 #[derive(serde::Serialize)]
-struct ErrorMessage<'a> {
-    message: &'a str,
+struct ErrorMessage {
+    error: String,
 }
 
-impl<'a> Responder for ApiError<'a> {
-    type Body = body::BoxBody;
-    fn respond_to(self, _req: &actix_web::HttpRequest) -> HttpResponse<Self::Body> {
+impl ResponseError for ApiError {
+    fn status_code(&self) -> http::StatusCode {
+        self.code
+    }
+
+    fn error_response(&self) -> HttpResponse<body::BoxBody> {
         let mut responder = HttpResponseBuilder::new(self.code);
-        match self.message {
+        match &self.message {
             None => responder.finish(),
-            Some(msg) => responder
+            Some(message) => responder
                 .insert_header(http::header::ContentType::json())
-                .json(ErrorMessage { message: msg }),
+                .json(ErrorMessage {
+                    error: message.to_owned(),
+                }),
         }
     }
 }
