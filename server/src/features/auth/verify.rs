@@ -1,6 +1,8 @@
-use actix_web;
-use actix_web::{web, HttpResponse};
-use reqwest;
+use crate::repo::{error::ApiError, github};
+use actix_web::{
+    http::{header, StatusCode},
+    web, HttpResponse, HttpResponseBuilder,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -8,31 +10,16 @@ pub struct Token {
     pub code: String,
 }
 
-pub async fn verify_code(token: web::Json<Token>) -> impl actix_web::Responder {
-    let t = get_access_token(&token.into_inner()).await.unwrap();
-    dbg!("{}", &t);
-    return HttpResponse::Ok();
-}
+pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiError> {
+    let result = github::AuthClient::new(&token.into_inner().code)
+        .get_auth_token()
+        .await?;
 
-async fn get_access_token(code: &Token) -> Result<String, ()> {
-    let client = reqwest::Client::new();
-    let response = client.post("https://github.com/login/oauth/access_token");
-    let access_token = response
-        .json(&code)
-        .header("Content-Type", "application/json")
-        .send()
-        .await
-        .map_err(|err| {
-            eprintln!("request failed {}", err);
-            return ();
-        })?
-        //.json::<Token>()
-        .text()
-        .await
-        .map_err(|err| {
-            eprintln!("struct marshal failed {}", err);
-            return ();
-        })?;
+    println!("{}", result);
 
-    Ok(access_token)
+    let response = HttpResponseBuilder::new(StatusCode::OK)
+        .insert_header(header::ContentType::plaintext())
+        .body(result);
+
+    return Ok(response);
 }
