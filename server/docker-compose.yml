@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  server:
+    container_name: env-server
+    network_mode: host
+    build: .
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/app/server
+    environment:
+      FIREBASE_DB:
+      GITHUB_CLIENT_ID:
+      GITHUB_CLIENT_SECRET:
