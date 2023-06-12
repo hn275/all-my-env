@@ -7,9 +7,20 @@ pub struct ApiError {
     pub message: Option<String>,
 }
 
+impl ApiError {
+    pub fn new(code: http::StatusCode, message: Option<String>) -> ApiError {
+        return ApiError { code, message };
+    }
+}
+
 impl std::fmt::Display for ApiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+        let message: String = match &self.message {
+            None => String::new(),
+            Some(err) => err.to_owned(),
+        };
+
+        write!(f, "code: {}\nmessage: {}\n", self.code, message)
     }
 }
 
