@@ -14,13 +14,18 @@ pub struct Token {
 }
 
 pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiError> {
-    let response = get_token(&token.into_inner().code).await.map_err(|err| {
+    let response = get_oath(&token.into_inner().code).await.map_err(|err| {
         eprintln!("{}", err);
         return ApiError::new(StatusCode::BAD_GATEWAY, Some(err.to_string()));
     })?;
 
-    if StatusCode::OK != response.status() {
-        return Err(ApiError::new(response.status(), None));
+    let response_status = response.status();
+    if StatusCode::OK != response_status {
+        let msg = response.text().await.map_err(|err| {
+            eprintln!("{}", err);
+            return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, None);
+        })?;
+        return Err(ApiError::new(response_status, Some(msg)));
     }
 
     let payload = response.text().await.map_err(|err| {
@@ -28,19 +33,8 @@ pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiErr
         return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, None);
     })?;
 
-    let result = payload.split('&').collect::<Vec<&str>>()[0];
-    let payload = result.split('=').collect::<Vec<&str>>();
-
-    if payload[0] == "error" {
-        return Err(ApiError {
-            code: StatusCode::BAD_REQUEST,
-            message: Some(payload[1].to_owned()),
-        });
-    }
-
-    let token = payload[1];
-
-    let client = GithubClient::new_with_token(token);
+    let bearer_token = get_token(payload.as_ref())?;
+    let client = GithubClient::new_with_token(bearer_token);
     let result = client
         .get("/user")
         .send()
@@ -54,13 +48,26 @@ pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiErr
 
     let response = HttpResponseBuilder::new(StatusCode::OK)
         .insert_header(header::ContentType::plaintext())
-        // .body(result);
-        .body(payload[1].to_owned());
+        .body("");
 
     return Ok(response);
 }
 
-fn get_token(code: &str) -> impl Future<Output = Result<reqwest::Response, reqwest::Error>> {
+fn get_token(payload: &str) -> Result<&str, ApiError> {
+    let result = payload.split('&').collect::<Vec<&str>>()[0];
+    let payload = result.split('=').collect::<Vec<&str>>();
+
+    if payload[0] == "error" {
+        return Err(ApiError {
+            code: StatusCode::BAD_REQUEST,
+            message: Some(payload[1].to_owned()),
+        });
+    }
+
+    return Ok(payload[1]);
+}
+
+fn get_oath(code: &str) -> impl Future<Output = Result<reqwest::Response, reqwest::Error>> {
     use std::env::var;
 
     let client_id = var("GITHUB_CLIENT_ID").expect("`GITHUB_CLIENT_ID` not set");
