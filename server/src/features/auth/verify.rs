@@ -1,6 +1,9 @@
 use std::future::Future;
 
-use crate::repo::{error::ApiError, github::GithubClient};
+use crate::repo::{
+    error::ApiError,
+    github::{client::GithubClient, schemas::GithubAccount},
+};
 use actix_web::{
     http::{header, StatusCode},
     web, HttpResponse, HttpResponseBuilder,
@@ -34,23 +37,39 @@ pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiErr
     })?;
 
     let bearer_token = get_token(payload.as_ref())?;
-    let client = GithubClient::new_with_token(bearer_token);
-    let result = client
-        .get("/user")
-        .send()
-        .await
-        .unwrap()
-        .text()
-        .await
-        .unwrap();
-
-    println!("{}", result);
+    let github_account = get_user_account(bearer_token).await?;
 
     let response = HttpResponseBuilder::new(StatusCode::OK)
         .insert_header(header::ContentType::plaintext())
-        .body("");
+        .json(github_account);
 
     return Ok(response);
+}
+
+async fn get_user_account(token: &str) -> Result<GithubAccount, ApiError> {
+    let client = GithubClient::new_with_token(token);
+
+    let response = client.get("/user").send().await.map_err(|err| {
+        eprintln!("{}", err);
+        return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, Some(err.to_string()));
+    })?;
+
+    let status_code = response.status();
+
+    if status_code != StatusCode::OK {
+        let msg = response.text().await.map_err(|err| {
+            eprintln!("{}", err);
+            return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, None);
+        })?;
+        return Err(ApiError::new(status_code, Some(msg)));
+    }
+
+    let github_account = response.json::<GithubAccount>().await.map_err(|err| {
+        eprintln!("{}", err);
+        return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, Some(err.to_string()));
+    })?;
+
+    return Ok(github_account);
 }
 
 fn get_token(payload: &str) -> Result<&str, ApiError> {
