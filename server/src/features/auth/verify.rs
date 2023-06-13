@@ -37,7 +37,8 @@ pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiErr
     })?;
 
     let bearer_token = get_token(payload.as_ref())?;
-    let github_account = get_user_account(bearer_token).await?;
+    let mut github_account = get_user_account(bearer_token).await?;
+    github_account.token = String::from(bearer_token);
 
     let response = HttpResponseBuilder::new(StatusCode::OK)
         .insert_header(header::ContentType::plaintext())

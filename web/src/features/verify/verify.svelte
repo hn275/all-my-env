@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { Cipher, SecretKeys } from "@mod/lib/cipher";
 	import { API } from "@mod/lib/routes";
+	import type { GithubAccount } from "@mod/schemas/github";
 
 	let code = "";
-	let encryptedStr: string = "";
-	let decryptedStr: string = "";
-	let ivStr: string = "";
 	let status = "";
+	let account: GithubAccount;
 
 	onMount(() => {
 		code = new URLSearchParams(window.location.search).get(
@@ -16,13 +14,13 @@
 
 		(async () => {
 			const url = `${API}/auth`;
-			console.log(url);
 			const response = await fetch(url, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ code }),
 			});
 			status = response.statusText;
+			account = await response.json();
 		})();
 	});
 </script>
@@ -30,4 +28,4 @@
 <p>verifying</p>
 <p>{code}</p>
 <p>{status}</p>
-<p>{decryptedStr === code}</p>
+<p>{JSON.stringify(account)}</p>

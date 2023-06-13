@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GithubAccount {
+    #[serde(skip_deserializing)]
+    pub token: String,
     pub login: String,
     pub id: i64,
     #[serde(rename(serialize = "avatarUrl"))]
