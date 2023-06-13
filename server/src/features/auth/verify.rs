@@ -14,7 +14,7 @@ pub struct Token {
 }
 
 pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiError> {
-    let response = get_oath(&token.into_inner().code).await.map_err(|err| {
+    let response = get_oauth(&token.into_inner().code).await.map_err(|err| {
         eprintln!("{}", err);
         return ApiError::new(StatusCode::BAD_GATEWAY, Some(err.to_string()));
     })?;
@@ -67,7 +67,7 @@ fn get_token(payload: &str) -> Result<&str, ApiError> {
     return Ok(payload[1]);
 }
 
-fn get_oath(code: &str) -> impl Future<Output = Result<reqwest::Response, reqwest::Error>> {
+fn get_oauth(code: &str) -> impl Future<Output = Result<reqwest::Response, reqwest::Error>> {
     use std::env::var;
 
     let client_id = var("GITHUB_CLIENT_ID").expect("`GITHUB_CLIENT_ID` not set");
