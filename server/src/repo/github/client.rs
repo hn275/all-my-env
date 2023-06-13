@@ -13,6 +13,7 @@ impl GithubClient {
         };
     }
 
+    #[allow(unused)]
     pub fn query<'a>(&mut self, key: &'a str, value: &'a str) -> &mut Self {
         let q = format!("{}={}", key, value);
         self.queries.push(q);
