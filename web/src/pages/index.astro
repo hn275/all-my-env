@@ -2,7 +2,7 @@
 import Html from "@mod/layout/html.astro";
 
 const queries = new URLSearchParams({
-	client_id: "567d9b90135f2031eb22",
+	client_id: import.meta.env.GITHUB_CLIENT_ID,
 	scope: "repo:read user:read",
 });
 const oauth = new URL("/login/oauth/authorize", "https://github.com");
