@@ -2,6 +2,7 @@
 
 ## Doc
 
+- [Github endpoints](https://docs.github.com/en/rest/overview/endpoints-available-for-github-apps?apiVersion=2022-11-28)
 - [Firebase](https://docs.rs/firebase-rs/latest/firebase_rs/struct.Firebase.html)
 - [Reqwest](https://docs.rs/reqwest/latest/reqwest/)
 - [Actix Web](https://docs.rs/crate/actix-web/latest)
