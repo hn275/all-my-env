@@ -1,5 +1,3 @@
-use std::future::Future;
-
 use crate::repo::{
     error::ApiError,
     github::{client::GithubClient, schemas::GithubAccount},
@@ -10,6 +8,7 @@ use actix_web::{
 };
 use reqwest;
 use serde::{Deserialize, Serialize};
+use std::future::Future;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Token {
@@ -18,22 +17,19 @@ pub struct Token {
 
 pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiError> {
     let response = get_oauth(&token.into_inner().code).await.map_err(|err| {
-        eprintln!("{}", err);
-        return ApiError::new(StatusCode::BAD_GATEWAY, Some(err.to_string()));
+        return ApiError::bad_gateway(err.to_string());
     })?;
 
     let response_status = response.status();
     if StatusCode::OK != response_status {
         let msg = response.text().await.map_err(|err| {
-            eprintln!("{}", err);
-            return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, None);
+            return ApiError::internal(Box::new(err));
         })?;
         return Err(ApiError::new(response_status, Some(msg)));
     }
 
     let payload = response.text().await.map_err(|err| {
-        eprintln!("{}", err);
-        return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, None);
+        return ApiError::internal(Box::new(err));
     })?;
 
     let bearer_token = get_token(payload.as_ref())?;
@@ -51,23 +47,20 @@ async fn get_user_account(token: &str) -> Result<GithubAccount, ApiError> {
     let client = GithubClient::new_with_token(token);
 
     let response = client.get("/user").send().await.map_err(|err| {
-        eprintln!("{}", err);
-        return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, Some(err.to_string()));
+        return ApiError::internal(Box::new(err));
     })?;
 
     let status_code = response.status();
 
     if status_code != StatusCode::OK {
         let msg = response.text().await.map_err(|err| {
-            eprintln!("{}", err);
-            return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, None);
+            return ApiError::internal(Box::new(err));
         })?;
         return Err(ApiError::new(status_code, Some(msg)));
     }
 
     let github_account = response.json::<GithubAccount>().await.map_err(|err| {
-        eprintln!("{}", err);
-        return ApiError::new(StatusCode::INTERNAL_SERVER_ERROR, Some(err.to_string()));
+        return ApiError::internal(Box::new(err));
     })?;
 
     return Ok(github_account);
@@ -76,12 +69,9 @@ async fn get_user_account(token: &str) -> Result<GithubAccount, ApiError> {
 fn get_token(payload: &str) -> Result<&str, ApiError> {
     let result = payload.split('&').collect::<Vec<&str>>()[0];
     let payload = result.split('=').collect::<Vec<&str>>();
-
     if payload[0] == "error" {
-        return Err(ApiError {
-            code: StatusCode::BAD_REQUEST,
-            message: Some(payload[1].to_owned()),
-        });
+        let message = Some(String::from(payload[1]));
+        return Err(ApiError::unauthorized(message));
     }
 
     return Ok(payload[1]);
