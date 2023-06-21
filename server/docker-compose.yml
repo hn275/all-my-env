@@ -4,7 +4,9 @@ services:
   server:
     container_name: env-server
     network_mode: host
-    build: .
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
     ports:
       - 8080:8080
     volumes:
