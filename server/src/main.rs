@@ -22,8 +22,17 @@ async fn main() -> std::io::Result<()> {
             .wrap(Logger::new("%a %s %b"))
             .wrap(cors)
             .route("/auth", web::post().to(auth::verify::verify_code))
+            .service(test_route)
     })
     .bind(port)?
     .run()
     .await;
+}
+
+#[actix_web::get("/test")]
+async fn test_route() -> impl actix_web::Responder {
+    use repo::crypto::keygen;
+    let components = vec!["foo".to_owned(), "bar".to_owned(), "baz".to_owned()];
+    let key = keygen::generate(&components).unwrap();
+    return hex::encode(key);
 }
