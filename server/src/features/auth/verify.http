@@ -1,6 +1,0 @@
-POST http://127.0.0.1:8080/auth
-Content-Type: application/json
-
-{
-    "code": "U2FsdGVkX19O0z4wjdblhlRFps3SK85u6XOExRP+Rdm4eDHL5GRKWkvNi/I7pwhx"
-}
