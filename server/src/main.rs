@@ -30,19 +30,65 @@ async fn main() -> std::io::Result<()> {
     .await;
 }
 
+// example
+#[derive(Debug)]
+struct Foo {
+    bar: String,
+    cipher: String,
+    nonce: Option<String>,
+}
+
+impl repo::crypto::keygen::CipherComponent for Foo {
+    fn key(&self) -> Vec<u8> {
+        self.bar.as_bytes().to_owned()
+    }
+
+    fn data(&self) -> &[u8] {
+        self.cipher.as_bytes()
+    }
+
+    fn seal(&mut self, c: repo::crypto::keygen::CipherData) {
+        self.cipher = hex::encode(c.ciphertext);
+        self.nonce = Some(hex::encode(c.nonce));
+    }
+
+    fn open(&self) -> repo::crypto::keygen::CipherData {
+        if let None = self.nonce {
+            panic!("alskfjklsdjf");
+        }
+
+        let nonce = &self.nonce.as_ref().unwrap();
+        repo::crypto::keygen::CipherData {
+            nonce: hex::decode(nonce).unwrap().try_into().unwrap(),
+            ciphertext: hex::decode(&self.cipher).unwrap(),
+        }
+    }
+}
+
 #[actix_web::get("/test")]
 async fn test_route() -> impl actix_web::Responder {
     use repo::crypto::keygen;
-    let components = vec!["foo".to_owned(), "bar".to_owned(), "baz".to_owned()];
-    let key = keygen::generate(keygen::KeyType::RowKey, &components).unwrap();
-    return hex::encode(key);
-}
+    let mut foo = Foo {
+        bar: "bar".to_owned(),
+        cipher: "baz".to_owned(),
+        nonce: None,
+    };
 
-impl repo::crypto::keygen::KeyComponent for Vec<String> {
-    fn to_bytes(&self) -> Vec<u8> {
-        self.into_iter()
-            .map(|el| el.as_bytes())
-            .collect::<Vec<&[u8]>>()
-            .concat()
-    }
+    dbg!("before seal: {}", &foo);
+
+    keygen::CipherKey::new(keygen::KeyType::RowKey, &foo)
+        .unwrap()
+        .seal(&mut foo)
+        .unwrap();
+
+    dbg!("after seal: {}", &foo);
+
+    keygen::CipherKey::new(keygen::KeyType::RowKey, &foo)
+        .unwrap()
+        .open(&mut foo)
+        .unwrap();
+
+    dbg!("after open: {}", &foo);
+
+    return std::str::from_utf8(&foo.bar.as_ref()).unwrap().to_owned();
 }
