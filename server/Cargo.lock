@@ -1383,6 +1383,7 @@ dependencies = [
  "actix-cors",
  "actix-web",
  "aes-gcm",
+ "base64",
  "dotenv",
  "env_logger",
  "firebase-rs",
