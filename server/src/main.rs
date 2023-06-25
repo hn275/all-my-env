@@ -4,6 +4,7 @@ use dotenv::dotenv;
 use env_logger;
 
 mod features;
+mod models;
 mod repo;
 
 use features::auth;
@@ -33,6 +34,15 @@ async fn main() -> std::io::Result<()> {
 async fn test_route() -> impl actix_web::Responder {
     use repo::crypto::keygen;
     let components = vec!["foo".to_owned(), "bar".to_owned(), "baz".to_owned()];
-    let key = keygen::generate(&components).unwrap();
+    let key = keygen::generate(keygen::KeyType::RowKey, &components).unwrap();
     return hex::encode(key);
+}
+
+impl repo::crypto::keygen::KeyComponent for Vec<String> {
+    fn to_bytes(&self) -> Vec<u8> {
+        self.into_iter()
+            .map(|el| el.as_bytes())
+            .collect::<Vec<&[u8]>>()
+            .concat()
+    }
 }
