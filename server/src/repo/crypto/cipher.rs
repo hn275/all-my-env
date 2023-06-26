@@ -32,83 +32,136 @@ fn get_env(key: &str) -> String {
 }
 
 pub trait CipherComponent {
-    fn input_key(&self) -> &[u8];
-    fn input_data(&self) -> &[u8];
-
-    // returns data used to open
+    fn seal(&mut self, c: CipherData);
     fn open(&self) -> CipherData;
-    // returns nonce (if any)
-    fn nonce(&self) -> Option<Vec<u8>>;
-    // force updating the struct once Cipher data is generated
-    fn update(&mut self, d: CipherData);
+    fn master_key(&self) -> Vec<u8>;
 }
 
 #[derive(Debug, serde::Serialize)]
 pub struct CipherData {
     pub ciphertext: Vec<u8>,
-    pub nonce: [u8; 12], // nonce size is 12 from aesgcm
+    pub nonce: Option<Nonce>, // nonce size is 12 from aesgcm
 }
 
-pub struct Cipher(String);
+pub type Nonce = [u8; 12];
+pub struct Cipher {
+    secret: Vec<u8>,
+}
 impl Cipher {
     pub fn new(key_type: KeyType) -> Cipher {
-        Cipher(key_type.get_secret())
+        Cipher {
+            secret: key_type.get_secret().as_bytes().to_vec(),
+        }
     }
 
-    fn generate_key(&self, buf: &impl CipherComponent) -> Result<[u8; 32], Error> {
+    fn generate_key(&self, c: &impl CipherComponent) -> Result<[u8; 32], Error> {
         let salt = None;
-        let key = buf.input_key();
-        let kdf = Hkdf::<Sha256>::new(salt, key);
+        let kdf = Hkdf::<Sha256>::new(salt, c.master_key().as_ref());
 
-        let secret = self.0.as_bytes();
         let mut output_key = [0u8; 32];
-        kdf.expand(&secret, &mut output_key)
+        kdf.expand(&self.secret, &mut output_key)
             .map_err(|err| Error::ErrInvalidKey(err.to_string()))?;
 
         return Ok(output_key);
     }
 
-    pub fn seal(&self, buf: &mut impl CipherComponent) -> Result<(), Error> {
-        let key = self.generate_key(buf)?;
-        let key = aes_gcm::Key::<aes_gcm::Aes256Gcm>::from_slice(&key);
+    pub fn seal(&mut self, c: &mut impl CipherComponent) -> Result<(), Error> {
+        let key = self.generate_key(c)?;
+        let key = aes_gcm::Key::<aes_gcm::Aes256Gcm>::from_slice(key.as_ref()).to_owned();
 
-        let nonce = match &buf.nonce() {
+        let nonce = match &c.open().nonce {
             None => aes_gcm::Aes256Gcm::generate_nonce(&mut aead::OsRng),
-            Some(n) => {
-                let n: [u8; 12] = n
-                    .to_owned()
-                    .try_into()
-                    .map_err(|_| Error::ErrInvalidNonce)?;
-
-                GenericArray::from_slice(&n).to_owned()
-            }
+            Some(n) => GenericArray::from_slice(n).to_owned(),
         };
 
         let cipher = aes_gcm::Aes256Gcm::new(&key);
-        let plaintext = buf.input_data();
 
         let ciphertext = cipher
-            .encrypt(&nonce, plaintext)
+            .encrypt(&nonce, c.master_key().as_ref())
             .map_err(|err| Error::ErrEncryption(err.to_string()))?;
 
         let nonce: [u8; 12] = nonce.try_into().map_err(|_| Error::ErrInvalidNonce)?;
-        let cipher_data = CipherData { ciphertext, nonce };
-        buf.update(cipher_data);
+        let cipher_data = CipherData {
+            ciphertext,
+            nonce: Some(nonce),
+        };
+        c.seal(cipher_data);
 
         return Ok(());
     }
 
-    pub fn open(&self, buf: &impl CipherComponent) -> Result<Vec<u8>, Error> {
-        let key = self.generate_key(buf)?;
-        let key = aes_gcm::Key::<aes_gcm::Aes256Gcm>::from_slice(&key);
-        let cipher_data = buf.open();
+    pub fn open(&self, c: &impl CipherComponent) -> Result<Vec<u8>, Error> {
+        let cipher_data = c.open();
+        let nonce = match &cipher_data.nonce {
+            None => Err(Error::ErrInvalidNonce)?,
+            Some(n) => GenericArray::from_slice(n).to_owned(),
+        };
+
+        let key = self.generate_key(c)?;
+        let key = aes_gcm::Key::<aes_gcm::Aes256Gcm>::from_slice(key.as_ref()).to_owned();
 
         let cipher = aes_gcm::Aes256Gcm::new(&key);
-        let nonce = GenericArray::from(cipher_data.nonce);
+
         let plaintext = cipher
-            .decrypt(&nonce, cipher_data.ciphertext.as_ref())
+            .decrypt(&nonce, cipher_data.ciphertext.as_slice())
             .map_err(|err| Error::ErrEncryption(err.to_string()))?;
 
         return Ok(plaintext);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[derive(Clone, Debug)]
+    struct Foo {
+        id: String,
+        key: String,
+        value: String,
+        nonce: Option<[u8; 12]>,
+    }
+
+    impl CipherComponent for Foo {
+        fn open(&self) -> CipherData {
+            CipherData {
+                ciphertext: self.value.as_bytes().to_vec(),
+                nonce: self.nonce,
+            }
+        }
+
+        fn seal(&mut self, c: CipherData) {
+            self.value = hex::encode(c.ciphertext);
+            self.nonce = c.nonce
+        }
+
+        fn master_key(&self) -> Vec<u8> {
+            self.id.as_bytes().to_owned()
+        }
+    }
+
+    #[test]
+    fn it_works() {
+        let mut foo = Foo {
+            id: "123".to_owned(),
+            key: "foo".to_owned(),
+            value: "bar".to_owned(),
+            nonce: None,
+        };
+
+        let foo2 = foo.clone();
+        Cipher::new(KeyType::RowKey).seal(&mut foo).unwrap();
+
+        assert_ne!(foo.value, foo2.value);
+        assert!(foo.nonce.is_some());
+        assert_eq!(foo.id, foo2.id);
+        assert_eq!(foo.key, foo2.key);
+
+        Cipher::new(KeyType::RowKey).open(&mut foo).unwrap();
+
+        // assert_eq!(foo.value, foo2.value);
+        // assert!(foo.nonce.is_some());
+        // assert_eq!(foo.id, foo2.id);
+        // assert_eq!(foo.key, foo2.key);
     }
 }
