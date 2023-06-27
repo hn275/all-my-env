@@ -72,11 +72,8 @@ impl Key {
 
 pub struct Cipher(GenericArray<u8, U32>);
 impl Cipher {
-    pub fn seal(&self, plaintext: &[u8], n: Option<Nonce>) -> Result<CipherResult, Error> {
-        let nonce = match n {
-            None => Aes256Gcm::generate_nonce(&mut aead::OsRng),
-            Some(n) => GenericArray::from_slice(&n).to_owned(),
-        };
+    pub fn seal(&self, plaintext: &[u8]) -> Result<CipherResult, Error> {
+        let nonce = Aes256Gcm::generate_nonce(&mut aead::OsRng);
 
         let cipher = aes_gcm::Aes256Gcm::new(&self.0);
         let ciphertext = cipher
@@ -131,7 +128,7 @@ mod tests {
         let (ciphertext, nonce) = Key::new(KeyType::RowKey)
             .generate_key(&foo)
             .unwrap()
-            .seal(foo.value.as_bytes(), None)
+            .seal(foo.value.as_bytes())
             .unwrap();
         assert_ne!(foo.value.as_bytes(), ciphertext);
 
