@@ -55,19 +55,13 @@ fn cipher_decipher() {
     };
 
     // cipher
-    let nonce = None;
-    // `None` value here would be the nonce
-    // seal function will generate a new nonce.
-    // if nonce is available to reuse _for the same secret_
-    // (ie, PUT/PATCH endpoint to update the variable)
-    // pass it in as `Some([u8; 12])` or `Some(cipher::Nonce)`
-    let ciphered = Key::new(KeyType::RowKey)
+    let (ciphertext, nonce) = Key::new(KeyType::RowKey)
         .generate_key(&foo)
         .unwrap()
-        .seal(foo.value.as_bytes(), nonce)
+        .seal(foo.value.as_bytes())
         .unwrap();
 
-    assert_ne!(foo.value.as_bytes(), ciphered.ciphertext);
+    assert_ne!(foo.value.as_bytes(), ciphertext);
 
     // decipher
     let opened = Key::new(KeyType::RowKey)
