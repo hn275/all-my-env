@@ -11,6 +11,10 @@ use aes_gcm::{
 use hkdf::{self, Hkdf};
 use sha2::Sha256;
 
+pub type Nonce = [u8; 12];
+pub type KeySecret = Vec<u8>;
+pub type CipherResult = (Vec<u8>, Nonce);
+
 #[derive(Debug)]
 pub enum Error {
     InvalidKey(String),
@@ -40,14 +44,6 @@ pub trait KeyGen {
     fn key(&self) -> Vec<u8>;
 }
 
-pub struct CipherData {
-    pub ciphertext: Vec<u8>,
-    pub nonce: Nonce,
-}
-
-pub type Nonce = [u8; 12];
-pub type KeySecret = Vec<u8>;
-
 pub struct Key(KeySecret);
 impl Key {
     pub fn new(k: KeyType) -> Key {
@@ -76,7 +72,7 @@ impl Key {
 
 pub struct Cipher(GenericArray<u8, U32>);
 impl Cipher {
-    pub fn seal(&self, plaintext: &[u8], n: Option<Nonce>) -> Result<CipherData, Error> {
+    pub fn seal(&self, plaintext: &[u8], n: Option<Nonce>) -> Result<CipherResult, Error> {
         let nonce = match n {
             None => Aes256Gcm::generate_nonce(&mut aead::OsRng),
             Some(n) => GenericArray::from_slice(&n).to_owned(),
@@ -89,9 +85,7 @@ impl Cipher {
 
         let nonce: Nonce = nonce.try_into().map_err(|_| Error::InvalidNonce)?;
 
-        let cipher_data = CipherData { ciphertext, nonce };
-
-        return Ok(cipher_data);
+        return Ok((ciphertext, nonce));
     }
 
     pub fn open(&self, ciphertext: &[u8], n: Nonce) -> Result<Vec<u8>, Error> {
@@ -134,20 +128,21 @@ mod tests {
             value: "bar".to_owned(),
         };
 
-        let ciphered = Key::new(KeyType::RowKey)
+        let (ciphertext, nonce) = Key::new(KeyType::RowKey)
             .generate_key(&foo)
             .unwrap()
             .seal(foo.value.as_bytes(), None)
             .unwrap();
-
-        assert_ne!(foo.value.as_bytes(), ciphered.ciphertext);
+        assert_ne!(foo.value.as_bytes(), ciphertext);
 
         let opened = Key::new(KeyType::RowKey)
             .generate_key(&foo)
             .unwrap()
-            .open(ciphered.ciphertext.as_slice(), ciphered.nonce)
+            .open(ciphertext.as_slice(), nonce)
             .unwrap();
-
         assert_eq!(foo.value.as_bytes(), opened);
+
+        let value = std::str::from_utf8(opened.as_slice()).unwrap();
+        assert_eq!(value, "bar");
     }
 }
