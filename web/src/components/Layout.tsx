@@ -5,5 +5,5 @@ interface Props {
 }
 // TODO: global styles go here
 export function Layout({ children }: Props) {
-  return <div>{children}</div>;
+  return <div className="bg-dark">{children}</div>;
 }
