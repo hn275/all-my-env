@@ -3,7 +3,10 @@ export default {
   content: ["./src/**/*.{ts,tsx,js,jsx,html}"],
   theme: {
     extend: {
-      fontFamily: {},
+      fontFamily: {
+        accent: ["Alegreya SC", "serifs"],
+        regular: ["Inter", "sans-serifs"],
+      },
       colors: {
         main: "#0d9488",
         dark: "#262626",
