@@ -1,1 +1,6 @@
-GET http://127.0.0.1:8080/test
+POST http://127.0.0.1:8080/auth
+Content-type: application/json
+
+{
+"code": "3dfb360befdd9507a8d4"
+}
