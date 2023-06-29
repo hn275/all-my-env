@@ -6,8 +6,12 @@ use actix_web::{
     http::{header, StatusCode},
     web, HttpResponse, HttpResponseBuilder,
 };
+use hmac::{Hmac, Mac};
+use jwt::SignWithKey;
 use reqwest;
 use serde::{Deserialize, Serialize};
+use sha2::Sha256;
+use std::env::var;
 use std::future::Future;
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -36,11 +40,31 @@ pub async fn verify_code(token: web::Json<Token>) -> Result<HttpResponse, ApiErr
     let mut github_account = get_user_account(bearer_token).await?;
     github_account.token = String::from(bearer_token);
 
+    let auth_token = Token {
+        code: sign_jwt(&github_account).unwrap(),
+    };
+
     let response = HttpResponseBuilder::new(StatusCode::OK)
-        .insert_header(header::ContentType::plaintext())
-        .json(github_account);
+        .insert_header(header::ContentType::json())
+        .json(&auth_token);
+
+    dbg!(&github_account);
 
     return Ok(response);
+}
+
+fn sign_jwt(u: &GithubAccount) -> Result<String, ApiError> {
+    let secret = var("JWT_SECRET")
+        .map_err(|err| ApiError::internal(Box::new(err)))?
+        .as_bytes()
+        .to_owned();
+
+    let key: Hmac<Sha256> = Hmac::new_from_slice(&secret).unwrap();
+
+    // TODO: add algorithms for headers here
+    let token = u.sign_with_key(&key).unwrap();
+
+    Ok(token)
 }
 
 async fn get_user_account(token: &str) -> Result<GithubAccount, ApiError> {
@@ -78,8 +102,6 @@ fn get_token(payload: &str) -> Result<&str, ApiError> {
 }
 
 fn get_oauth(code: &str) -> impl Future<Output = Result<reqwest::Response, reqwest::Error>> {
-    use std::env::var;
-
     let client_id = var("GITHUB_CLIENT_ID").expect("`GITHUB_CLIENT_ID` not set");
     let client_secret = var("GITHUB_CLIENT_SECRET").expect("`GITHUB_CLIENT_SECRET` not set");
 
