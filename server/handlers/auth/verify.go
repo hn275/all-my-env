@@ -8,34 +8,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/gh"
-	"github.com/hn275/envhub/server/jsonwebtoken"
 )
 
-type Token struct {
-	Code string
-}
-
-type GithubAuthToken struct {
-	AccessToken string `json:"access_token"`
-	Scope       string `json:"scope"`
-	TokenType   string `json:"token_type"`
-}
-
-type User struct {
-	Token     string `json:"token,omitempty"`
-	ID        int    `json:"id"`
-	Login     string `json:"login"`
-	AvatarUrl string `json:"avatar_url"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-}
-
-type JwtToken struct {
-	User `json:",inline"`
-	jwt.RegisteredClaims
-}
-
-func verify(w http.ResponseWriter, r *http.Request) {
+func VerifyToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -94,7 +69,7 @@ func verify(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	jwtStr, err := jsonwebtoken.Sign(&jwtToken)
+	jwtStr, err := Sign(&jwtToken)
 	if err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
@@ -118,6 +93,5 @@ func githubOAuth(code string) (*http.Response, error) {
 	}
 	req.Header.Add("accept", "application/json")
 
-	var cx http.Client
-	return cx.Do(req)
+	return AuthClient.Do(req)
 }
