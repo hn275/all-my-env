@@ -2,28 +2,32 @@ package gh
 
 import (
 	"net/http"
+
+	"github.com/hn275/envhub/server/lib"
 )
 
 const (
 	githubUrl = "https://api.github.com"
 )
 
-var (
-	GithubClientID     string
-	GithubClientSecret string
-)
-
 type GithubContext struct {
 	token string
 }
 
-type GithubClient struct {
-	http.Client
+type Client interface {
+	Do(req *http.Request) (*http.Response, error)
 }
+
+var (
+	GithubClientID     string
+	GithubClientSecret string
+	GithubClient       Client
+)
 
 func init() {
 	GithubClientID = lib.Getenv("GITHUB_CLIENT_ID")
 	GithubClientSecret = lib.Getenv("GITHUB_CLIENT_SECRET")
+	GithubClient = &http.Client{}
 }
 
 func New(token string) *GithubContext {
@@ -44,6 +48,5 @@ func (g *GithubContext) Get(path string) (*http.Response, error) {
 	req.Header.Add("Authorization", "Bearer "+g.token)
 	req.Header.Add("Accent", "application/vnd.github+json")
 
-	var cx http.Client
-	return cx.Do(req)
+	return GithubClient.Do(req)
 }
