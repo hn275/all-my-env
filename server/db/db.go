@@ -1,11 +1,11 @@
 package db
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
@@ -16,7 +16,7 @@ var (
 	password string
 	dbname   string
 	sslmode  string
-	db       *sql.DB
+	db       *sqlx.DB
 	err      error
 )
 
@@ -33,7 +33,7 @@ func init() {
 		host, port, user, password, dbname, sslmode,
 	)
 
-	db, err = sql.Open("postgres", dsn)
+	db, err = sqlx.Connect("postgres", dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
