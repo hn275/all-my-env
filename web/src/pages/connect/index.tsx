@@ -61,7 +61,7 @@ function useLogin() {
       setLoading(() => true);
       setErr(() => undefined);
       try {
-        const response = await fetch(`${API}/auth`, {
+        const response = await fetch(`${API}/auth/github`, {
           method: "POST",
           headers: {
             "content-type": "application/json",
@@ -72,9 +72,13 @@ function useLogin() {
         const { status } = response;
         switch (true) {
           case status === 200:
-            const { code } = (await response.json()) as Response;
+            const code = await response.text();
             // TODO: parse header
-            // const header = jwt.decodeProtectedHeader(code);
+            const header = jwt.decodeProtectedHeader(code);
+            if (header.alg !== "HS256" || header.typ !== "JWT") {
+              setErr(() => "Authentication failed.");
+              return;
+            }
             const secret = new Uint8Array(
               JWT_SECRET.split("").map((x) => x.charCodeAt(0)),
             );
