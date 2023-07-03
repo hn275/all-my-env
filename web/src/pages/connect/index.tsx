@@ -4,13 +4,12 @@ import cx from "classnames";
 import { Spinner } from "./Spinner";
 import * as jwt from "jose";
 import { WEB } from "lib/routes";
+import { Github, User } from "lib/github";
 
 const API = import.meta.env.VITE_ENVHUB_API;
 const JWT_SECRET: string = import.meta.env.VITE_JWT_SECRET;
-
-interface Response {
-  code: string;
-}
+const JWT_ALGO = import.meta.env.VITE_JWT_HEADER_ALGO;
+const JWT_TYP = import.meta.env.VITE_JWT_HEADER_TYPE;
 
 export function Connect() {
   const { loading, err } = useLogin();
@@ -54,41 +53,43 @@ function useLogin() {
   const nav = useNavigate();
 
   useEffect(() => {
-    const githubCode = param.get("code");
-    if (!githubCode || githubCode === "") return;
-
     (async () => {
       setLoading(() => true);
       setErr(() => undefined);
       try {
+        const code = param.get("code");
+        if (!code || code === "") throw new Error("`code` param not set");
+
         const response = await fetch(`${API}/auth/github`, {
           method: "POST",
           headers: {
             "content-type": "application/json",
           },
-          body: JSON.stringify({ code: githubCode }),
+          body: JSON.stringify({ code }),
         });
 
         const { status } = response;
         switch (true) {
           case status === 200:
             const code = await response.text();
-            // TODO: parse header
-            const header = jwt.decodeProtectedHeader(code);
-            if (header.alg !== "HS256" || header.typ !== "JWT") {
+
+            const { alg, typ } = jwt.decodeProtectedHeader(code);
+            const invalidHeader = alg !== JWT_ALGO || typ !== JWT_TYP;
+            if (invalidHeader) {
               setErr(() => "Authentication failed.");
               return;
             }
+
             const secret = new Uint8Array(
               JWT_SECRET.split("").map((x) => x.charCodeAt(0)),
             );
             const claims = await jwt.jwtVerify(code, secret);
-            await setSession("users", JSON.stringify(claims));
+            Github.saveUser(claims as unknown as User);
             nav(WEB.dash);
             return;
 
-          case status === 401:
-            setErr(() => "Authentication failed. Try again.");
+          case status === 401 || status === 403:
+            setErr(() => "Authentication failed.");
             return;
 
           default:
@@ -98,7 +99,7 @@ function useLogin() {
             return;
         }
       } catch (e) {
-        setErr(() => "Authentication failed, try again later.");
+        setErr(() => "Server is not responding, try again later.");
         console.error(e);
       } finally {
         setLoading(() => false);
@@ -107,11 +108,4 @@ function useLogin() {
   }, []);
 
   return { loading, err };
-}
-
-function setSession(k: string, v: string): Promise<void> {
-  return new Promise((resolve) => {
-    window.sessionStorage.setItem(k, v);
-    resolve();
-  });
 }
