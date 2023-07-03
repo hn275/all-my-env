@@ -1,9 +1,7 @@
 package gh
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 )
 
 const (
@@ -15,30 +13,28 @@ var (
 	GithubClientSecret string
 )
 
-type GithubClient struct {
+type GithubContext struct {
 	token string
 }
 
+type GithubClient struct {
+	http.Client
+}
+
 func init() {
-	GithubClientID = os.Getenv("GITHUB_CLIENT_ID")
-	if GithubClientID == "" {
-		panic("GITHUB_CLIENT_ID not set")
-	}
-	GithubClientSecret = os.Getenv("GITHUB_CLIENT_SECRET")
-	if GithubClientSecret == "" {
-		panic("GITHUB_CLIENT_SECRET not set")
-	}
+	GithubClientID = lib.Getenv("GITHUB_CLIENT_ID")
+	GithubClientSecret = lib.Getenv("GITHUB_CLIENT_SECRET")
 }
 
-func New(token string) *GithubClient {
-	return &GithubClient{token}
+func New(token string) *GithubContext {
+	return &GithubContext{token}
 }
 
-func (g *GithubClient) Get(path string) (*http.Response, error) {
+func (g *GithubContext) Get(path string) (*http.Response, error) {
 	if path[0] != '/' {
 		path = "/" + path
 	}
-	url := fmt.Sprintf("%s/%s", githubUrl, path)
+	url := githubUrl + path
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
