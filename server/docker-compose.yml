@@ -10,7 +10,6 @@ services:
       - 8080:8080
     volumes:
       - .:/app
-      - app:/app
     environment:
       GITHUB_CLIENT_ID:
       GITHUB_CLIENT_SECRET:
@@ -37,6 +36,3 @@ services:
       - 5432:5432
     volumes:
       - ./tmp/data:/var/lib/postgresql/data
-
-volumes:
-  app:
