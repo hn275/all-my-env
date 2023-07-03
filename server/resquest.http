@@ -1,0 +1,4 @@
+POST http://localhost:8080/auth/github
+Content-type: application/json
+
+{"code": "4ad6a6d61aa775a2d4c6"}
