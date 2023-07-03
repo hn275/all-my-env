@@ -3,7 +3,6 @@ version: "3"
 services:
   app:
     container_name: envhub
-    network_mode: host
     build:
       context: .
       dockerfile: dev.Dockerfile
@@ -17,6 +16,12 @@ services:
       GITHUB_CLIENT_SECRET:
       JWT_SECRET:
       ROW_KEY_SECRET:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: username
+      POSTGRES_DB: envhub
+      POSTGRES_PORT: 5432
+      POSTGRES_HOST: db
+      POSTGRES_SSLMODE: "disable"
     links:
       - db
 
