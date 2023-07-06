@@ -26,6 +26,6 @@ dbfix broken_version # if you made a syntax, this is needed before deploying aga
 ### Testing
 
 ```sh
-test # run all tests
+# TODO: ignore tmp dir for testing
 test ./path/to/package
 ```

@@ -13,14 +13,16 @@ export POSTGRES_DSN="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES
 
 MIGRATION_DIR="./db/migrations"
 function test() {
-    if [ -z "${1}" ];then
-        echo "Testing all packages"
-        go test ./... -coverprofile cover.out
-    else
-        echo "Testing package ${1}"
-        go test $1 -coverprofile cover.out
-    fi
+    # if [ -z "${1}" ];then
+    #     echo "Testing all packages"
+    #     go test ./... -coverprofile cover.out
+    # else
+    #     echo "Testing package ${1}"
+    #     go test $1 -coverprofile cover.out
+    # fi
     
+    echo "Testing package ${1}"
+    go test $1 -coverprofile cover.out
     [[ -f cover.out ]] && rm cover.out
 }
 
