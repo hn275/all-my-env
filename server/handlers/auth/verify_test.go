@@ -24,7 +24,7 @@ type githubMock struct{}
 type authCxMock struct{}
 
 func (m *githubMock) Do(req *http.Request) (*http.Response, error) {
-	user := auth.User{
+	user := auth.GithubUser{
 		ID:        123,
 		Login:     "hn275",
 		AvatarUrl: "https://avatars.githubusercontent.com/u/97143596?v=4",
@@ -122,7 +122,7 @@ func TestVerifyTokenOK(t *testing.T) {
 	assert.NotEmpty(t, token.Email)
 	assert.NotEmpty(t, token.Name)
 	assert.NotEmpty(t, token.Login)
-	assert.NotEmpty(t, token.User.ID)
+	assert.NotEmpty(t, token.GithubUser.ID)
 	assert.Equal(t, token.Issuer, "Envhub")
 	assert.Equal(t, token.Token, test_token)
 }

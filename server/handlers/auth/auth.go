@@ -23,7 +23,7 @@ type GithubAuthToken struct {
 	TokenType   string `json:"token_type"`
 }
 
-type User struct {
+type GithubUser struct {
 	Token     string `json:"token,omitempty"`
 	ID        int    `json:"id"`
 	Login     string `json:"login"`
@@ -33,7 +33,7 @@ type User struct {
 }
 
 type JwtToken struct {
-	User `json:",inline"`
+	GithubUser `json:",inline"`
 	jwt.RegisteredClaims
 }
 

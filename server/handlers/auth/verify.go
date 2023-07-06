@@ -7,18 +7,22 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/api"
+	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/gh"
+	"github.com/hn275/envhub/server/lib"
 )
 
 func VerifyToken(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
+	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
 	var token Token
 	if err := json.NewDecoder(r.Body).Decode(&token); err != nil {
-		api.NewResponse(w).ServerError(err)
+		api.NewResponse(w).
+			Status(http.StatusBadRequest).
+			Error("invalid credentials")
 		return
 	}
 
@@ -54,18 +58,30 @@ func VerifyToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user User
-	if err := json.NewDecoder(ghResponse.Body).Decode(&user); err != nil {
+	var userInfo GithubUser
+	if err := json.NewDecoder(ghResponse.Body).Decode(&userInfo); err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
 
-	user.Token = accesstoken.AccessToken
+	// save user in db (if not exists)
+	user := db.User{
+		ID:        userInfo.ID,
+		CreatedAt: lib.TimeStamp(),
+		Vendor:    db.VendorGithub,
+		UserName:  userInfo.Login,
+	}
+	if err := saveUser(&user); err != nil {
+		api.NewResponse(w).ServerError(err)
+		return
+	}
+
+	userInfo.Token = accesstoken.AccessToken
 	jwtToken := JwtToken{
-		user,
+		userInfo,
 		jwt.RegisteredClaims{
 			Issuer:  "Envhub",
-			Subject: user.Name,
+			Subject: userInfo.Name,
 		},
 	}
 
@@ -78,6 +94,16 @@ func VerifyToken(w http.ResponseWriter, r *http.Request) {
 	api.NewResponse(w).Status(http.StatusOK).Text(jwtStr)
 }
 
+func saveUser(u *db.User) error {
+	stmt := `
+INSERT INTO users (id, created_at, vendor, username) 
+	VALUES (:id, :created_at, :vendor, :username)
+	ON CONFLICT DO NOTHING
+	`
+	_, err := db.New().NamedExec(stmt, u)
+	return err
+}
+
 func githubOAuth(code string) (*http.Response, error) {
 	// get auth token
 	ghEndpoint := "https://github.com/login/oauth/access_token"
@@ -87,7 +113,7 @@ func githubOAuth(code string) (*http.Response, error) {
 	v.Set("code", code)
 	ghEndpoint += "?" + v.Encode()
 
-	req, err := http.NewRequest("POST", ghEndpoint, nil)
+	req, err := http.NewRequest(http.MethodPost, ghEndpoint, nil)
 	if err != nil {
 		return nil, err
 	}
