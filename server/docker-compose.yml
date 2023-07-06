@@ -25,6 +25,7 @@ services:
       - db
 
   db:
+    container_name: envhub-db
     image: postgres:14-alpine3.17
     restart: always
     environment:
