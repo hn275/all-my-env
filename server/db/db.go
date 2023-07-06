@@ -3,8 +3,8 @@ package db
 import (
 	"fmt"
 	"log"
-	"os"
 
+	"github.com/hn275/envhub/server/lib"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -16,17 +16,18 @@ var (
 	password string
 	dbname   string
 	sslmode  string
-	db       *sqlx.DB
-	err      error
+
+	db  *sqlx.DB
+	err error
 )
 
 func init() {
-	host = getEnv("POSTGRES_HOST")
-	user = getEnv("POSTGRES_USER")
-	password = getEnv("POSTGRES_PASSWORD")
-	dbname = getEnv("POSTGRES_DB")
-	port = getEnv("POSTGRES_PORT")
-	sslmode = getEnv("POSTGRES_SSLMODE")
+	host = lib.Getenv("POSTGRES_HOST")
+	user = lib.Getenv("POSTGRES_USER")
+	password = lib.Getenv("POSTGRES_PASSWORD")
+	dbname = lib.Getenv("POSTGRES_DB")
+	port = lib.Getenv("POSTGRES_PORT")
+	sslmode = lib.Getenv("POSTGRES_SSLMODE")
 
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
@@ -43,15 +44,11 @@ func init() {
 	}
 }
 
-func getEnv(k string) string {
-	t := os.Getenv(k)
-	if t == "" {
-		log.Fatalf("[%s] not set", k)
-	}
-
-	return t
+func New() *sqlx.DB {
+	return db
 }
 
+// only call in main.go
 func Close() {
 	if err := db.Close(); err != nil {
 		log.Fatal(err)
