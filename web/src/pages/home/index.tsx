@@ -1,4 +1,4 @@
-import { GITHUB_SECRET } from "lib/github";
+import { GITHUB_SECRET } from "lib/github/request";
 import Logo from "assets/logo.svg";
 import { Layout } from "components/Layout";
 
