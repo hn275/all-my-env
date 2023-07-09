@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 const SESSION_ENTRY = "users";
 
 export const GITHUB_SECRET = import.meta.env.VITE_GITHUB_CLIENT_ID;
@@ -37,48 +35,24 @@ export class Github {
 
 		return JSON.parse(b) as User;
 	}
-}
 
-export function useGithubFetch<T>(path: string) {
-	const [data, setData] = useState<T | null>();
-	const [error, setError] = useState<string>();
+	static GET(path: string, params?: Record<string, string>) {
+		if (path[0] != "/") path = "/" + path;
+		const user = this.getUser();
 
-	useEffect(() => {
-		const session = window.sessionStorage.getItem(SESSION_ENTRY);
-		if (!session) {
-			// redirect to login page
-			return;
+		let url = "https://api.github.com" + path;
+		if (params) {
+			const p = new URLSearchParams(params);
+			url += "?" + p.toString();
 		}
-		const { payload } = JSON.parse(session) as User;
 
-		(async () => {
-			try {
-				const { token } = payload;
-				const req = await fetch(path, {
-					method: "GET",
-					headers: {
-						Accept: "application/vnd.github+json",
-						Authorization: `Bearer ${token}`,
-						"X-GitHub-Api-Version": "2022-11-28",
-					},
-				});
-
-				const { status } = req;
-				const res = await req.json();
-				switch (status) {
-					case 200:
-						setData(() => payload as T);
-						return;
-					default:
-						setError(() => res["error"]);
-						return;
-				}
-			} catch (e) {
-				setError(() => "Server not responding");
-				console.error(e);
-			}
-		})();
-	}, []);
-
-	return { data, error };
+		return fetch(url, {
+			method: "GET",
+			headers: {
+				Accept: "application/vnd.github+json",
+				Authorization: `Bearer ${user?.payload.token}`,
+				"X-GitHub-Api-Version": "2022-11-28",
+			},
+		});
+	}
 }
