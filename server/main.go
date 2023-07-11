@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/handlers/auth"
 )
 
@@ -22,8 +21,6 @@ func init() {
 }
 
 func main() {
-	defer db.Close()
-
 	mux := chi.NewMux()
 	mux.Use(middleware.Logger)
 	mux.Use(cors.Handler(cors.Options{

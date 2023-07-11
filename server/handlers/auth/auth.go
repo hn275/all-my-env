@@ -6,7 +6,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/lib"
+	"gorm.io/gorm"
 )
 
 type AuthCx interface {
@@ -37,17 +39,23 @@ type JwtToken struct {
 	jwt.RegisteredClaims
 }
 
+type AuthHandler struct {
+	*gorm.DB
+}
+
 var (
 	AuthClient     AuthCx
 	secret         string
 	ErrInvalidType = errors.New("invalid type")
+	Handler        *AuthHandler
 )
 
 func init() {
 	AuthClient = &http.Client{}
 	secret = lib.Getenv("JWT_SECRET")
+	Handler = &AuthHandler{db.New()}
 }
 
 func Router(r chi.Router) {
-	r.Handle("/github", http.HandlerFunc(VerifyToken))
+	r.Handle("/github", http.HandlerFunc(Handler.VerifyToken))
 }

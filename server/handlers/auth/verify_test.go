@@ -68,7 +68,7 @@ func init() {
 
 func testInit() (*chi.Mux, *bytes.Reader) {
 	m := chi.NewMux()
-	m.Handle("/auth/github", http.HandlerFunc(auth.VerifyToken))
+	m.Handle("/auth/github", http.HandlerFunc(auth.Handler.VerifyToken))
 
 	token := auth.Token{
 		Code: "sometestcode",
