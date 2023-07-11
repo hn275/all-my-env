@@ -26,22 +26,10 @@ function test() {
     [[ -f cover.out ]] && rm cover.out
 }
 
-function dbnew() {
-    migrate create -ext sql -dir db/migrations -seq $1
-}
-
-function dbup() {
-    migrate -database $POSTGRES_DSN -path $MIGRATION_DIR up 1
-}
-
-function dbdown() {
-    migrate -database $POSTGRES_DSN -path ./db/migrations down 1
-}
-
-function dbfix() {
-    migrate -database $POSTGRES_DSN -path ./db/migrations force $1
-}
-
 function dbview() {
     docker exec -it envhub-db psql -U username envhub
+}
+
+function dbml() {
+    pg-to-dbml -c=${POSTGRES_DSN}
 }
