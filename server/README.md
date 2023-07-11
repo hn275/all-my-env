@@ -14,13 +14,10 @@
 source env.bash
 ```
 
-### Database Migration
+### Generating New DBML file
 
 ```sh
-dbnew some_migration_name
-dbup # deploy migration
-dbdown # rollback migration
-dbfix broken_version # if you made a syntax, this is needed before deploying again
+dbml
 ```
 
 ### Testing

@@ -1,0 +1,29 @@
+Table "repositories" {
+ 	"id" bigint  [primary key] 
+ 	"created_at" timestamp   
+ 	"full_name" text   
+ 	"url" text   
+ 	"user_id" bigint   
+ } 
+ 
+ Table "users" {
+ 	"id" bigint  [primary key] 
+ 	"created_at" text   
+ 	"vendor" text   
+ 	"user_name" text   
+ } 
+ 
+ Table "variables" {
+ 	"id" bigint  [primary key] 
+ 	"created_at" timestamp   
+ 	"updated_at" timestamp   
+ 	"key" text   
+ 	"value" text   
+ 	"nonce" text   
+ 	"repository_id" bigint   
+ } 
+ 
+ 
+Ref: "repositories".user_id > "users".id
+Ref: "variables".repository_id > "repositories".id 
+ 
