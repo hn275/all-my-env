@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/hn275/envhub/server/lib"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 	dbname   string
 	sslmode  string
 
-	db  *sqlx.DB
+	db  *gorm.DB
 	err error
 )
 
@@ -34,23 +34,24 @@ func init() {
 		host, port, user, password, dbname, sslmode,
 	)
 
-	db, err = sqlx.Connect("postgres", dsn)
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.Ping()
-	if err != nil {
-		log.Fatal(err)
-	}
+
+	// auto migrate
+	autoMigrate(db, &User{})
+	autoMigrate(db, &Repository{})
+	autoMigrate(db, &Variable{})
+	fmt.Println("Automigrate done")
 }
 
-func New() *sqlx.DB {
+func New() *gorm.DB {
 	return db
 }
 
-// only call in main.go
-func Close() {
-	if err := db.Close(); err != nil {
+func autoMigrate(db *gorm.DB, d interface{}) {
+	if err := db.AutoMigrate(&d); err != nil {
 		log.Fatal(err)
 	}
 }

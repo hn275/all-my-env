@@ -12,7 +12,7 @@ import (
 	"github.com/hn275/envhub/server/lib"
 )
 
-func VerifyToken(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -71,7 +71,7 @@ func VerifyToken(w http.ResponseWriter, r *http.Request) {
 		Vendor:    db.VendorGithub,
 		UserName:  userInfo.Login,
 	}
-	if err := saveUser(&user); err != nil {
+	if err := h.Create(&user).Error; err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
@@ -92,16 +92,6 @@ func VerifyToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	api.NewResponse(w).Status(http.StatusOK).Text(jwtStr)
-}
-
-func saveUser(u *db.User) error {
-	stmt := `
-INSERT INTO users (id, created_at, vendor, username) 
-	VALUES (:id, :created_at, :vendor, :username)
-	ON CONFLICT DO NOTHING
-	`
-	_, err := db.New().NamedExec(stmt, u)
-	return err
 }
 
 func githubOAuth(code string) (*http.Response, error) {
