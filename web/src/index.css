@@ -4,6 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
+body {
 	@apply bg-dark text-light font-regular;
 }
