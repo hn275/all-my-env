@@ -5,9 +5,10 @@
 @tailwind utilities;
 
 body {
-	@apply bg-dark text-light font-regular;
+	@apply bg-dark font-regular text-light;
 }
 
-a {
-	@apply hover:underline hover:cursor-pointer;
+a:hover {
+	text-decoration: underline;
+	cursor: pointer;
 }
