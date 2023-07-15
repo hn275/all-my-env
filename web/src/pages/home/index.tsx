@@ -1,12 +1,11 @@
 import { GITHUB_SECRET } from "lib/github/request";
-import Logo from "assets/logo.svg";
 import { Layout } from "components/Layout";
+import { Nav } from "./Nav";
 
 export function Home() {
 	return (
 		<Layout>
-			<img src={Logo} alt="logo" />
-			<a href={getLoginUrl()}>login</a>
+			<Nav url={getLoginUrl()} />
 		</Layout>
 	);
 }
