@@ -1,9 +1,8 @@
 import { ReactNode } from "react";
 
 interface Props {
-  children: ReactNode;
+	children: ReactNode;
 }
-// TODO: global styles go here
 export function Layout({ children }: Props) {
-  return <div className="bg-dark">{children}</div>;
+	return <div className="max-w-screen-2xl w-full mx-auto">{children}</div>;
 }
