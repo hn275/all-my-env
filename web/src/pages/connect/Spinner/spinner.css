@@ -29,7 +29,7 @@
 	50% {
 		stroke-dasharray: 90, 200;
 		stroke-dashoffset: -35px;
-		@apply stroke-accent-fuchsia;
+		@apply stroke-accent-fuchsia-200;
 	}
 
 	100% {
