@@ -14,17 +14,17 @@ const JWT_TYP = import.meta.env.VITE_JWT_HEADER_TYPE;
 export function Connect() {
 	const { loading, err } = useLogin();
 	return (
-		<section className="flex justify-center items-center h-[100vh]">
+		<section className="flex h-[100vh] items-center justify-center">
 			{err ? (
 				<Container>
-					<h1 className="text-2xl font-semibold text-main mb-2">Whoops!</h1>
+					<h1 className="mb-2 text-2xl font-semibold text-main">Whoops!</h1>
 					<p>{err}</p>
 				</Container>
 			) : (
 				loading && (
 					<div className="flex flex-col items-center gap-4">
 						<Spinner />
-						<p className="text-main text-lg font-semibold">Authenticating...</p>
+						<p className="text-lg font-semibold text-main">Authenticating...</p>
 					</div>
 				)
 			)}
@@ -39,7 +39,7 @@ function Container({ children, className, ...rest }: ContainerProps) {
 	return (
 		<div
 			{...rest}
-			className={cx([className, "p-10 border border-main text-center"])}
+			className={cx([className, "border border-main p-10 text-center"])}
 		>
 			{children}
 		</div>
@@ -85,6 +85,7 @@ function useLogin() {
 						);
 						const claims = await jwt.jwtVerify(code, secret);
 						Github.saveUser(claims as unknown as User);
+						Github.saveToken(code);
 						nav(WEB.dash);
 						return;
 
