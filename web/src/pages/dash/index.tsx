@@ -31,14 +31,14 @@ export function Dash() {
 	return (
 		<>
 			<section>
-				<img src={user?.payload.avatar_url} className="rounded-full w-20" />
+				<img src={user?.payload.avatar_url} className="w-20 rounded-full" />
 				<h1>{user?.payload.name}</h1>
 			</section>
 
-			<section className="relative h-[50vh] flex flex-col m-5">
+			<section className="relative m-5 flex h-[50vh] flex-col">
 				<h2>Repositories:</h2>
 
-				<div className="flex items-center gap-3 w-max ml-auto">
+				<div className="ml-auto flex w-max items-center gap-3">
 					<div>
 						<label htmlFor="sort">Sort by: </label>
 						<select
@@ -77,21 +77,21 @@ export function Dash() {
 						<ul
 							className={cx([
 								"flex-grow overflow-y-scroll",
-								"border border-main p-2 rounded-sm",
+								"rounded-sm border border-main p-2",
 							])}
 						>
 							{data.length === 0 ? (
-								<li className="flex absolute top-0 left-0 w-full h-full justify-center items-center">
+								<li className="absolute left-0 top-0 flex h-full w-full items-center justify-center">
 									<p>You don't have any repository yet.</p>
 								</li>
 							) : (
 								data.map((repo) => (
-									<li className="flex items-center gap-3 my-3">
+									<li className="my-3 flex items-center gap-3">
 										<img
 											src={repo.owner.avatar_url}
 											role="presentation"
 											alt={repo.owner.login}
-											className="rounded-full w-8 aspect-auto"
+											className="aspect-auto w-8 rounded-full"
 										/>
 										<a href={`https://www.github.com/${repo.full_name}`}>
 											{repo.name}
@@ -106,7 +106,7 @@ export function Dash() {
 				)}
 			</section>
 
-			<div className="flex gap-3 justify-center mx-auto">
+			<div className="mx-auto flex justify-center gap-3">
 				<button onClick={handlePrevPage}>prev</button>
 				<p>{page}</p>
 				<button onClick={handleNextPage}>next</button>

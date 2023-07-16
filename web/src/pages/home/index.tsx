@@ -1,5 +1,4 @@
 import { GITHUB_SECRET } from "lib/github/request";
-import { Layout } from "components/Layout";
 import { Nav } from "./Nav";
 import { AiFillGithub } from "react-icons/ai";
 import "./style.css";
@@ -13,9 +12,9 @@ export function Home() {
 			{/* HERO */}
 			<section
 				className={cx([
-					"relative h-[calc(100vh-64px)] w-full overflow-x-hidden",
+					"h-max min-h-[calc(100vh-65px)] w-full overflow-x-hidden",
 					"flex flex-col items-center justify-center gap-6",
-					"px-3 text-center md:px-0",
+					"px-3 pb-[4rem] text-center md:px-0",
 				])}
 			>
 				<h1 className="hero-text-gradient font-accent text-4xl font-bold uppercase">
@@ -47,6 +46,8 @@ export function Home() {
 				<div className="hero-graphic-blur main" />
 				<div className="hero-graphic-blur accent" />
 			</section>
+
+			<section className="relative min-h-screen bg-gradient-to-b from-[rgba(64,64,64,1)] to-[rgba(64,64,64,0)]"></section>
 		</>
 	);
 }
