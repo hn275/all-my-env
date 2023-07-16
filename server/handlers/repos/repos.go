@@ -13,10 +13,9 @@ func Handlers() *RepoHandler {
 	return &RepoHandler{db.New()}
 }
 
-type Repository []RepositoryElement
-
-type RepositoryElement struct {
-	ID                       int64       `json:"id"`
+type Repository struct {
+	ID                       uint        `json:"id"`
+	Linked                   bool        `json:"linked"`
 	NodeID                   string      `json:"node_id"`
 	Name                     string      `json:"name"`
 	FullName                 string      `json:"full_name"`
