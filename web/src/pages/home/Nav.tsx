@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Logo from "assets/logo.svg";
 import cx from "classnames";
 import { MdMenu } from "react-icons/md";
@@ -11,9 +11,16 @@ interface Props {
 }
 export function Nav({ oauthUrl, githubUrl }: Props) {
 	const { open, toggleOpen } = useMenu();
+	const show = useNavScroll();
 
 	return (
-		<nav className="justify-between md:flex md:backdrop-blur">
+		<nav
+			className={cx([
+				"sticky left-0 top-0 z-50 transition-all",
+				"-translate-y-full justify-between md:flex md:backdrop-blur",
+				{ "translate-y-0": show },
+			])}
+		>
 			<div className="flex h-16 items-center justify-between px-5">
 				<img src={Logo} alt="logo" />
 				<button
@@ -91,4 +98,18 @@ function useMenu() {
 	const [open, setOpen] = useState<boolean>(false);
 	const toggleOpen = () => setOpen((o) => !o);
 	return { open, toggleOpen };
+}
+
+function useNavScroll() {
+	const [show, setShow] = useState<boolean>(false);
+	useEffect(() => {
+		const fn = () => setShow(() => window.scrollY > window.innerHeight / 4);
+
+		window.addEventListener("scroll", fn);
+		return () => window.removeEventListener("scroll", fn);
+	}, [window.scrollY, window.innerHeight]);
+
+	useEffect(() => console.log(show), [show]);
+
+	return show;
 }

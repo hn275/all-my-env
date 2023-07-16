@@ -6,6 +6,7 @@
 
 body {
 	@apply bg-dark font-regular text-light;
+	overflow-x: hidden;
 }
 
 a:hover {
