@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/lib"
@@ -56,6 +55,6 @@ func init() {
 	Handler = &AuthHandler{db.New()}
 }
 
-func Router(r chi.Router) {
-	r.Handle("/github", http.HandlerFunc(Handler.VerifyToken))
+func Handlers() *AuthHandler {
+	return &AuthHandler{db.New()}
 }
