@@ -1,6 +1,8 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import { Github } from "lib/github/request";
 import cx from "classnames";
+import { AiFillGithub } from "react-icons/ai";
+import { Link } from "react-router-dom";
 
 // sort
 type Sort = "created" | "updated" | "pushed" | "full_name";
@@ -86,15 +88,23 @@ export function Dash() {
 								</li>
 							) : (
 								data.map((repo) => (
-									<li className="my-3 flex items-center gap-3">
-										<img
-											src={repo.owner.avatar_url}
-											role="presentation"
-											alt={repo.owner.login}
-											className="aspect-auto w-8 rounded-full"
-										/>
+									<li
+										key={repo.id}
+										className="my-3 flex items-center justify-between pr-2"
+									>
+										<div className="flex items-center gap-3">
+											<img
+												src={repo.owner.avatar_url}
+												role="presentation"
+												alt={repo.owner.login}
+												className="aspect-auto w-8 rounded-full"
+											/>
+
+											<Link to={`/repos/${repo.id}`}>{repo.name}</Link>
+										</div>
+
 										<a href={`https://www.github.com/${repo.full_name}`}>
-											{repo.name}
+											<AiFillGithub />
 										</a>
 									</li>
 								))
