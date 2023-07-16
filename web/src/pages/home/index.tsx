@@ -5,9 +5,10 @@ import "./style.css";
 import cx from "classnames";
 
 export function Home() {
+	const oauthUrl = getLoginUrl();
 	return (
 		<>
-			<Nav oauthUrl={getLoginUrl()} githubUrl="" />
+			<Nav oauthUrl={oauthUrl} githubUrl="" />
 
 			{/* HERO */}
 			<section
@@ -32,15 +33,16 @@ export function Home() {
 						Get started
 					</button>
 
-					<button
+					<a
 						className={cx([
 							"flex items-center justify-center border border-main bg-main md:flex-row",
-							"h-10 w-36 rounded-md font-semibold",
+							"h-10 w-36 rounded-md font-semibold hover:no-underline hover:brightness-90",
 						])}
+						href={oauthUrl}
 					>
 						Log In&nbsp;
 						<AiFillGithub />
-					</button>
+					</a>
 				</div>
 
 				<div className="hero-graphic-blur main" />
