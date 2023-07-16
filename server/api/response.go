@@ -9,10 +9,11 @@ import (
 
 type Response struct {
 	http.ResponseWriter
+	status int
 }
 
 func NewResponse(w http.ResponseWriter) *Response {
-	return &Response{w}
+	return &Response{w, 0}
 }
 
 func (r *Response) ServerError(err error) {
@@ -21,12 +22,13 @@ func (r *Response) ServerError(err error) {
 }
 
 func (r *Response) Status(c int) *Response {
-	r.WriteHeader(c)
+	r.status = c
 	return r
 }
 
 func (r *Response) JSON(data interface{}) {
-	r.Header().Add("content-type", "application/json")
+	r.Header().Add("Content-Type", "application/json")
+	r.WriteHeader(r.status)
 	if err := json.NewEncoder(r).Encode(&data); err != nil {
 		r.WriteHeader(http.StatusInternalServerError)
 		os.Stderr.WriteString(err.Error())
@@ -35,6 +37,7 @@ func (r *Response) JSON(data interface{}) {
 
 func (r *Response) Error(m string) {
 	r.Header().Add("content-type", "application/json")
+	r.WriteHeader(r.status)
 	msg := map[string]string{"error": m}
 	if err := json.NewEncoder(r).Encode(&msg); err != nil {
 		r.WriteHeader(http.StatusInternalServerError)

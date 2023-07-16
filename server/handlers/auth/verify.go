@@ -9,8 +9,20 @@ import (
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/gh"
+	"github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/hn275/envhub/server/lib"
+	"gorm.io/gorm/clause"
 )
+
+type GithubAuthToken struct {
+	AccessToken string `json:"access_token"`
+	Scope       string `json:"scope"`
+	TokenType   string `json:"token_type"`
+}
+
+type Token struct {
+	Code string
+}
 
 func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -58,7 +70,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userInfo GithubUser
+	var userInfo jsonwebtoken.GithubUser
 	if err := json.NewDecoder(ghResponse.Body).Decode(&userInfo); err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
@@ -71,13 +83,14 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 		Vendor:    db.VendorGithub,
 		UserName:  userInfo.Login,
 	}
-	if err := h.Create(&user).Error; err != nil {
+	err = h.Clauses(clause.OnConflict{DoNothing: true}).Create(&user).Error
+	if err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
 
 	userInfo.Token = accesstoken.AccessToken
-	jwtToken := JwtToken{
+	jwtToken := jsonwebtoken.JwtToken{
 		userInfo,
 		jwt.RegisteredClaims{
 			Issuer:  "Envhub",
@@ -85,7 +98,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	jwtStr, err := Sign(&jwtToken)
+	jwtStr, err := jsonwebtoken.Sign(&jwtToken)
 	if err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
