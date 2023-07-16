@@ -1,4 +1,5 @@
 const SESSION_ENTRY = "users";
+const SESSION_TOKEN = "token";
 
 export const GITHUB_SECRET = import.meta.env.VITE_GITHUB_CLIENT_ID;
 if (!GITHUB_SECRET) throw new Error("`GITHUB_SECRET` not set");
@@ -34,6 +35,10 @@ export class Github {
 		if (!b) return null;
 
 		return JSON.parse(b) as User;
+	}
+
+	static saveToken(token: string) {
+		window.sessionStorage.setItem(SESSION_TOKEN, token);
 	}
 
 	static GET(path: string, params?: Record<string, string>) {
