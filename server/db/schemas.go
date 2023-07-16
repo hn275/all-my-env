@@ -19,7 +19,7 @@ type User struct {
 }
 
 type Repository struct {
-	ID        int `gorm:"primaryKey"`
+	ID        uint `gorm:"primaryKey"`
 	CreatedAt time.Time
 	FullName  string `gorm:"not null"`
 	Url       string `gorm:"not null"`
