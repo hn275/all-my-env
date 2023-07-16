@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/hn275/envhub/server/handlers/auth"
+	"github.com/hn275/envhub/server/handlers/repos"
 )
 
 var port string
@@ -21,14 +22,22 @@ func init() {
 }
 
 func main() {
-	mux := chi.NewMux()
-	mux.Use(middleware.Logger)
-	mux.Use(cors.Handler(cors.Options{
+	r := chi.NewMux()
+	r.Use(middleware.Logger)
+	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{"*"}, // TODO: configure this cors
 	}))
 
-	mux.Route("/auth", auth.Router)
+	r.Route("/auth", func(r chi.Router) {
+		h := auth.Handlers()
+		r.Handle("/github", http.HandlerFunc(h.VerifyToken))
+	})
+
+	r.Route("/repos", func(r chi.Router) {
+		h := repos.Handlers()
+		r.Handle("/all", http.HandlerFunc(h.All))
+	})
 
 	log.Println("Listening on port:", port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
