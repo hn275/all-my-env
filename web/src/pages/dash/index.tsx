@@ -1,8 +1,8 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import { Github } from "lib/github/request";
-import cx from "classnames";
 import { AiFillGithub } from "react-icons/ai";
 import { Link } from "react-router-dom";
+import { Fetch } from "lib/api";
 
 // sort
 type Sort = "created" | "updated" | "pushed" | "full_name";
@@ -29,23 +29,25 @@ export function Dash() {
 	} = useRepos();
 
 	const user = Github.getUser();
+	console.log(user);
 
 	return (
 		<>
 			<section>
 				<img src={user?.payload.avatar_url} className="w-20 rounded-full" />
 				<h1>{user?.payload.name}</h1>
+				<p>NOTE: I can display more information as well</p>
 			</section>
 
-			<section className="relative m-5 flex h-[50vh] flex-col">
+			<section className="">
 				<h2>Repositories:</h2>
 
-				<div className="ml-auto flex w-max items-center gap-3">
+				<div className="">
 					<div>
 						<label htmlFor="sort">Sort by: </label>
 						<select
 							name="sort"
-							className="bg-main text-dark"
+							className=""
 							onChange={handleSort}
 							defaultValue={SortDefault}
 						>
@@ -59,7 +61,7 @@ export function Dash() {
 						<label htmlFor="show">Show: </label>
 						<select
 							name="show"
-							className="bg-main text-dark"
+							className=""
 							onChange={handleShow}
 							defaultValue={ShowDefault}
 						>
@@ -76,23 +78,15 @@ export function Dash() {
 					<p>{error}</p>
 				) : data ? (
 					<>
-						<ul
-							className={cx([
-								"flex-grow overflow-y-scroll",
-								"rounded-sm border border-main p-2",
-							])}
-						>
+						<ul>
 							{data.length === 0 ? (
-								<li className="absolute left-0 top-0 flex h-full w-full items-center justify-center">
+								<li>
 									<p>You don't have any repository yet.</p>
 								</li>
 							) : (
 								data.map((repo) => (
-									<li
-										key={repo.id}
-										className="my-3 flex items-center justify-between pr-2"
-									>
-										<div className="flex items-center gap-3">
+									<li key={repo.id} className="border border-main">
+										<div>
 											<img
 												src={repo.owner.avatar_url}
 												role="presentation"
@@ -116,7 +110,7 @@ export function Dash() {
 				)}
 			</section>
 
-			<div className="mx-auto flex justify-center gap-3">
+			<div className="">
 				<button onClick={handlePrevPage}>prev</button>
 				<p>{page}</p>
 				<button onClick={handleNextPage}>next</button>
@@ -137,8 +131,8 @@ function useRepos() {
 		async function f() {
 			try {
 				setLoading(() => true);
-				const param = { page: String(page), sort, per_page: String(show) };
-				const response = await Github.GET("/user/repos", param);
+				const param = { page: String(page), sort, show: String(show) };
+				const response = await Fetch.GET("/repos/all", param);
 				const { status } = response;
 				const payload = await response.json();
 
@@ -200,6 +194,7 @@ function useRepos() {
 
 interface Repository {
 	id: number;
+	linked: boolean;
 	node_id: string;
 	name: string;
 	full_name: string;

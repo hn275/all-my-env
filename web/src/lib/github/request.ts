@@ -1,5 +1,4 @@
-const SESSION_ENTRY = "users";
-const SESSION_TOKEN = "token";
+import { Session } from "../sessionStorage.ts";
 
 export const GITHUB_SECRET = import.meta.env.VITE_GITHUB_CLIENT_ID;
 if (!GITHUB_SECRET) throw new Error("`GITHUB_SECRET` not set");
@@ -27,18 +26,18 @@ export interface ProtectedHeader {
 
 export class Github {
 	static saveUser(u: User) {
-		window.sessionStorage.setItem(SESSION_ENTRY, JSON.stringify(u));
+		window.sessionStorage.setItem(Session.user, JSON.stringify(u));
 	}
 
 	static getUser(): User | null {
-		const b = window.sessionStorage.getItem(SESSION_ENTRY);
+		const b = window.sessionStorage.getItem(Session.user);
 		if (!b) return null;
 
 		return JSON.parse(b) as User;
 	}
 
 	static saveToken(token: string) {
-		window.sessionStorage.setItem(SESSION_TOKEN, token);
+		window.sessionStorage.setItem(Session.token, token);
 	}
 
 	static GET(path: string, params?: Record<string, string>) {
