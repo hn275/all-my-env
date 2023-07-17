@@ -29,13 +29,11 @@ func main() {
 	}))
 
 	r.Route("/auth", func(r chi.Router) {
-		h := auth.Handlers()
-		r.Handle("/github", http.HandlerFunc(h.VerifyToken))
+		r.Handle("/github", http.HandlerFunc(auth.Handler.VerifyToken))
 	})
 
 	r.Route("/repos", func(r chi.Router) {
-		h := repos.Handlers()
-		r.Handle("/all", http.HandlerFunc(h.All))
+		r.Handle("/all", http.HandlerFunc(repos.Handlers.All))
 	})
 
 	log.Println("Listening on port:", port)

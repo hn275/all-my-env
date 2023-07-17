@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/handlers/auth"
+	"github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,7 +25,7 @@ type githubMock struct{}
 type authCxMock struct{}
 
 func (m *githubMock) Do(req *http.Request) (*http.Response, error) {
-	user := auth.GithubUser{
+	user := jsonwebtoken.GithubUser{
 		ID:        123,
 		Login:     "hn275",
 		AvatarUrl: "https://avatars.githubusercontent.com/u/97143596?v=4",
@@ -116,7 +117,7 @@ func TestVerifyTokenOK(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotEmpty(t, buf.Bytes())
 
-	token, err := auth.Decode(buf.String())
+	token, err := jsonwebtoken.Decode(buf.String())
 	assert.Nil(t, err)
 	assert.NotEmpty(t, token.Token)
 	assert.NotEmpty(t, token.Email)
