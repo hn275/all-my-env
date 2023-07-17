@@ -26,8 +26,13 @@ func (r *Response) Status(c int) *Response {
 	return r
 }
 
+func (r *Response) Header(k, v string) *Response {
+	r.ResponseWriter.Header().Add(k, v)
+	return r
+}
+
 func (r *Response) JSON(data interface{}) {
-	r.Header().Add("Content-Type", "application/json")
+	r.ResponseWriter.Header().Add("Content-Type", "application/json")
 	r.WriteHeader(r.status)
 	if err := json.NewEncoder(r).Encode(&data); err != nil {
 		r.WriteHeader(http.StatusInternalServerError)
@@ -36,7 +41,7 @@ func (r *Response) JSON(data interface{}) {
 }
 
 func (r *Response) Error(m string) {
-	r.Header().Add("content-type", "application/json")
+	r.ResponseWriter.Header().Add("content-type", "application/json")
 	r.WriteHeader(r.status)
 	msg := map[string]string{"error": m}
 	if err := json.NewEncoder(r).Encode(&msg); err != nil {
@@ -46,6 +51,6 @@ func (r *Response) Error(m string) {
 }
 
 func (r *Response) Text(t string) {
-	r.Header().Add("content-type", "application/text")
+	r.ResponseWriter.Header().Add("content-type", "application/text")
 	r.Write([]byte(t))
 }

@@ -4,6 +4,7 @@ import "time"
 
 var (
 	TableUsers = "users"
+	TableRepos = "repositories"
 
 	VendorGithub = "github"
 )
