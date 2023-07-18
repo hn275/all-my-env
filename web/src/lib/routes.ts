@@ -2,6 +2,7 @@ enum WEB {
   home = "/",
   dash = "/dash",
   auth = "/auth",
+  repo = "/repo"
 }
 
 const API = import.meta.env.VITE_ENVHUB_API;

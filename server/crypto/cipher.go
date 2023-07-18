@@ -9,6 +9,8 @@ import (
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
+// one issue
+// need variableID to encrypt, this can be the repo id or something
 func Encrypt(encryptionKey []byte, value string, variableID int) ([]byte, error) {
 	cipher, err := chacha20poly1305.NewX(encryptionKey)
 	if err != nil {

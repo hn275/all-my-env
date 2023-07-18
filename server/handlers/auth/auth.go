@@ -26,7 +26,3 @@ func init() {
 	AuthClient = &http.Client{}
 	Handler = &AuthHandler{db.New()}
 }
-
-func Handlers() *AuthHandler {
-	return &AuthHandler{db.New()}
-}
