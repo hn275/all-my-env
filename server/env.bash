@@ -12,7 +12,7 @@
 export POSTGRES_DSN="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=${POSTGRES_SSLMODE}"
 
 MIGRATION_DIR="./db/migrations"
-function test() {
+function gotest() {
     # if [ -z "${1}" ];then
     #     echo "Testing all packages"
     #     go test ./... -coverprofile cover.out

@@ -9,10 +9,15 @@ type RepoHandler struct {
 	*gorm.DB
 }
 
-func Handlers() *RepoHandler {
-	return &RepoHandler{db.New()}
+var (
+	Handlers *RepoHandler
+)
+
+func init() {
+	Handlers = &RepoHandler{db.New()}
 }
 
+// types
 type Repository struct {
 	ID                       uint        `json:"id"`
 	Linked                   bool        `json:"linked"`
