@@ -77,12 +77,11 @@ func (h *RepoHandler) All(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-repoLoop:
 	for i, repo := range repos {
 		for _, id := range dbRepos {
 			if id == repo.ID {
 				repos[i].Linked = true
-				continue repoLoop
+				break
 			}
 		}
 	}

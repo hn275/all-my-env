@@ -91,8 +91,8 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 
 	userInfo.Token = accesstoken.AccessToken
 	jwtToken := jsonwebtoken.JwtToken{
-		userInfo,
-		jwt.RegisteredClaims{
+		GithubUser: userInfo,
+		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:  "Envhub",
 			Subject: userInfo.Name,
 		},
