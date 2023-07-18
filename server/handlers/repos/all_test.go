@@ -16,8 +16,8 @@ import (
 
 type repoMock struct{}
 
-func (mock *repoMock) Do(req *http.Request) (*http.Response, error) {
-	data := `[
+const jwtToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6Imdob19MemhsbXNkU3g3b3phdUs0ZFFKejcyMmRkOFJ6bWo0SloxMzkiLCJpZCI6OTcxNDM1OTYsImxvZ2luIjoiaG4yNzUiLCJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9hdmF0YXJzLmdpdGh1YnVzZXJjb250ZW50LmNvbS91Lzk3MTQzNTk2P3Y9NCIsIm5hbWUiOiJIYWwiLCJlbWFpbCI6ImhhbG5fMDFAcHJvdG9uLm1lIiwiaXNzIjoiRW52aHViIiwic3ViIjoiSGFsIn0.-tMfdpMMnxmvM-oMSyhtw8_QzrJ8AWwUNUEzOCQGh4Y`
+const mockData string = `[
   {
     "id": 1296269,
     "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
@@ -143,7 +143,8 @@ func (mock *repoMock) Do(req *http.Request) (*http.Response, error) {
   }
 ]`
 
-	b, err := json.Marshal(data)
+func (mock *repoMock) Do(req *http.Request) (*http.Response, error) {
+	b, err := json.Marshal(mockData)
 	if err != nil {
 		panic(err)
 	}
@@ -178,9 +179,28 @@ func TestMethodAllow(t *testing.T) {
 	}
 
 	for _, method := range methods {
-		req, err := http.NewRequest(method, "/test", nil)
+		req, err := http.NewRequest(method, "/test?show=1&sort=updated&page=1", nil)
 		assert.Nil(t, err)
 		r.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusMethodNotAllowed, w.Result().StatusCode)
 	}
+}
+
+func TestAllMissingAuth(t *testing.T) {
+	r, w := testInit()
+
+	req, err := http.NewRequest(http.MethodGet, "/test?show=1&sort=updated&page=1", nil)
+	assert.Nil(t, err)
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusForbidden, w.Result().StatusCode)
+}
+
+func TestAllBadRequest(t *testing.T) {
+	r, w := testInit()
+
+	req, err := http.NewRequest(http.MethodGet, "/test", nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
