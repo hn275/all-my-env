@@ -117,7 +117,7 @@ func TestVerifyTokenOK(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotEmpty(t, buf.Bytes())
 
-	token, err := jsonwebtoken.Decode(buf.String())
+	token, err := jsonwebtoken.NewDecoder().Decode(buf.String())
 	assert.Nil(t, err)
 	assert.NotEmpty(t, token.Token)
 	assert.NotEmpty(t, token.Email)
