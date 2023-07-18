@@ -46,6 +46,7 @@ func TestLinkedRepo(t *testing.T) {
 	mux.ServeHTTP(w, r)
 	result := w.Result()
 	defer result.Body.Close()
+	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, result.StatusCode)
 }
 

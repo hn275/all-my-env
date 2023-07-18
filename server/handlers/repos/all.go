@@ -87,11 +87,8 @@ func (h *RepoHandler) All(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.WriteHeader(200)
-	json.NewEncoder(w).Encode(&repos)
-
-	// api.NewResponse(w).
-	// 	Header("Cache-Control", "max-age=30").
-	// 	Status(http.StatusOK).
-	// 	JSON(&repos)
+	api.NewResponse(w).
+		Header("Cache-Control", "max-age=30").
+		Status(http.StatusOK).
+		JSON(&repos)
 }
