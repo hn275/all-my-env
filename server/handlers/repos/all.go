@@ -7,6 +7,7 @@ import (
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/gh"
+	"github.com/hn275/envhub/server/jsonwebtoken"
 )
 
 func (h *RepoHandler) All(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +18,7 @@ func (h *RepoHandler) All(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := api.GetUser(r)
+	user, err := jsonwebtoken.GetUser(r)
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusForbidden).
@@ -86,8 +87,11 @@ func (h *RepoHandler) All(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	api.NewResponse(w).
-		Header("Cache-Control", "max-age=30").
-		Status(http.StatusOK).
-		JSON(&repos)
+	w.WriteHeader(200)
+	json.NewEncoder(w).Encode(&repos)
+
+	// api.NewResponse(w).
+	// 	Header("Cache-Control", "max-age=30").
+	// 	Status(http.StatusOK).
+	// 	JSON(&repos)
 }

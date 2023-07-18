@@ -9,17 +9,126 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/handlers/repos"
+	"github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/stretchr/testify/assert"
 )
 
 type repoMock struct{}
+type jwtMock struct{}
+
+func init() {
+	gh.GithubClient = &repoMock{}
+	jsonwebtoken.Decoder = &jwtMock{}
+}
+
+func testInit() (*chi.Mux, *httptest.ResponseRecorder) {
+	r := chi.NewMux()
+	r.Handle("/test", http.HandlerFunc(repos.Handlers.All))
+	return r, &httptest.ResponseRecorder{}
+}
+
+func TestLinkedRepo(t *testing.T) {
+	var ghRepos []repos.Repository
+	if err := json.Unmarshal([]byte(mockData), &ghRepos); err != nil {
+		panic(err)
+	}
+
+	mux, w := testInit()
+	r, err := http.NewRequest(http.MethodGet, "/test?show=69&page=420&sort=foo", nil)
+	if err != nil {
+		panic(err)
+	}
+	r.Header.Add("Authorization", "Bearer "+jwtToken)
+
+	mux.ServeHTTP(w, r)
+	result := w.Result()
+	defer result.Body.Close()
+	assert.Equal(t, http.StatusOK, result.StatusCode)
+}
+
+func TestMethodAllow(t *testing.T) {
+	r, w := testInit()
+
+	methods := []string{
+		http.MethodPost,
+		http.MethodPatch,
+		http.MethodPut,
+	}
+
+	for _, method := range methods {
+		req, err := http.NewRequest(method, "/test?show=1&sort=updated&page=1", nil)
+		assert.Nil(t, err)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusMethodNotAllowed, w.Result().StatusCode)
+	}
+}
+
+func TestAllMissingAuth(t *testing.T) {
+	r, w := testInit()
+
+	req, err := http.NewRequest(http.MethodGet, "/test?show=1&sort=updated&page=1", nil)
+	assert.Nil(t, err)
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusForbidden, w.Result().StatusCode)
+}
+
+func TestAllBadRequest(t *testing.T) {
+	r, w := testInit()
+
+	req, err := http.NewRequest(http.MethodGet, "/test", nil)
+	assert.Nil(t, err)
+	req.Header.Add("Authorization", "Bearer "+jwtToken)
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+}
+
+// MOCK
+// Do implements gh.Client
+func (mock *repoMock) Do(req *http.Request) (*http.Response, error) {
+	buf := bytes.NewReader([]byte(mockData))
+	body := ioutil.NopCloser(buf)
+
+	res := &http.Response{
+		StatusCode: 200,
+		Request:    req,
+		Body:       body,
+	}
+	return res, nil
+}
+
+// Decode implements jsonwebtoken.JsonWebToken.
+func (*jwtMock) Decode(_ string) (*jsonwebtoken.JwtToken, error) {
+	user := jsonwebtoken.GithubUser{
+		Token:     "asdf",
+		ID:        123,
+		Login:     "foo",
+		AvatarUrl: "foobar.com",
+		Name:      "foo",
+		Email:     "foo@bar.com",
+	}
+	t := &jsonwebtoken.JwtToken{
+		GithubUser: user,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "EnvHub",
+			Subject:   "foo",
+			Audience:  []string{},
+			ExpiresAt: &jwt.NumericDate{},
+			NotBefore: &jwt.NumericDate{},
+			IssuedAt:  &jwt.NumericDate{},
+			ID:        "123",
+		},
+	}
+	return t, nil
+}
 
 const jwtToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6Imdob19MemhsbXNkU3g3b3phdUs0ZFFKejcyMmRkOFJ6bWo0SloxMzkiLCJpZCI6OTcxNDM1OTYsImxvZ2luIjoiaG4yNzUiLCJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9hdmF0YXJzLmdpdGh1YnVzZXJjb250ZW50LmNvbS91Lzk3MTQzNTk2P3Y9NCIsIm5hbWUiOiJIYWwiLCJlbWFpbCI6ImhhbG5fMDFAcHJvdG9uLm1lIiwiaXNzIjoiRW52aHViIiwic3ViIjoiSGFsIn0.-tMfdpMMnxmvM-oMSyhtw8_QzrJ8AWwUNUEzOCQGh4Y`
-const mockData string = `[
+const mockData = `
+[
   {
-    "id": 1296269,
+    "id": 123,
     "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
     "name": "Hello-World",
     "full_name": "octocat/Hello-World",
@@ -98,12 +207,7 @@ const mockData string = `[
     "default_branch": "master",
     "open_issues_count": 0,
     "is_template": true,
-    "topics": [
-      "octocat",
-      "atom",
-      "electron",
-      "api"
-    ],
+    "topics": ["octocat", "atom", "electron", "api"],
     "has_issues": true,
     "has_projects": true,
     "has_wiki": true,
@@ -141,66 +245,5 @@ const mockData string = `[
     "open_issues": 1,
     "watchers": 1
   }
-]`
-
-func (mock *repoMock) Do(req *http.Request) (*http.Response, error) {
-	b, err := json.Marshal(mockData)
-	if err != nil {
-		panic(err)
-	}
-
-	body := ioutil.NopCloser(bytes.NewReader(b))
-
-	res := &http.Response{
-		StatusCode: 200,
-		Request:    req,
-		Body:       body,
-	}
-	return res, nil
-}
-
-func init() {
-	gh.GithubClient = &repoMock{}
-}
-
-func testInit() (*chi.Mux, *httptest.ResponseRecorder) {
-	r := chi.NewMux()
-	r.Handle("/test", http.HandlerFunc(repos.Handlers.All))
-	return r, &httptest.ResponseRecorder{}
-}
-
-func TestMethodAllow(t *testing.T) {
-	r, w := testInit()
-
-	methods := []string{
-		http.MethodPost,
-		http.MethodPatch,
-		http.MethodPut,
-	}
-
-	for _, method := range methods {
-		req, err := http.NewRequest(method, "/test?show=1&sort=updated&page=1", nil)
-		assert.Nil(t, err)
-		r.ServeHTTP(w, req)
-		assert.Equal(t, http.StatusMethodNotAllowed, w.Result().StatusCode)
-	}
-}
-
-func TestAllMissingAuth(t *testing.T) {
-	r, w := testInit()
-
-	req, err := http.NewRequest(http.MethodGet, "/test?show=1&sort=updated&page=1", nil)
-	assert.Nil(t, err)
-	r.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusForbidden, w.Result().StatusCode)
-}
-
-func TestAllBadRequest(t *testing.T) {
-	r, w := testInit()
-
-	req, err := http.NewRequest(http.MethodGet, "/test", nil)
-	assert.Nil(t, err)
-	req.Header.Add("Authorization", "Bearer "+jwtToken)
-	r.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
-}
+]
+`
