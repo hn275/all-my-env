@@ -25,7 +25,25 @@ func main() {
 	r := chi.NewMux()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"*"}, // TODO: configure this cors
+		AllowedOrigins: []string{
+			"http://localhost:3000",
+			"http://localhost:3000/",
+			"http://127.0.0.1:3000",
+			"http://127.0.0.1:3000/",
+		},
+		AllowedMethods: []string{
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodOptions,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+		},
+		AllowedHeaders: []string{
+			"Authorization",
+			"Accept",
+			"Content-Type",
+		},
 	}))
 
 	r.Route("/auth", func(r chi.Router) {
