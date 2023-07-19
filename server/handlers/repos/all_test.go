@@ -7,9 +7,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/handlers/repos"
 	"github.com/hn275/envhub/server/jsonwebtoken"
@@ -24,8 +25,8 @@ func init() {
 	jsonwebtoken.Decoder = &jwtMock{}
 }
 
-func testInit() (*chi.Mux, *httptest.ResponseRecorder) {
-	r := chi.NewMux()
+func testInit() (*http.ServeMux, *httptest.ResponseRecorder) {
+	r := http.NewServeMux()
 	r.Handle("/test", http.HandlerFunc(repos.Handlers.All))
 	return r, &httptest.ResponseRecorder{}
 }
@@ -36,18 +37,47 @@ func TestLinkedRepo(t *testing.T) {
 		panic(err)
 	}
 
-	mux, w := testInit()
-	r, err := http.NewRequest(http.MethodGet, "/test?show=69&page=420&sort=foo", nil)
-	if err != nil {
-		panic(err)
+	mockUser := db.User{
+		ID:        1,
+		CreatedAt: "alksjdf",
+		Vendor:    "laksdjf",
+		UserName:  "octocat",
 	}
-	r.Header.Add("Authorization", "Bearer "+jwtToken)
 
-	mux.ServeHTTP(w, r)
-	result := w.Result()
-	defer result.Body.Close()
+	mockRepo := db.Repository{
+		ID:        1,
+		CreatedAt: time.Now().UTC(),
+		FullName:  "octocat",
+		Url:       "https://github.com/octocat",
+		UserID:    mockUser.ID,
+	}
+	conn := db.New()
+	conn.Create(&mockUser)
+	conn.Create(&mockRepo)
+
+	defer conn.Delete(&mockUser)
+	defer conn.Delete(&mockRepo)
+
+	s := httptest.NewServer(http.HandlerFunc(repos.Handlers.All))
+	defer s.Close()
+
+	url := s.URL + "?show=69&page=420&sort=foo"
+	r, err := http.NewRequest(http.MethodGet, url, nil)
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusOK, result.StatusCode)
+
+	r.Header.Add("Authorization", "Bearer "+"alskdjf")
+
+	c := http.Client{}
+	res, err := c.Do(r)
+	assert.Nil(t, err)
+
+	defer res.Body.Close()
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+
+	var p []repos.Repository
+	err = json.NewDecoder(res.Body).Decode(&p)
+	assert.Nil(t, err)
+	assert.True(t, p[0].Linked)
 }
 
 func TestMethodAllow(t *testing.T) {
@@ -104,7 +134,7 @@ func (mock *repoMock) Do(req *http.Request) (*http.Response, error) {
 func (*jwtMock) Decode(_ string) (*jsonwebtoken.JwtToken, error) {
 	user := jsonwebtoken.GithubUser{
 		Token:     "asdf",
-		ID:        123,
+		ID:        1,
 		Login:     "foo",
 		AvatarUrl: "foobar.com",
 		Name:      "foo",
@@ -129,7 +159,7 @@ const jwtToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6Imdob19Memhsb
 const mockData = `
 [
   {
-    "id": 123,
+    "id": 1,
     "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
     "name": "Hello-World",
     "full_name": "octocat/Hello-World",
