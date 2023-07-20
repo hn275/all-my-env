@@ -40,7 +40,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		api.NewResponse(w).Status(res.StatusCode)
+		api.NewResponse(w).Status(res.StatusCode).Done()
 		return
 	}
 
@@ -64,7 +64,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	defer ghResponse.Body.Close()
 
 	if ghResponse.StatusCode != http.StatusOK {
-		api.NewResponse(w).Status(ghResponse.StatusCode)
+		api.NewResponse(w).Status(ghResponse.StatusCode).Done()
 		return
 	}
 

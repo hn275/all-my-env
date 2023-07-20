@@ -23,7 +23,7 @@ function gotest() {
     # fi
     
     echo "Testing package ${1}"
-    go test $1 -coverprofile cover.out
+    go test $1 -coverprofile cover.out -v
     [[ -f cover.out ]] && rm cover.out
 }
 

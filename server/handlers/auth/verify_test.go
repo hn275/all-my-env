@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/handlers/auth"
 	"github.com/hn275/envhub/server/jsonwebtoken"
@@ -24,12 +25,16 @@ type githubMock struct{}
 type githubMockFailed struct{}
 type authCxMock struct{}
 
-func init() {
-	gh.GithubClient = &githubMock{}
-	auth.AuthClient = &authCxMock{}
+func cleanup() {
+	db.New().Where("id = ?", 123).Delete(&db.User{})
 }
 
 func testInit() (*chi.Mux, *bytes.Reader) {
+	// NOTE: since some of the tests override these, they won't be in the
+	// `init` function
+	gh.GithubClient = &githubMock{}
+	auth.AuthClient = &authCxMock{}
+
 	m := chi.NewMux()
 	m.Handle("/auth/github", http.HandlerFunc(auth.Handler.VerifyToken))
 
@@ -42,13 +47,12 @@ func testInit() (*chi.Mux, *bytes.Reader) {
 	body := bytes.NewReader(b)
 
 	return m, body
-
 }
 
 func TestVerifyTokenMethodNotAllowed(t *testing.T) {
 	m, body := testInit()
 
-	var w httptest.ResponseRecorder
+	w := &httptest.ResponseRecorder{}
 	methods := []string{
 		http.MethodGet,
 		http.MethodPut,
@@ -59,13 +63,14 @@ func TestVerifyTokenMethodNotAllowed(t *testing.T) {
 	for _, method := range methods {
 		req, err := http.NewRequest(method, "/auth/github", body)
 		assert.Nil(t, err)
-		m.ServeHTTP(&w, req)
+		m.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusMethodNotAllowed, w.Result().StatusCode)
 	}
 }
 
 func TestVerifyTokenOK(t *testing.T) {
 	m, body := testInit()
+	defer cleanup()
 
 	w := httptest.NewRecorder()
 	post, _ := http.NewRequest(http.MethodPost, "/auth/github", body)
@@ -90,6 +95,64 @@ func TestVerifyTokenOK(t *testing.T) {
 	assert.NotEmpty(t, token.GithubUser.ID)
 	assert.Equal(t, token.Issuer, "Envhub")
 	assert.Equal(t, token.Token, test_token)
+}
+
+func TestGithubAuthFailed(t *testing.T) {
+	defer cleanup()
+	_, body := testInit()
+	auth.AuthClient = &githubMockFailed{}
+
+	srv := httptest.NewServer(http.HandlerFunc(auth.Handler.VerifyToken))
+	defer srv.Close()
+
+	r, err := http.NewRequest(http.MethodPost, srv.URL, body)
+	assert.Nil(t, err)
+
+	cx := http.Client{}
+	res, err := cx.Do(r)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusTeapot, res.StatusCode)
+}
+
+func TestGithubApiFailed(t *testing.T) {
+	defer cleanup()
+	_, body := testInit()
+	gh.GithubClient = &githubMockFailed{}
+
+	srv := httptest.NewServer(http.HandlerFunc(auth.Handler.VerifyToken))
+	defer srv.Close()
+
+	r, err := http.NewRequest(http.MethodPost, srv.URL, body)
+	assert.Nil(t, err)
+
+	cx := http.Client{}
+	res, err := cx.Do(r)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusTeapot, res.StatusCode)
+}
+
+func TestDuplicateUser(t *testing.T) {
+	defer cleanup()
+	_, body := testInit()
+
+	srv := httptest.NewServer(http.HandlerFunc(auth.Handler.VerifyToken))
+	defer srv.Close()
+
+	r, err := http.NewRequest(http.MethodPost, srv.URL, body)
+	assert.Nil(t, err)
+
+	cx := http.Client{}
+
+	res1, err := cx.Do(r)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res1.StatusCode)
+
+	_, body = testInit()
+	r2, err := http.NewRequest(http.MethodPost, srv.URL, body)
+	assert.Nil(t, err)
+	res2, err := cx.Do(r2)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, res2.StatusCode)
 }
 
 // implement gh.Client
@@ -133,4 +196,17 @@ func (m *authCxMock) Do(req *http.Request) (*http.Response, error) {
 }
 
 // implement gh.Client
-func (m *githubMockFailed) Do(r *http.Request) (*http.Response, error) {}
+func (m *githubMockFailed) Do(r *http.Request) (*http.Response, error) {
+	d := map[string]string{"error": "some error"}
+	j, err := json.Marshal(d)
+	if err != nil {
+		return nil, err
+	}
+
+	res := http.Response{
+		StatusCode: http.StatusTeapot,
+		Body:       ioutil.NopCloser(bytes.NewReader(j)),
+		Request:    r,
+	}
+	return &res, nil
+}
