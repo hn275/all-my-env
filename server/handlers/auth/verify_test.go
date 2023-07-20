@@ -71,7 +71,9 @@ func testInit() (*chi.Mux, *bytes.Reader) {
 	m := chi.NewMux()
 	m.Handle("/auth/github", http.HandlerFunc(auth.Handler.VerifyToken))
 
-	token := auth.Token{
+	token := struct {
+		Code string `json:"code"`
+	}{
 		Code: "sometestcode",
 	}
 	b, _ := json.Marshal(token)

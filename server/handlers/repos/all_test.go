@@ -38,7 +38,7 @@ func TestLinkedRepo(t *testing.T) {
 
 	mockUser := db.User{
 		ID:        1,
-		CreatedAt: "alksjdf",
+		CreatedAt: db.TimeNow(),
 		Vendor:    "laksdjf",
 		UserName:  "octocat",
 	}
