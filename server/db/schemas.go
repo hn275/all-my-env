@@ -1,5 +1,7 @@
 package db
 
+import "time"
+
 var (
 	TableUsers = "users"
 	TableRepos = "repositories"
@@ -8,7 +10,7 @@ var (
 )
 
 // UTC time stamp RFC3339
-type TimeStamp = string
+type TimeStamp = time.Time
 
 type User struct {
 	ID        int `gorm:"primaryKey"`

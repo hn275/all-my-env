@@ -59,5 +59,5 @@ func autoMigrate(db *gorm.DB, d interface{}) {
 
 // returns UTC time, ie: 2023-07-06T07:25:26Z
 func TimeNow() TimeStamp {
-	return time.Now().UTC().Format(time.RFC3339)
+	return time.Now().UTC()
 }
