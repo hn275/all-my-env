@@ -10,55 +10,53 @@ import (
 	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
-	"github.com/hn275/envhub/server/lib"
 	"gorm.io/gorm/clause"
 )
 
-type GithubAuthToken struct {
-	AccessToken string `json:"access_token"`
-	Scope       string `json:"scope"`
-	TokenType   string `json:"token_type"`
-}
-
-type Token struct {
-	Code string
-}
-
+// Verify token send from body, then query for user data.
+// Save user in database if they don't exists
 func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
-	var token Token
-	if err := json.NewDecoder(r.Body).Decode(&token); err != nil {
+	var t struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
 			Error("invalid credentials")
 		return
 	}
 
-	// get auth token
-	result, err := githubOAuth(token.Code)
+	// GET AUTH TOKEN
+	res, err := githubOauth(t.Code)
 	if err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
-	defer result.Body.Close()
+	defer res.Body.Close()
 
-	if result.StatusCode != http.StatusOK {
-		api.NewResponse(w).Status(result.StatusCode)
+	if res.StatusCode != http.StatusOK {
+		api.NewResponse(w).Status(res.StatusCode)
 		return
 	}
 
-	var accesstoken GithubAuthToken
-	if err := json.NewDecoder(result.Body).Decode(&accesstoken); err != nil {
+	var oauth struct {
+		AccessToken string `json:"access_token"`
+		Scope       string `json:"scope"`
+		TokenType   string `json:"token_type"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&oauth); err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
 
-	// get user account
-	ghResponse, err := gh.New(accesstoken.AccessToken).Get("/user")
+	// GET USER ACCOUNT
+	// save user in db if not exists
+	ghResponse, err := gh.New(oauth.AccessToken).Get("/user")
 	if err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
@@ -79,7 +77,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	// save user in db (if not exists)
 	user := db.User{
 		ID:        userInfo.ID,
-		CreatedAt: lib.TimeStamp(),
+		CreatedAt: db.TimeNow(),
 		Vendor:    db.VendorGithub,
 		UserName:  userInfo.Login,
 	}
@@ -89,7 +87,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInfo.Token = accesstoken.AccessToken
+	userInfo.Token = oauth.AccessToken
 	jwtToken := jsonwebtoken.JwtToken{
 		GithubUser: userInfo,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -107,8 +105,8 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	api.NewResponse(w).Status(http.StatusOK).Text(jwtStr)
 }
 
-func githubOAuth(code string) (*http.Response, error) {
-	// get auth token
+// Build request to query github user oauth token
+func githubOauth(code string) (*http.Response, error) {
 	ghEndpoint := "https://github.com/login/oauth/access_token"
 	v := url.Values{}
 	v.Set("client_id", gh.GithubClientID)
@@ -121,6 +119,5 @@ func githubOAuth(code string) (*http.Response, error) {
 		return nil, err
 	}
 	req.Header.Add("accept", "application/json")
-
 	return AuthClient.Do(req)
 }
