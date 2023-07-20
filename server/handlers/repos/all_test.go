@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/db"
@@ -46,7 +45,7 @@ func TestLinkedRepo(t *testing.T) {
 
 	mockRepo := db.Repository{
 		ID:        1,
-		CreatedAt: time.Now().UTC(),
+		CreatedAt: db.TimeNow(),
 		FullName:  "octocat",
 		Url:       "https://github.com/octocat",
 		UserID:    mockUser.ID,

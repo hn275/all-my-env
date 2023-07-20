@@ -1,7 +1,5 @@
 package db
 
-import "time"
-
 var (
 	TableUsers = "users"
 	TableRepos = "repositories"
@@ -9,9 +7,12 @@ var (
 	VendorGithub = "github"
 )
 
+// UTC time stamp RFC3339
+type TimeStamp = string
+
 type User struct {
 	ID        int `gorm:"primaryKey"`
-	CreatedAt string
+	CreatedAt TimeStamp
 	Vendor    string `gorm:"not null"`
 	UserName  string `gorm:"not null,unique"`
 
@@ -21,7 +22,7 @@ type User struct {
 
 type Repository struct {
 	ID        uint `gorm:"primaryKey"`
-	CreatedAt time.Time
+	CreatedAt TimeStamp
 	FullName  string `gorm:"not null"`
 	Url       string `gorm:"not null"`
 
@@ -34,8 +35,8 @@ type Repository struct {
 
 type Variable struct {
 	ID        int       `gorm:"primaryKey"`
-	CreatedAt time.Time `gorm:"not null"`
-	UpdatedAt time.Time `gorm:"not null"`
+	CreatedAt TimeStamp `gorm:"not null"`
+	UpdatedAt TimeStamp `gorm:"not null"`
 	Key       string    `gorm:"not null"`
 	Value     string    `gorm:"not null"`
 	Nonce     string    `gorm:"not null"`
