@@ -21,46 +21,8 @@ const (
 )
 
 type githubMock struct{}
-
+type githubMockFailed struct{}
 type authCxMock struct{}
-
-func (m *githubMock) Do(req *http.Request) (*http.Response, error) {
-	user := jsonwebtoken.GithubUser{
-		ID:        123,
-		Login:     "hn275",
-		AvatarUrl: "https://avatars.githubusercontent.com/u/97143596?v=4",
-		Name:      "Hal",
-		Email:     "email@email.com",
-	}
-	b, _ := json.Marshal(&user)
-	buf := bytes.NewReader(b)
-	body := ioutil.NopCloser(buf)
-
-	res := http.Response{
-		StatusCode: 200,
-		Request:    req,
-		Body:       body,
-	}
-
-	return &res, nil
-}
-
-func (m *authCxMock) Do(req *http.Request) (*http.Response, error) {
-	data := fmt.Sprintf(
-		`{"access_token":"%s","scope":"repo,gist","token_type":"bearer"}`,
-		test_token,
-	)
-	buf := bytes.NewReader([]byte(data))
-	body := ioutil.NopCloser(buf)
-
-	res := http.Response{
-		StatusCode: 200,
-		Body:       body,
-		Request:    req,
-	}
-
-	return &res, nil
-}
 
 func init() {
 	gh.GithubClient = &githubMock{}
@@ -129,3 +91,46 @@ func TestVerifyTokenOK(t *testing.T) {
 	assert.Equal(t, token.Issuer, "Envhub")
 	assert.Equal(t, token.Token, test_token)
 }
+
+// implement gh.Client
+func (m *githubMock) Do(req *http.Request) (*http.Response, error) {
+	user := jsonwebtoken.GithubUser{
+		ID:        123,
+		Login:     "hn275",
+		AvatarUrl: "https://avatars.githubusercontent.com/u/97143596?v=4",
+		Name:      "Hal",
+		Email:     "email@email.com",
+	}
+	b, _ := json.Marshal(&user)
+	buf := bytes.NewReader(b)
+	body := ioutil.NopCloser(buf)
+
+	res := http.Response{
+		StatusCode: 200,
+		Request:    req,
+		Body:       body,
+	}
+
+	return &res, nil
+}
+
+// implement auth.AuthCx
+func (m *authCxMock) Do(req *http.Request) (*http.Response, error) {
+	data := fmt.Sprintf(
+		`{"access_token":"%s","scope":"repo,gist","token_type":"bearer"}`,
+		test_token,
+	)
+	buf := bytes.NewReader([]byte(data))
+	body := ioutil.NopCloser(buf)
+
+	res := http.Response{
+		StatusCode: 200,
+		Body:       body,
+		Request:    req,
+	}
+
+	return &res, nil
+}
+
+// implement gh.Client
+func (m *githubMockFailed) Do(r *http.Request) (*http.Response, error) {}
