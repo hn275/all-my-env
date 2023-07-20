@@ -26,6 +26,11 @@ func (r *Response) Status(c int) *Response {
 	return r
 }
 
+// only call this when there is no response body
+func (r *Response) Done() {
+	r.WriteHeader(r.status)
+}
+
 func (r *Response) Header(k, v string) *Response {
 	r.ResponseWriter.Header().Add(k, v)
 	return r
