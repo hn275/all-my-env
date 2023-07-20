@@ -8,6 +8,7 @@
 [[ -z ${POSTGRES_PORT} ]] && export POSTGRES_PORT="5432"
 [[ -z ${POSTGRES_HOST} ]] && export POSTGRES_HOST="localhost"
 [[ -z ${POSTGRES_SSLMODE} ]] && export POSTGRES_SSLMODE="disable"
+export ENVHUB_PATH="${PWD}"
 
 export POSTGRES_DSN="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=${POSTGRES_SSLMODE}"
 
@@ -26,10 +27,19 @@ function gotest() {
     [[ -f cover.out ]] && rm cover.out
 }
 
-function dbview() {
-    docker exec -it envhub-db psql -U username envhub
-}
-
-function dbml() {
-    pg-to-dbml -c=${POSTGRES_DSN}
+function db() {
+    case $1 in
+        view)
+            docker exec -it envhub-db psql -U username envhub
+            ;;
+        dbml)
+            pg-to-dbml -c=${POSTGRES_DSN}
+            ;;
+        seed)
+            go run $ENVHUB_PATH/scripts/main.go seed
+            ;;
+        *)
+            echo "usage: [view|dbml|seed]"
+            ;;
+    esac
 }
