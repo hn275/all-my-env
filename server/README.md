@@ -3,8 +3,7 @@
 ## Requirements
 
 - Go 1.20
-- Docker/Docker compose
-- [Golang migrate](https://github.com/golang-migrate/migrate)
+- Docker
 
 ## ENV
 
@@ -14,15 +13,21 @@
 source env.bash
 ```
 
-### Generating New DBML file
+## Get started
+
+### Database functions
 
 ```sh
-dbml
+db view # access psql shell in docker
+
+db dbml # generate a new schemas file, this need pg-to-dbml installed
+        # https://github.com/papandreou/pg-to-dbml
+
+db seed # seed data
 ```
 
 ### Testing
 
 ```sh
-# TODO: ignore tmp dir for testing
-test ./path/to/package
+gotest ./path/to/package
 ```
