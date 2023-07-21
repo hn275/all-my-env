@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
+	"github.com/hn275/envhub/server/db"
 )
 
 func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
@@ -25,17 +26,26 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var newV EnvVariable
-	if err := json.NewDecoder(r.Body).Decode(&newV); err != nil {
+	var body EnvVariable
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
 			Error(err.Error())
 		return
 	}
 
+	// SERIALIZE VARIABLE
+	envVar, err := body.Cipher(uint32(repoID))
+	if err != nil {
+		api.NewResponse(w).ServerError(err)
+		return
+	}
+	envVar.CreatedAt = db.TimeNow()
+	envVar.UpdatedAt = db.TimeNow()
+
 	// SAVE TO DB
-	v, err := newV.Serialize(uint32(repoID))
-	if err := d.Create(v).Error; err != nil {
+	// TODO: handle duplicate env var key
+	if err := d.Create(envVar).Error; err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
