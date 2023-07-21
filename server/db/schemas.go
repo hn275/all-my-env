@@ -23,7 +23,7 @@ type User struct {
 }
 
 type Repository struct {
-	ID        uint `gorm:"primaryKey"`
+	ID        uint32 `gorm:"primaryKey"`
 	CreatedAt TimeStamp
 	FullName  string `gorm:"not null"`
 	Url       string `gorm:"not null"`
@@ -36,7 +36,7 @@ type Repository struct {
 }
 
 type Variable struct {
-	ID        int       `gorm:"primaryKey"`
+	ID        uint64    `gorm:"primaryKey"`
 	CreatedAt TimeStamp `gorm:"not null"`
 	UpdatedAt TimeStamp `gorm:"not null"`
 	Key       string    `gorm:"not null"`

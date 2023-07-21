@@ -23,6 +23,7 @@ func init() {
 }
 
 func main() {
+
 	r := chi.NewMux()
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
@@ -51,6 +52,8 @@ func main() {
 		r.Handle("/github", http.HandlerFunc(auth.Handler.VerifyToken))
 	})
 
+	// refresh variable counter every second
+	go variables.RefreshVariableCounter()
 	r.Route("/repos", func(r chi.Router) {
 		r.Handle("/", http.HandlerFunc(repos.Handlers.All))
 		r.Route("/{id}", func(r chi.Router) {
