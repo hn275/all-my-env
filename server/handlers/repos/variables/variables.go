@@ -40,13 +40,17 @@ func RefreshVariableCounter() {
 	}
 }
 
+// schema to generate id:
+// `[repository id, time utc, process id, counter var]`.
+// Where `counter var` is reset to 0 every second. The `id` is the
+// base64-encoding of the byte array.
 func genVariableID(repoID uint32) base64VariableID {
 	bufSize := 14
 	buf := make([]byte, bufSize)
 
 	binary.BigEndian.PutUint32(buf[:4], repoID)
 
-	t := time.Now().Unix()
+	t := time.Now().UTC().Unix()
 	binary.BigEndian.PutUint32(buf[4:8], uint32(t))
 
 	pid := os.Getpid()
