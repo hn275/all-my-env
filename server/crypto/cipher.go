@@ -5,14 +5,26 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"os"
 
+	"github.com/hn275/envhub/server/lib"
 	"golang.org/x/crypto/chacha20poly1305"
 )
 
+var key []byte
+
+func init() {
+	key = []byte(lib.Getenv("ROW_KEY"))
+	if len(key) != 32 {
+		fmt.Fprintf(os.Stderr, "invalid CIPHER_KEY length.\nExpected 32, got: %d", len(key))
+		os.Exit(1)
+	}
+}
+
 // one issue
 // need variableID to encrypt, this can be the repo id or something
-func Encrypt(encryptionKey []byte, value string, variableID int) ([]byte, error) {
-	cipher, err := chacha20poly1305.NewX(encryptionKey)
+func Encrypt(value string, variableID uint32) ([]byte, error) {
+	cipher, err := chacha20poly1305.NewX(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cipher: %w", err)
 	}
@@ -22,7 +34,7 @@ func Encrypt(encryptionKey []byte, value string, variableID int) ([]byte, error)
 		return nil, fmt.Errorf("failed to generate nonce: %w", err)
 	}
 	var ad [4]byte
-	binary.LittleEndian.PutUint32(ad[:], uint32(variableID))
+	binary.LittleEndian.PutUint32(ad[:], variableID)
 
 	plaintext := []byte(value)
 	ciphertext := make([]byte, 0, len(plaintext)+cipher.Overhead()+cipher.NonceSize())
@@ -31,13 +43,13 @@ func Encrypt(encryptionKey []byte, value string, variableID int) ([]byte, error)
 	return ciphertext, nil
 }
 
-func Decrypt(encryptionKey []byte, ciphertext []byte, variableID int) ([]byte, error) {
-	cipher, err := chacha20poly1305.NewX(encryptionKey)
+func Decrypt(ciphertext []byte, variableID uint32) ([]byte, error) {
+	cipher, err := chacha20poly1305.NewX(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cipher: %w", err)
 	}
 	var ad [4]byte
-	binary.LittleEndian.PutUint32(ad[:], uint32(variableID))
+	binary.LittleEndian.PutUint32(ad[:], variableID)
 
 	plaintextSize := len(ciphertext) - cipher.NonceSize() - cipher.Overhead()
 	if plaintextSize < 0 {

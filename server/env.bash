@@ -1,6 +1,6 @@
 [[ -z ${GITHUB_CLIENT_SECRET} ]] && export GITHUB_CLIENT_SECRET="asldkfjsadklfjk"
 [[ -z ${GITHUB_CLIENT_ID} ]] && export GITHUB_CLIENT_ID="asldkfjsadklfjk"
-[[ -z ${ROW_KEY_SECRET} ]] && export ROW_KEY_SECRET="asdflkjasldkfjasldkjfasldkjfasas"
+[[ -z ${ROW_KEY} ]] && export ROW_KEY="asdflkjasldkfjasldkjfasldkjfasas"
 [[ -z ${JWT_SECRET} ]] && export JWT_SECRET="asdflkjasldkfjasldkjfasldkjfasas"
 [[ -z ${POSTGRES_PASSWORD} ]] && export POSTGRES_PASSWORD="password"
 [[ -z ${POSTGRES_USER} ]] && export POSTGRES_USER="username"
