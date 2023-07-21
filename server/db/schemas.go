@@ -11,6 +11,7 @@ var (
 
 // UTC time stamp RFC3339
 type TimeStamp = time.Time
+type Base64EncodedID = string
 
 type User struct {
 	ID        int `gorm:"primaryKey"`
@@ -36,14 +37,13 @@ type Repository struct {
 }
 
 type Variable struct {
-	ID        uint64    `gorm:"primaryKey"`
-	CreatedAt TimeStamp `gorm:"not null"`
-	UpdatedAt TimeStamp `gorm:"not null"`
-	Key       string    `gorm:"not null"`
-	Value     string    `gorm:"not null"`
-	Nonce     string    `gorm:"not null"`
+	ID        Base64EncodedID `gorm:"primaryKey"`
+	CreatedAt TimeStamp       `gorm:"not null"`
+	UpdatedAt TimeStamp       `gorm:"not null"`
+	Key       string          `gorm:"not null"`
+	Value     string          `gorm:"not null"`
 
 	// relation
 	Repository   Repository
-	RepositoryID int `gorm:"foreignKey"`
+	RepositoryID uint32 `gorm:"foreignKey"`
 }
