@@ -8,8 +8,7 @@ import (
 func Getenv(k string) (v string) {
 	v = os.Getenv(k)
 	if v == "" {
-		log.Fatalf("env [%s] k not set", k)
+		log.Fatalf("env [%s] not set", k)
 	}
-
 	return v
 }
