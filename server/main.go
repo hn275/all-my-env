@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/hn275/envhub/server/handlers/auth"
 	"github.com/hn275/envhub/server/handlers/repos"
+	"github.com/hn275/envhub/server/handlers/repos/variables"
 )
 
 var port string
@@ -51,7 +52,12 @@ func main() {
 	})
 
 	r.Route("/repos", func(r chi.Router) {
-		r.Handle("/all", http.HandlerFunc(repos.Handlers.All))
+		r.Handle("/", http.HandlerFunc(repos.Handlers.All))
+		r.Route("/{id}", func(r chi.Router) {
+			r.Route("/variables", func(r chi.Router) {
+				r.Handle("/new", http.HandlerFunc(variables.Handlers.NewVariable))
+			})
+		})
 	})
 
 	log.Println("Listening on port:", port)

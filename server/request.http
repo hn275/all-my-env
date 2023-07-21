@@ -1,2 +1,13 @@
-GET http://127.0.0.1:8080/repos/all?page=1&sort=pushed&show=1
+GET http://127.0.0.1:8080/repos?page=1&sort=pushed&show=1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6Imdob181bktvYXJDYzIxazN0TWtJMDN6VkNpY2xxQmtPUkUyRVZCZWEiLCJpZCI6OTcxNDM1OTYsImxvZ2luIjoiaG4yNzUiLCJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9hdmF0YXJzLmdpdGh1YnVzZXJjb250ZW50LmNvbS91Lzk3MTQzNTk2P3Y9NCIsIm5hbWUiOiJIYWwiLCJlbWFpbCI6ImhhbG5fMDFAcHJvdG9uLm1lIiwiaXNzIjoiRW52aHViIiwic3ViIjoiSGFsIn0.FKtimVIStAoNOet5MHQ2EVBSvgOxMo9Hq5ITqnWQuaY
+
+###
+
+POST http://127.0.0.1:8080/repos/1/variables/new
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6Imdob181bktvYXJDYzIxazN0TWtJMDN6VkNpY2xxQmtPUkUyRVZCZWEiLCJpZCI6OTcxNDM1OTYsImxvZ2luIjoiaG4yNzUiLCJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9hdmF0YXJzLmdpdGh1YnVzZXJjb250ZW50LmNvbS91Lzk3MTQzNTk2P3Y9NCIsIm5hbWUiOiJIYWwiLCJlbWFpbCI6ImhhbG5fMDFAcHJvdG9uLm1lIiwiaXNzIjoiRW52aHViIiwic3ViIjoiSGFsIn0.FKtimVIStAoNOet5MHQ2EVBSvgOxMo9Hq5ITqnWQuaY
+Content-type: application/json
+
+{
+    "key": "foo",
+    "value": "bar"
+}
