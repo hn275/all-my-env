@@ -3,81 +3,47 @@ package crypto
 import (
 	"math"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEncryptDecrypt(t *testing.T) {
-	encryptionKey := []byte("01234567890123456789012345678901")
 	plaintext := "hello, world"
-	variableID := 1
+	variableID := uint32(1)
 
-	ciphertext, err := Encrypt(encryptionKey, plaintext, variableID)
-	if err != nil {
-		t.Fatalf("failed to encrypt: %v", err)
-	}
+	ciphertext, err := Encrypt(plaintext, variableID)
+	assert.Nil(t, err)
+	assert.NotEqual(t, string(ciphertext), plaintext)
 
-	decrypted, err := Decrypt(encryptionKey, ciphertext, variableID)
-	if err != nil {
-		t.Fatalf("failed to decrypt: %v", err)
-	}
+	decrypted, err := Decrypt(ciphertext, variableID)
+	assert.Nil(t, err)
+	assert.Equal(t, string(decrypted), plaintext)
 
-	if string(decrypted) != plaintext {
-		t.Fatalf("decrypted text is not same as plaintext: %s", string(decrypted))
-	}
+	_, err = Decrypt(ciphertext, variableID+1)
+	assert.NotNil(t, err)
 
-	_, err = Decrypt(encryptionKey, ciphertext, variableID+1)
-	if err == nil {
-		t.Fatalf("decrypted text with wrong variableID")
-	}
+	_, err = Decrypt(ciphertext, variableID)
+	assert.Nil(t, err)
 
-	_, err = Decrypt(encryptionKey[:31], ciphertext, variableID)
-	if err == nil {
-		t.Fatalf("decrypted text with wrong key")
-	}
-
-	_, err = Decrypt(encryptionKey, ciphertext[:31], variableID)
-	if err == nil {
-		t.Fatalf("decrypted text with wrong ciphertext")
-	}
-
-	_, err = Decrypt(encryptionKey, ciphertext, variableID)
-	if err != nil {
-		t.Fatalf("failed to decrypt: %v", err)
-	}
+	_, err = Decrypt(ciphertext[:31], variableID)
+	assert.NotNil(t, err)
 }
 
 func FuzzDecrypt(f *testing.F) {
-	testcases := []struct {
-		encryptionKey []byte
-		ciphertext    []byte
-	}{
-		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			ciphertext:    []byte("hello, world"),
-		},
-		{
-			encryptionKey: nil,
-			ciphertext:    []byte(""),
-		},
-		{
-			encryptionKey: []byte{0x00},
-			ciphertext:    []byte(""),
-		},
-		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			ciphertext:    []byte(""),
-		},
-		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			ciphertext:    []byte("hello, world"),
-		},
+	testcases := [][]byte{
+		[]byte("hello, world"),
+		[]byte(""),
+		[]byte(""),
+		[]byte(""),
+		[]byte("hello, world"),
 	}
 
 	for _, testcase := range testcases {
-		f.Add(testcase.encryptionKey, testcase.ciphertext)
+		f.Add(testcase)
 	}
 
-	f.Fuzz(func(t *testing.T, encryptionKey []byte, ciphertext []byte) {
-		_, err := Decrypt(encryptionKey, ciphertext, 1)
+	f.Fuzz(func(t *testing.T, ciphertext []byte) {
+		_, err := Decrypt(ciphertext, 1)
 		if err != nil {
 			t.Skip()
 		}
@@ -86,68 +52,37 @@ func FuzzDecrypt(f *testing.F) {
 
 func FuzzEncrypt(f *testing.F) {
 	testcases := []struct {
-		encryptionKey []byte
-		value         string
-		variableID    int
+		value      string
+		variableID uint32
 	}{
 		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			value:         "hello, world",
-			variableID:    1,
+			value:      "hello, world",
+			variableID: 1,
 		},
 		{
-			encryptionKey: nil,
-			value:         "",
-			variableID:    0,
+			value:      "",
+			variableID: 0,
 		},
 		{
-			encryptionKey: []byte{0x00},
-			value:         "",
-			variableID:    0,
+			value:      "",
+			variableID: 0,
 		},
 		{
-			encryptionKey: []byte{0x00, 0x00},
-			value:         "",
-			variableID:    0,
+			value:      "",
+			variableID: 0,
 		},
 		{
-			encryptionKey: []byte{
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			},
-			value:      "\x00",
-			variableID: -1,
-		},
-		{
-			encryptionKey: []byte{
-				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-			},
-			value:      "\xFF",
-			variableID: -1,
-		},
-		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			value:         "hello, world",
-			variableID:    math.MaxInt32,
-		},
-		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			value:         "hello, world",
-			variableID:    math.MinInt32,
+			value:      "hello, world",
+			variableID: math.MaxInt32,
 		},
 	}
 
 	for _, testcase := range testcases {
-		f.Add(testcase.encryptionKey, testcase.value, testcase.variableID)
+		f.Add(testcase.value, testcase.variableID)
 	}
 
-	f.Fuzz(func(t *testing.T, encryptionKey []byte, value string, variableID int) {
-		_, err := Encrypt(encryptionKey, value, variableID)
+	f.Fuzz(func(t *testing.T, value string, variableID uint32) {
+		_, err := Encrypt(value, variableID)
 		if err != nil {
 			t.Skip()
 		}
@@ -156,62 +91,34 @@ func FuzzEncrypt(f *testing.F) {
 
 func FuzzEncryptDecrypt(f *testing.F) {
 	testcases := []struct {
-		encryptionKey []byte
-		value         string
-		variableID    int
+		value      string
+		variableID uint32
 	}{
 		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			value:         "hello, world",
-			variableID:    1,
+			value:      "hello, world",
+			variableID: 1,
 		},
 		{
-			encryptionKey: nil,
-			value:         "",
-			variableID:    0,
+			value:      "",
+			variableID: 0,
 		},
+
 		{
-			encryptionKey: []byte{
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			},
-			value:      "\x00",
-			variableID: -1,
-		},
-		{
-			encryptionKey: []byte{
-				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-				0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-			},
-			value:      "\xFF",
-			variableID: -1,
-		},
-		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			value:         "hello, world",
-			variableID:    math.MaxInt32,
-		},
-		{
-			encryptionKey: []byte("01234567890123456789012345678901"),
-			value:         "hello, world",
-			variableID:    math.MinInt32,
+			value:      "hello, world",
+			variableID: math.MaxInt32,
 		},
 	}
 
 	for _, testcase := range testcases {
-		f.Add(testcase.encryptionKey, testcase.value, testcase.variableID)
+		f.Add(testcase.value, testcase.variableID)
 	}
 
-	f.Fuzz(func(t *testing.T, encryptionKey []byte, value string, variableID int) {
-		ciphertext, err := Encrypt(encryptionKey, value, variableID)
+	f.Fuzz(func(t *testing.T, value string, variableID uint32) {
+		ciphertext, err := Encrypt(value, variableID)
 		if err != nil {
 			t.Skip()
 		}
-		_, err = Decrypt(encryptionKey, ciphertext, variableID)
+		_, err = Decrypt(ciphertext, variableID)
 		if err != nil {
 			t.Skip()
 		}
