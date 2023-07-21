@@ -138,7 +138,7 @@ function useRepos() {
 			try {
 				setLoading(() => true);
 				const param = { page: String(page), sort, show: String(show) };
-				const response = await Fetch.GET("/repos/all", param);
+				const response = await Fetch.GET("/repos", param);
 				const { status } = response;
 				const payload = await response.json();
 
