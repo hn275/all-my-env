@@ -1,6 +1,7 @@
 package variables
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -9,6 +10,7 @@ import (
 )
 
 func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
+	// VALIDATE REQUEST
 	if r.Method != http.MethodPost {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()
 		return
@@ -19,9 +21,24 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
-			Error("invalid id url param")
+			Error(err.Error())
 		return
 	}
 
-	api.NewResponse(w).Status(http.StatusOK).Text(string(rune(repoID)))
+	var newV EnvVariable
+	if err := json.NewDecoder(r.Body).Decode(&newV); err != nil {
+		api.NewResponse(w).
+			Status(http.StatusBadRequest).
+			Error(err.Error())
+		return
+	}
+
+	// SAVE TO DB
+	v, err := newV.Serialize(uint32(repoID))
+	if err := d.Create(v).Error; err != nil {
+		api.NewResponse(w).ServerError(err)
+		return
+	}
+
+	api.NewResponse(w).Status(http.StatusCreated).Done()
 }
