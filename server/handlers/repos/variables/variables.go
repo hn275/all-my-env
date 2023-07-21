@@ -7,14 +7,18 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hn275/envhub/server/crypto"
 	"github.com/hn275/envhub/server/db"
 	"gorm.io/gorm"
 )
 
-type base64VariableID = string
-
 type variableHandler struct {
 	*gorm.DB
+}
+
+type EnvVariable struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 var (
@@ -31,6 +35,24 @@ func init() {
 	counterMap = make(map[uint32]uint16)
 }
 
+func (v *EnvVariable) Cipher(repoID uint32) (*db.Variable, error) {
+	id := genVariableID(repoID)
+	idStr := base64.StdEncoding.EncodeToString(id)
+	newValue, err := crypto.Encrypt(v.Value, id)
+	if err != nil {
+		return nil, err
+	}
+
+	s := db.Variable{
+		ID:           idStr,
+		Key:          v.Key,
+		Value:        base64.StdEncoding.EncodeToString(newValue),
+		RepositoryID: repoID,
+	}
+
+	return &s, nil
+}
+
 func RefreshVariableCounter() {
 	for {
 		m.Lock()
@@ -42,9 +64,8 @@ func RefreshVariableCounter() {
 
 // schema to generate id:
 // `[repository id, time utc, process id, counter var]`.
-// Where `counter var` is reset to 0 every second. The `id` is the
-// base64-encoding of the byte array.
-func genVariableID(repoID uint32) base64VariableID {
+// Where `counter var` is reset to 0 every second.
+func genVariableID(repoID uint32) []byte {
 	bufSize := 14
 	buf := make([]byte, bufSize)
 
@@ -62,5 +83,5 @@ func genVariableID(repoID uint32) base64VariableID {
 	m.Unlock()
 	binary.BigEndian.PutUint16(buf[12:], counter)
 
-	return base64.StdEncoding.EncodeToString(buf)
+	return buf
 }

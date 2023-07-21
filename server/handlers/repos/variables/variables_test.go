@@ -1,6 +1,7 @@
 package variables
 
 import (
+	"encoding/base64"
 	"math"
 	"testing"
 	"time"
@@ -15,7 +16,8 @@ func TestGenID(t *testing.T) {
 	repoID := uint32(1)
 	idSet := make(map[string]bool)
 	for i := 0; i < iteration; i++ {
-		idSet[genVariableID(repoID)] = true
+		id := base64.StdEncoding.EncodeToString(genVariableID(repoID))
+		idSet[id] = true
 	}
 	assert.Equal(t, 1, len(counterMap))
 
@@ -23,7 +25,8 @@ func TestGenID(t *testing.T) {
 	assert.Equal(t, 0, len(counterMap))
 
 	for i := 0; i < iteration; i++ {
-		idSet[genVariableID(repoID)] = true
+		id := base64.StdEncoding.EncodeToString(genVariableID(repoID))
+		idSet[id] = true
 	}
 	assert.Equal(t, 1, len(counterMap))
 	assert.Equal(t, iteration*2, len(idSet))
