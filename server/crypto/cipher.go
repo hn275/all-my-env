@@ -2,7 +2,6 @@ package crypto
 
 import (
 	"crypto/rand"
-	"encoding/binary"
 	"fmt"
 	"io"
 	"os"
@@ -23,7 +22,7 @@ func init() {
 
 // one issue
 // need variableID to encrypt, this can be the repo id or something
-func Encrypt(value string, variableID uint32) ([]byte, error) {
+func Encrypt(value string, ad []byte) ([]byte, error) {
 	cipher, err := chacha20poly1305.NewX(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cipher: %w", err)
@@ -33,30 +32,31 @@ func Encrypt(value string, variableID uint32) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate nonce: %w", err)
 	}
-	var ad [4]byte
-	binary.LittleEndian.PutUint32(ad[:], variableID)
 
 	plaintext := []byte(value)
 	ciphertext := make([]byte, 0, len(plaintext)+cipher.Overhead()+cipher.NonceSize())
 	ciphertext = append(ciphertext, nonce[:]...)
-	ciphertext = cipher.Seal(ciphertext, nonce, plaintext, ad[:])
+	ciphertext = cipher.Seal(ciphertext, nonce, plaintext, ad)
 	return ciphertext, nil
 }
 
-func Decrypt(ciphertext []byte, variableID uint32) ([]byte, error) {
+func Decrypt(ciphertext []byte, ad []byte) ([]byte, error) {
 	cipher, err := chacha20poly1305.NewX(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cipher: %w", err)
 	}
-	var ad [4]byte
-	binary.LittleEndian.PutUint32(ad[:], variableID)
 
 	plaintextSize := len(ciphertext) - cipher.NonceSize() - cipher.Overhead()
 	if plaintextSize < 0 {
 		return nil, fmt.Errorf("ciphertext is too short")
 	}
 	plaintext := make([]byte, 0, plaintextSize)
-	plaintext, err = cipher.Open(plaintext, ciphertext[:cipher.NonceSize()], ciphertext[cipher.NonceSize():], ad[:])
+	plaintext, err = cipher.Open(
+		plaintext,
+		ciphertext[:cipher.NonceSize()],
+		ciphertext[cipher.NonceSize():],
+		ad,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt: %w", err)
 	}

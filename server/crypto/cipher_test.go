@@ -1,7 +1,6 @@
 package crypto
 
 import (
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +8,7 @@ import (
 
 func TestEncryptDecrypt(t *testing.T) {
 	plaintext := "hello, world"
-	variableID := uint32(1)
+	variableID := []byte("test")
 
 	ciphertext, err := Encrypt(plaintext, variableID)
 	assert.Nil(t, err)
@@ -18,9 +17,6 @@ func TestEncryptDecrypt(t *testing.T) {
 	decrypted, err := Decrypt(ciphertext, variableID)
 	assert.Nil(t, err)
 	assert.Equal(t, string(decrypted), plaintext)
-
-	_, err = Decrypt(ciphertext, variableID+1)
-	assert.NotNil(t, err)
 
 	_, err = Decrypt(ciphertext, variableID)
 	assert.Nil(t, err)
@@ -43,7 +39,7 @@ func FuzzDecrypt(f *testing.F) {
 	}
 
 	f.Fuzz(func(t *testing.T, ciphertext []byte) {
-		_, err := Decrypt(ciphertext, 1)
+		_, err := Decrypt(ciphertext, []byte("test"))
 		if err != nil {
 			t.Skip()
 		}
@@ -53,27 +49,27 @@ func FuzzDecrypt(f *testing.F) {
 func FuzzEncrypt(f *testing.F) {
 	testcases := []struct {
 		value      string
-		variableID uint32
+		variableID []byte
 	}{
 		{
 			value:      "hello, world",
-			variableID: 1,
+			variableID: []byte("foobar"),
 		},
 		{
 			value:      "",
-			variableID: 0,
+			variableID: []byte("foobar"),
 		},
 		{
 			value:      "",
-			variableID: 0,
+			variableID: []byte("foobar"),
 		},
 		{
 			value:      "",
-			variableID: 0,
+			variableID: []byte("foobar"),
 		},
 		{
 			value:      "hello, world",
-			variableID: math.MaxInt32,
+			variableID: []byte("foobar"),
 		},
 	}
 
@@ -81,7 +77,7 @@ func FuzzEncrypt(f *testing.F) {
 		f.Add(testcase.value, testcase.variableID)
 	}
 
-	f.Fuzz(func(t *testing.T, value string, variableID uint32) {
+	f.Fuzz(func(t *testing.T, value string, variableID []byte) {
 		_, err := Encrypt(value, variableID)
 		if err != nil {
 			t.Skip()
@@ -92,20 +88,20 @@ func FuzzEncrypt(f *testing.F) {
 func FuzzEncryptDecrypt(f *testing.F) {
 	testcases := []struct {
 		value      string
-		variableID uint32
+		variableID []byte
 	}{
 		{
 			value:      "hello, world",
-			variableID: 1,
+			variableID: []byte("foobar"),
 		},
 		{
 			value:      "",
-			variableID: 0,
+			variableID: []byte("foobar"),
 		},
 
 		{
 			value:      "hello, world",
-			variableID: math.MaxInt32,
+			variableID: []byte("foobar"),
 		},
 	}
 
@@ -113,7 +109,7 @@ func FuzzEncryptDecrypt(f *testing.F) {
 		f.Add(testcase.value, testcase.variableID)
 	}
 
-	f.Fuzz(func(t *testing.T, value string, variableID uint32) {
+	f.Fuzz(func(t *testing.T, value string, variableID []byte) {
 		ciphertext, err := Encrypt(value, variableID)
 		if err != nil {
 			t.Skip()
