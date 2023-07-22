@@ -31,14 +31,14 @@ func main() {
 	action := os.Args[1]
 
 	switch action {
-	case "seed":
-		seed()
+	case "mock":
+		mock()
 	default:
-		fmt.Println("usage: [seed]")
+		fmt.Println("usage: [mock]")
 	}
 }
 
-func seed() {
+func mock() {
 	users := []db.User{
 		{
 			ID:        1,

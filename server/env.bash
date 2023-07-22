@@ -35,8 +35,8 @@ function db() {
         dbml)
             pg-to-dbml -c=${POSTGRES_DSN}
             ;;
-        seed)
-            go run $ENVHUB_PATH/scripts/main.go seed
+        mock)
+            go run $ENVHUB_PATH/scripts/main.go mock
             ;;
         *)
             echo "usage: [view|dbml|seed]"
