@@ -40,10 +40,10 @@ type Variable struct {
 	ID        Base64EncodedID `gorm:"primaryKey"`
 	CreatedAt TimeStamp       `gorm:"not null"`
 	UpdatedAt TimeStamp       `gorm:"not null"`
-	Key       string          `gorm:"not null"`
+	Key       string          `gorm:"not null;uniqueIndex:unique_key_repo"`
 	Value     string          `gorm:"not null"`
 
 	// relation
 	Repository   Repository
-	RepositoryID uint32 `gorm:"foreignKey"`
+	RepositoryID uint32 `gorm:"foreignKey;uniqueIndex:unique_key_repo"`
 }
