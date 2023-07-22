@@ -17,9 +17,8 @@ type variableHandler struct {
 }
 
 type EnvVariable struct {
-	Key     string `json:"key"`
-	Value   string `json:"value"`
-	RepoURL string `json:"repo_url"`
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 var (

@@ -2,6 +2,7 @@ package variables
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,6 +14,7 @@ import (
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"gorm.io/gorm"
 )
 
 type permission struct {
@@ -21,9 +23,6 @@ type permission struct {
 }
 
 func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
-	ghChan := make(chan permission)
-	defer close(ghChan)
-
 	// VALIDATE REQUEST
 	if r.Method != http.MethodPost {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()
@@ -44,8 +43,31 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	repoIDStr := chi.URLParam(r, "id")
+	if repoIDStr == "" {
+		api.NewResponse(w).
+			Status(http.StatusBadRequest).
+			Error("missing url param: repo id")
+		return
+	}
+
 	// CHECKS IF USER IS A COLLABORATOR
-	go getRepoAccess(ghChan, body.RepoURL, user)
+	var repo db.Repository
+	result := d.Where("id = ?", repoIDStr).First(&repo)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			api.NewResponse(w).
+				Status(http.StatusNotFound).
+				Error("repository not found")
+			return
+		}
+		api.NewResponse(w).ServerError(result.Error)
+		return
+	}
+
+	ghChan := make(chan permission)
+	defer close(ghChan)
+	go getRepoAccess(ghChan, repo.FullName, user)
 
 	// SERIALIZE VARIABLE
 	s := chi.URLParam(r, "id")
