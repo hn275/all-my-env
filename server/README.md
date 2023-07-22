@@ -23,11 +23,11 @@ db view # access psql shell in docker
 db dbml # generate a new schemas file, this need pg-to-dbml installed
         # https://github.com/papandreou/pg-to-dbml
 
-db seed # seed data
+db mock # mock rows
 ```
 
 ### Testing
 
 ```sh
-gotest ./path/to/package
+gotest ./path/to/package # make sure to have docker container running and mock data in db
 ```
