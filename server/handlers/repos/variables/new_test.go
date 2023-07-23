@@ -14,10 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type mockCtxOK struct{}
+type mockGhCtxOK struct{}
 type mockGhCtxNotFound struct{}
 type mockGhCtxError struct{}
-type mockJwtToken struct{}
 
 var mockVar = EnvVariable{"foo", "bar"}
 
@@ -51,7 +50,7 @@ func cleanup() {
 func TestNewVariable(t *testing.T) {
 	defer cleanup()
 
-	gh.GithubClient = &mockCtxOK{}
+	gh.MockClient(&mockGhCtxOK{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
@@ -68,7 +67,7 @@ func TestNewVariable(t *testing.T) {
 func TestNewVariableDuplicate(t *testing.T) {
 	defer cleanup()
 
-	gh.GithubClient = &mockCtxOK{}
+	gh.MockClient(&mockGhCtxOK{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
@@ -82,7 +81,7 @@ func TestNewVariableDuplicate(t *testing.T) {
 
 func TestWriteAccess(t *testing.T) {
 	// testing no repo not found
-	gh.GithubClient = &mockCtxOK{}
+	gh.MockClient(&mockGhCtxOK{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/420/variables/new")
@@ -103,7 +102,7 @@ func TestWriteAccess(t *testing.T) {
 }
 
 func TestInvalidRepoID(t *testing.T) {
-	gh.GithubClient = &mockGhCtxNotFound{}
+	gh.MockClient(&mockGhCtxOK{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/lkasjdf/variables/new")
@@ -132,7 +131,7 @@ func TestMethodNotAllowed(t *testing.T) {
 }
 
 func TestGithubServerNotFound(t *testing.T) {
-	gh.GithubClient = &mockGhCtxNotFound{}
+	gh.MockClient(&mockGhCtxNotFound{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
@@ -150,7 +149,7 @@ func TestGithubServerError(t *testing.T) {
 }
 
 // MOCK
-func (m *mockCtxOK) Do(r *http.Request) (*http.Response, error) {
+func (m *mockGhCtxOK) Do(r *http.Request) (*http.Response, error) {
 	res := &http.Response{
 		Status:     "204 No Content",
 		StatusCode: http.StatusNoContent,

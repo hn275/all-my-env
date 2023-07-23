@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/handlers/repos"
@@ -17,11 +16,10 @@ import (
 )
 
 type repoMock struct{}
-type jwtMock struct{}
 
 func init() {
-	gh.GithubClient = &repoMock{}
-	jsonwebtoken.Decoder = &jwtMock{}
+	gh.MockClient(&repoMock{})
+	jsonwebtoken.Mock()
 }
 
 func testInit() (*http.ServeMux, *httptest.ResponseRecorder) {
@@ -127,31 +125,6 @@ func (mock *repoMock) Do(req *http.Request) (*http.Response, error) {
 		Body:       body,
 	}
 	return res, nil
-}
-
-// Decode implements jsonwebtoken.JsonWebToken.
-func (*jwtMock) Decode(_ string) (*jsonwebtoken.JwtToken, error) {
-	user := jsonwebtoken.GithubUser{
-		Token:     "asdf",
-		ID:        1,
-		Login:     "foo",
-		AvatarUrl: "foobar.com",
-		Name:      "foo",
-		Email:     "foo@bar.com",
-	}
-	t := &jsonwebtoken.JwtToken{
-		GithubUser: user,
-		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "EnvHub",
-			Subject:   "foo",
-			Audience:  []string{},
-			ExpiresAt: &jwt.NumericDate{},
-			NotBefore: &jwt.NumericDate{},
-			IssuedAt:  &jwt.NumericDate{},
-			ID:        "123",
-		},
-	}
-	return t, nil
 }
 
 const mockData = `
