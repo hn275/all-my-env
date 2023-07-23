@@ -1,6 +1,11 @@
 package db
 
-import "time"
+import (
+	"encoding/base64"
+	"time"
+
+	"github.com/hn275/envhub/server/crypto"
+)
 
 var (
 	TableUsers       = "users"
@@ -26,32 +31,56 @@ type User struct {
 }
 
 type Repository struct {
-	ID        uint32 `gorm:"primaryKey"`
-	CreatedAt TimeStamp
+	ID        uint32    `gorm:"primaryKey" json:"id"`
+	CreatedAt TimeStamp `json:"created_at"`
 
 	// ie: hn275/envhub
-	FullName string `gorm:"not null"`
+	FullName string `gorm:"not null" json:"full_name"`
 	// ie: https://github.com/hn275/envhub
-	Url string `gorm:"not null"`
+	Url string `gorm:"not null" json:"url"`
 
 	// relation
-	User   User
-	UserID int `gorm:"foreignKey"`
+	User   User `json:"-"`
+	UserID int  `gorm:"foreignKey" json:"-"`
 
-	Variables  []Variable   `gorm:"constraint:OnDelete:CASCADE"`
-	Permission []Permission `gorm:"constraint:OnDelete:CASCADE"`
+	Variables  []Variable   `gorm:"constraint:OnDelete:CASCADE" json:"-"`
+	Permission []Permission `gorm:"constraint:OnDelete:CASCADE" json:"-"`
 }
 
+// This table contains all the environment variables.
+//
+// `Value`'s are never saved raw. always the base64 encoding of the ciphered text,
+// and the `ad` is the base64 decoded value of it's ID
 type Variable struct {
-	ID        Base64EncodedID `gorm:"primaryKey"`
-	CreatedAt TimeStamp       `gorm:"not null"`
-	UpdatedAt TimeStamp       `gorm:"not null"`
-	Key       string          `gorm:"not null;uniqueIndex:unique_key_repo"`
-	Value     string          `gorm:"not null"`
+	ID        Base64EncodedID `gorm:"primaryKey" json:"id"`
+	CreatedAt TimeStamp       `gorm:"not null" json:"created_at"`
+	UpdatedAt TimeStamp       `gorm:"not null" json:"updated_at"`
+	Key       string          `gorm:"not null;uniqueIndex:unique_key_repo" json:"key"`
+	Value     string          `gorm:"not null" json:"value"`
 
 	// relation
-	Repository   Repository
-	RepositoryID uint32 `gorm:"foreignKey;uniqueIndex:unique_key_repo"`
+	Repository   Repository `json:"-"`
+	RepositoryID uint32     `gorm:"foreignKey;uniqueIndex:unique_key_repo" json:"-"`
+}
+
+func (v *Variable) DecryptValue() error {
+	ad, err := base64.StdEncoding.DecodeString(v.ID)
+	if err != nil {
+		return err
+	}
+
+	ciphertext, err := base64.StdEncoding.DecodeString(v.Value)
+	if err != nil {
+		return err
+	}
+
+	plaintext, err := crypto.Decrypt(ciphertext, ad)
+	if err != nil {
+		return err
+	}
+
+	v.Value = string(plaintext)
+	return nil
 }
 
 // This table describes the type of access an user have for each repo.
