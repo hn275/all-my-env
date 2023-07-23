@@ -37,14 +37,14 @@ func TestLinkedRepo(t *testing.T) {
 	}
 
 	mockUser := db.User{
-		ID:        1,
+		ID:        100,
 		CreatedAt: db.TimeNow(),
 		Vendor:    "laksdjf",
 		UserName:  "octocat",
 	}
 
 	mockRepo := db.Repository{
-		ID:        1,
+		ID:        100,
 		CreatedAt: db.TimeNow(),
 		FullName:  "octocat",
 		Url:       "https://github.com/octocat",
@@ -110,7 +110,7 @@ func TestAllBadRequest(t *testing.T) {
 
 	req, err := http.NewRequest(http.MethodGet, "/test", nil)
 	assert.Nil(t, err)
-	req.Header.Add("Authorization", "Bearer "+jwtToken)
+	req.Header.Add("Authorization", "Bearer asdlkfjfsd")
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
@@ -154,7 +154,6 @@ func (*jwtMock) Decode(_ string) (*jsonwebtoken.JwtToken, error) {
 	return t, nil
 }
 
-const jwtToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6Imdob19MemhsbXNkU3g3b3phdUs0ZFFKejcyMmRkOFJ6bWo0SloxMzkiLCJpZCI6OTcxNDM1OTYsImxvZ2luIjoiaG4yNzUiLCJhdmF0YXJfdXJsIjoiaHR0cHM6Ly9hdmF0YXJzLmdpdGh1YnVzZXJjb250ZW50LmNvbS91Lzk3MTQzNTk2P3Y9NCIsIm5hbWUiOiJIYWwiLCJlbWFpbCI6ImhhbG5fMDFAcHJvdG9uLm1lIiwiaXNzIjoiRW52aHViIiwic3ViIjoiSGFsIn0.-tMfdpMMnxmvM-oMSyhtw8_QzrJ8AWwUNUEzOCQGh4Y`
 const mockData = `
 [
   {

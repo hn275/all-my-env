@@ -30,4 +30,6 @@ db mock # mock rows
 
 ```sh
 gotest ./path/to/package # make sure to have docker container running and mock data in db
+# or test all packages with
+gotest
 ```
