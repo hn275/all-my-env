@@ -16,6 +16,7 @@ import (
 
 type mockCtxOK struct{}
 type mockGhCtxNotFound struct{}
+type mockGhCtxError struct{}
 type mockJwtToken struct{}
 
 var mockVar = EnvVariable{"foo", "bar"}
@@ -101,6 +102,15 @@ func TestWriteAccess(t *testing.T) {
 	assert.NotEqual(t, mockVar.Value, variable.Value)
 }
 
+func TestInvalidRepoID(t *testing.T) {
+	gh.GithubClient = &mockGhCtxNotFound{}
+	jwt.Decoder = &mockJwtToken{}
+
+	w, err := testInit("/repos/lkasjdf/variables/new")
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+}
+
 func TestMethodNotAllowed(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(Handlers.NewVariable))
 	cx := http.Client{}
@@ -121,13 +131,22 @@ func TestMethodNotAllowed(t *testing.T) {
 	}
 }
 
-func TestNewVarNotAllowed(t *testing.T) {
+func TestGithubServerNotFound(t *testing.T) {
 	gh.GithubClient = &mockGhCtxNotFound{}
 	jwt.Decoder = &mockJwtToken{}
 
 	w, err := testInit("/repos/1/variables/new")
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusForbidden, w.Result().StatusCode)
+}
+
+func TestGithubServerError(t *testing.T) {
+	gh.GithubClient = &mockGhCtxError{}
+	jwt.Decoder = &mockJwtToken{}
+
+	w, err := testInit("/repos/1/variables/new")
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusBadGateway, w.Result().StatusCode)
 }
 
 // MOCK
@@ -144,6 +163,15 @@ func (m *mockGhCtxNotFound) Do(r *http.Request) (*http.Response, error) {
 	res := &http.Response{
 		Status:     "404 Not Found",
 		StatusCode: http.StatusNotFound,
+		Request:    r,
+	}
+	return res, nil
+}
+
+func (m *mockGhCtxError) Do(r *http.Request) (*http.Response, error) {
+	res := &http.Response{
+		Status:     "500 Internal Server Error",
+		StatusCode: http.StatusInternalServerError,
 		Request:    r,
 	}
 	return res, nil
