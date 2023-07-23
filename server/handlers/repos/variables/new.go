@@ -52,16 +52,25 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// CHECKS IF USER IS A COLLABORATOR
-	var repo db.Repository
-	result := d.Where("id = ?", repoIDStr).First(&repo)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	var repo struct {
+		FullName string
+	}
+
+	err = d.Table(db.TableRepos).
+		Select("repositories.full_name").
+		Where("permissions.repository_id = ?", repoIDStr).
+		InnerJoins("INNER JOIN permissions ON permissions.repository_id = repositories.id").
+		InnerJoins("INNER JOIN users ON permissions.user_id = users.id").
+		First(&repo).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			api.NewResponse(w).
-				Status(http.StatusNotFound).
-				Error("repository not found")
+				Status(http.StatusBadRequest).
+				Error("Write-access not granted. Please contact repo owner.")
 			return
 		}
-		api.NewResponse(w).ServerError(result.Error)
+		api.NewResponse(w).ServerError(err)
 		return
 	}
 
@@ -92,7 +101,9 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		select {
 		case access := <-ghChan:
 			if access.err != nil {
-				api.NewResponse(w).ServerError(err)
+				api.NewResponse(w).
+					Status(http.StatusBadGateway).
+					Error(err.Error())
 				return
 			}
 

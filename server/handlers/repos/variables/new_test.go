@@ -79,13 +79,26 @@ func TestNewVariableDuplicate(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, w.Result().StatusCode)
 }
 
-func TestRepoNotFound(t *testing.T) {
+func TestWriteAccess(t *testing.T) {
+	// testing no repo not found
 	gh.GithubClient = &mockCtxOK{}
 	jwt.Decoder = &mockJwtToken{}
 
 	w, err := testInit("/repos/420/variables/new")
 	assert.Nil(t, err)
-	assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
+	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
+
+	// testing write-access ok
+	defer cleanup()
+	w, err = testInit("/repos/1/variables/new")
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
+
+	var variable db.Variable
+	d := db.New()
+	err = d.Where("repository_id = ? AND key = ?", 1, "foo").First(&variable).Error
+	assert.Nil(t, err)
+	assert.NotEqual(t, mockVar.Value, variable.Value)
 }
 
 func TestMethodNotAllowed(t *testing.T) {
