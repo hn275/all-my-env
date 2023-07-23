@@ -3,7 +3,7 @@ package variables
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -101,10 +101,11 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(j)
+			log.Fatal(string(j))
 			// debuggo
 
 			api.NewResponse(w).Status(http.StatusOK).JSON(repo)
+			return
 		default:
 			continue
 		}
