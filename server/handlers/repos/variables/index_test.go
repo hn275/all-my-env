@@ -29,7 +29,7 @@ func TestVariableIndexOK(t *testing.T) {
 	jwt.Mock()
 	gh.MockClient(&mockGhCtxOK{})
 
-	params := map[string]string{"id": "1"}
+	params := map[string]string{"repoID": "1"}
 	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
 	r.Header.Add("Authorization", "Bearer sometoken")
 	w := httptest.NewRecorder()
@@ -51,7 +51,7 @@ func TestVariableIndexNotContributor(t *testing.T) {
 	gh.MockClient(&mockGhCtxNotFound{})
 
 	// test
-	params := map[string]string{"id": "1"}
+	params := map[string]string{"repoID": "1"}
 	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
 	r.Header.Add("Authorization", "Bearer sometoken")
 	w := httptest.NewRecorder()
@@ -65,7 +65,7 @@ func TestVariableIndexGithubError(t *testing.T) {
 	jwt.Mock()
 	gh.MockClient(&mockGhCtxError{})
 
-	params := map[string]string{"id": "1"}
+	params := map[string]string{"repoID": "1"}
 	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
 	r.Header.Add("Authorization", "Bearer sometoken")
 	w := httptest.NewRecorder()
@@ -79,7 +79,7 @@ func TestVariableIndexNoVars(t *testing.T) {
 	jwt.Mock()
 	gh.MockClient(&mockGhCtxOK{})
 
-	params := map[string]string{"id": "3"}
+	params := map[string]string{"repoID": "3"}
 	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
 	r.Header.Add("Authorization", "Bearer token")
 	w := httptest.NewRecorder()
@@ -97,7 +97,7 @@ func TestVariableIndexRepoNotFound(t *testing.T) {
 	jwt.Mock()
 	gh.MockClient(&mockGhCtxOK{})
 
-	params := map[string]string{"id": "420"}
+	params := map[string]string{"repoID": "420"}
 	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
 	r.Header.Add("Authorization", "Bearer token")
 	w := httptest.NewRecorder()

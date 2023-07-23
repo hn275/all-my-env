@@ -56,8 +56,8 @@ func main() {
 	// refresh variable counter every second
 	go db.RefreshVariableCounter()
 	r.Route("/repos", func(r chi.Router) {
-		r.Handle("/", http.HandlerFunc(repos.Handlers.All))
-		r.Route("/{id}", func(r chi.Router) {
+		r.Handle("/", http.HandlerFunc(repos.Handlers.Index))
+		r.Route("/{repoID}", func(r chi.Router) {
 			r.Route("/variables", func(r chi.Router) {
 				r.Handle("/", http.HandlerFunc(variables.Handlers.Index))
 				r.Handle("/new", http.HandlerFunc(variables.Handlers.NewVariable))

@@ -43,8 +43,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s := chi.URLParam(r, "id")
-	repoID, err := strconv.ParseUint(s, 10, 32)
+	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 32)
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
