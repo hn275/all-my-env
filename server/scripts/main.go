@@ -21,6 +21,7 @@ func init() {
 	d.Raw("DELETE FROM users")
 	d.Raw("DELETE FROM repositories")
 	d.Raw("DELETE FROM variables")
+	d.Raw("DELETE FROM permissions")
 }
 
 func main() {
@@ -90,6 +91,21 @@ func mock() {
 		UserID:       1,
 	}
 
+	// VARIABLE
+	variable := db.Variable{
+		ID:           "",
+		CreatedAt:    db.TimeNow(),
+		UpdatedAt:    db.TimeNow(),
+		Key:          "foo",
+		Value:        "bar",
+		Repository:   db.Repository{},
+		RepositoryID: 1,
+	}
+	variable.GenID()
+	if err := variable.EncryptValue(); err != nil {
+		panic(err)
+	}
+
 	defer func(*gorm.DB) {
 		it, ok := recover().(error)
 		if !ok {
@@ -98,6 +114,8 @@ func mock() {
 		fmt.Fprint(os.Stderr, it.Error())
 		d.Delete(users)
 		d.Delete(repos)
+		d.Delete(&perms)
+		d.Delete(&variable)
 	}(d)
 
 	for _, u := range users {
@@ -115,6 +133,11 @@ func mock() {
 	}
 
 	err := d.Create(&perms).Error
+	if err != nil {
+		panic(err)
+	}
+
+	err = d.Create(&variable).Error
 	if err != nil {
 		panic(err)
 	}
