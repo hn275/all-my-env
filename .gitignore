@@ -132,3 +132,5 @@ dist
 # server
 server/*.http
 
+/tmp
+

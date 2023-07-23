@@ -59,7 +59,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 
 	err = d.Table(db.TableRepos).
 		Select("repositories.full_name").
-		Where("permissions.repository_id = ?", repoID).
+		Where("permissions.repository_id = ? AND users.id = ?", repoID, user.ID).
 		InnerJoins("INNER JOIN permissions ON permissions.repository_id = repositories.id").
 		InnerJoins("INNER JOIN users ON permissions.user_id = users.id").
 		First(&repo).Error
