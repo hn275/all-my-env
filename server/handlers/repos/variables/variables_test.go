@@ -10,6 +10,7 @@ import (
 )
 
 func TestGenID(t *testing.T) {
+	t.Parallel()
 	go RefreshVariableCounter()
 
 	iteration := math.MaxUint16
