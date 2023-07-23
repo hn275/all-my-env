@@ -1,7 +1,12 @@
 package envhubtest
 
 import (
+	"context"
+	"io"
 	"net/http"
+	"net/http/httptest"
+
+	"github.com/go-chi/chi/v5"
 )
 
 func AllowedRequestMethods(m ...string) []string {
@@ -32,4 +37,20 @@ func AllowedRequestMethods(m ...string) []string {
 		}
 	}
 	return methods
+}
+
+func RequestWithParam(
+	method string,
+	path string,
+	urlParams map[string]string,
+	body io.Reader,
+) *http.Request {
+	r := httptest.NewRequest(method, path, body)
+
+	rctx := chi.NewRouteContext()
+	for k, v := range urlParams {
+		rctx.URLParams.Add(k, v)
+	}
+
+	return r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, rctx))
 }
