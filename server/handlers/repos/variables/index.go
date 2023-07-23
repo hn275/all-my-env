@@ -1,9 +1,7 @@
 package variables
 
 import (
-	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -15,8 +13,8 @@ import (
 )
 
 type Repository struct {
-	db.Repository
-	Variable []db.Variable `json:"variables"`
+	Meta      db.Repository `json:",inline"`
+	Variables []db.Variable `json:"variables"`
 }
 
 func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +41,7 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	// QUERY DB FOR REPO INFO
 	var repo Repository
-	err = h.Table(db.TableRepos).Where("id = ?", repoID).First(&repo).Error
+	err = h.Table(db.TableRepos).Where("id = ?", repoID).First(&repo.Meta).Error
 
 	switch err {
 	case nil:
@@ -55,25 +53,26 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		api.NewResponse(w).ServerError(err)
+		return
 	}
 
 	// CHECK FOR USER ACCESS
 	c := make(chan permission)
 	defer close(c)
-	go getRepoAccess(c, repo.FullName, user)
+	go getRepoAccess(c, repo.Meta.FullName, user)
 
 	// QUERY DB FOR ENV VARIABLES
 	err = h.Model(&[]db.Variable{}).
 		Where("repository_id = ?", repoID).
-		Find(&repo.Variable).Error // TODO: add pagination
+		Find(&repo.Variables).Error // TODO: add pagination
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
 
 	// decrypt values
-	for i := range repo.Variable {
-		err := repo.Variable[i].DecryptValue()
+	for i := range repo.Variables {
+		err := repo.Variables[i].DecryptValue()
 		if err != nil {
 			api.NewResponse(w).ServerError(err)
 			return
@@ -95,14 +94,6 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 					Status(http.StatusForbidden).
 					Done()
 			}
-
-			// debuggo
-			j, err := json.MarshalIndent(repo, "", "  ")
-			if err != nil {
-				panic(err)
-			}
-			log.Fatal(string(j))
-			// debuggo
 
 			api.NewResponse(w).Status(http.StatusOK).JSON(repo)
 			return
