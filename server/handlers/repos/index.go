@@ -10,7 +10,7 @@ import (
 	"github.com/hn275/envhub/server/jsonwebtoken"
 )
 
-func (h *RepoHandler) All(w http.ResponseWriter, r *http.Request) {
+func (h *RepoHandler) Index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		api.NewResponse(w).
 			Status(http.StatusMethodNotAllowed).

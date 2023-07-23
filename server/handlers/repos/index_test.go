@@ -24,7 +24,7 @@ func init() {
 
 func testInit() (*http.ServeMux, *httptest.ResponseRecorder) {
 	r := http.NewServeMux()
-	r.Handle("/test", http.HandlerFunc(repos.Handlers.All))
+	r.Handle("/test", http.HandlerFunc(repos.Handlers.Index))
 	return r, &httptest.ResponseRecorder{}
 }
 
@@ -55,7 +55,7 @@ func TestLinkedRepo(t *testing.T) {
 	defer conn.Delete(&mockUser)
 	defer conn.Delete(&mockRepo)
 
-	s := httptest.NewServer(http.HandlerFunc(repos.Handlers.All))
+	s := httptest.NewServer(http.HandlerFunc(repos.Handlers.Index))
 	defer s.Close()
 
 	url := s.URL + "?show=69&page=420&sort=foo"

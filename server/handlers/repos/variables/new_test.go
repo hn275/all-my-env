@@ -38,7 +38,7 @@ func testInit(url string) (*httptest.ResponseRecorder, error) {
 	r.Header.Add("Authorization", "Bearer "+"somejwttoken")
 
 	m := chi.NewMux()
-	m.Handle("/repos/{id}/variables/new", http.HandlerFunc(Handlers.NewVariable))
+	m.Handle("/repos/{repoID}/variables/new", http.HandlerFunc(Handlers.NewVariable))
 
 	w := httptest.NewRecorder()
 	m.ServeHTTP(w, r)
