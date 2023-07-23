@@ -84,6 +84,12 @@ func mock() {
 		},
 	}
 
+	perms := db.Permission{
+		ID:           1,
+		RepositoryID: 1,
+		UserID:       1,
+	}
+
 	defer func(*gorm.DB) {
 		it, ok := recover().(error)
 		if !ok {
@@ -106,5 +112,10 @@ func mock() {
 		if err != nil {
 			panic(err)
 		}
+	}
+
+	err := d.Create(&perms).Error
+	if err != nil {
+		panic(err)
 	}
 }

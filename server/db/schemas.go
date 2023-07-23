@@ -3,8 +3,9 @@ package db
 import "time"
 
 var (
-	TableUsers = "users"
-	TableRepos = "repositories"
+	TableUsers       = "users"
+	TableRepos       = "repositories"
+	TablePermissions = "permissions"
 
 	VendorGithub = "github"
 )
@@ -64,8 +65,8 @@ type Permission struct {
 
 	// relation
 	Repository   Repository
-	RepositoryID uint `gorm:"foreignKey"`
+	RepositoryID uint `gorm:"foreignKey;uniqueIndex:unique_user_repo"`
 
 	User   User
-	UserID uint `gorm:"foreignKey"`
+	UserID uint `gorm:"foreignKey;uniqueIndex:unique_user_repo"`
 }
