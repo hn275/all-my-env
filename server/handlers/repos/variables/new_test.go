@@ -52,7 +52,7 @@ func TestNewVariable(t *testing.T) {
 	defer cleanup()
 
 	gh.GithubClient = &mockCtxOK{}
-	jwt.Decoder = &mockJwtToken{}
+	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
 	assert.Nil(t, err)
@@ -69,7 +69,7 @@ func TestNewVariableDuplicate(t *testing.T) {
 	defer cleanup()
 
 	gh.GithubClient = &mockCtxOK{}
-	jwt.Decoder = &mockJwtToken{}
+	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
 	assert.Nil(t, err)
@@ -83,7 +83,7 @@ func TestNewVariableDuplicate(t *testing.T) {
 func TestWriteAccess(t *testing.T) {
 	// testing no repo not found
 	gh.GithubClient = &mockCtxOK{}
-	jwt.Decoder = &mockJwtToken{}
+	jwt.Mock()
 
 	w, err := testInit("/repos/420/variables/new")
 	assert.Nil(t, err)
@@ -104,7 +104,7 @@ func TestWriteAccess(t *testing.T) {
 
 func TestInvalidRepoID(t *testing.T) {
 	gh.GithubClient = &mockGhCtxNotFound{}
-	jwt.Decoder = &mockJwtToken{}
+	jwt.Mock()
 
 	w, err := testInit("/repos/lkasjdf/variables/new")
 	assert.Nil(t, err)
@@ -133,7 +133,7 @@ func TestMethodNotAllowed(t *testing.T) {
 
 func TestGithubServerNotFound(t *testing.T) {
 	gh.GithubClient = &mockGhCtxNotFound{}
-	jwt.Decoder = &mockJwtToken{}
+	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
 	assert.Nil(t, err)
@@ -142,7 +142,7 @@ func TestGithubServerNotFound(t *testing.T) {
 
 func TestGithubServerError(t *testing.T) {
 	gh.GithubClient = &mockGhCtxError{}
-	jwt.Decoder = &mockJwtToken{}
+	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
 	assert.Nil(t, err)
@@ -175,11 +175,4 @@ func (m *mockGhCtxError) Do(r *http.Request) (*http.Response, error) {
 		Request:    r,
 	}
 	return res, nil
-}
-
-func (d *mockJwtToken) Decode(t string) (*jwt.JwtToken, error) {
-	decoded := &jwt.JwtToken{
-		GithubUser: jwt.GithubUser{Token: t, ID: 1},
-	}
-	return decoded, nil
 }
