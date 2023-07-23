@@ -16,10 +16,10 @@ MIGRATION_DIR="./db/migrations"
 function gotest() {
     if [ -z "${1}" ];then
         echo "Testing all packages"
-        go test ./... -coverprofile cover.out
+        go test -v ./... -coverprofile cover.out
     else
         echo "Testing package ${1}"
-        go test $1 -coverprofile cover.out
+        go test -v $1 -coverprofile cover.out
     fi
     
     [[ -f cover.out ]] && rm cover.out
