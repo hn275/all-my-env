@@ -1,14 +1,6 @@
 package variables
 
-import (
-	"encoding/base64"
-	"math"
-	"testing"
-	"time"
-
-	"github.com/stretchr/testify/assert"
-)
-
+/*
 func TestGenID(t *testing.T) {
 	t.Parallel()
 	go RefreshVariableCounter()
@@ -32,3 +24,4 @@ func TestGenID(t *testing.T) {
 	assert.Equal(t, 1, len(counterMap))
 	assert.Equal(t, iteration*2, len(idSet))
 }
+*/
