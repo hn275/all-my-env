@@ -1,6 +1,7 @@
 package gh
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/hn275/envhub/server/lib"
@@ -40,11 +41,11 @@ func (ctx *GithubContext) Params(p map[string]string) *GithubContext {
 	return ctx
 }
 
-func (ctx *GithubContext) Get(path string) (*http.Response, error) {
+func (ctx *GithubContext) Get(path string, a ...any) (*http.Response, error) {
 	if path[0] != '/' {
 		path = "/" + path
 	}
-	url := githubUrl + path
+	url := fmt.Sprintf(githubUrl+path, a...)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
