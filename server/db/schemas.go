@@ -21,19 +21,24 @@ type User struct {
 
 	// relation
 	Repositories []Repository `gorm:"constraint:OnDelete:CASCADE"`
+	Permission   []Permission `gorm:"constraint:OnDelete:CASCADE"`
 }
 
 type Repository struct {
 	ID        uint32 `gorm:"primaryKey"`
 	CreatedAt TimeStamp
-	FullName  string `gorm:"not null"`
-	Url       string `gorm:"not null"`
+
+	// ie: hn275/envhub
+	FullName string `gorm:"not null"`
+	// ie: https://github.com/hn275/envhub
+	Url string `gorm:"not null"`
 
 	// relation
 	User   User
 	UserID int `gorm:"foreignKey"`
 
-	Variables []Variable `gorm:"constraint:OnDelete:CASCADE"`
+	Variables  []Variable   `gorm:"constraint:OnDelete:CASCADE"`
+	Permission []Permission `gorm:"constraint:OnDelete:CASCADE"`
 }
 
 type Variable struct {
@@ -46,4 +51,21 @@ type Variable struct {
 	// relation
 	Repository   Repository
 	RepositoryID uint32 `gorm:"foreignKey;uniqueIndex:unique_key_repo"`
+}
+
+// This table describes the type of access an user have for each repo.
+//
+// By default all users would have read-only access (that is if github api says so).
+//
+// This table only holds records for write access.
+// If gorm query returns a `gorm.ErrRecordNotFound`, user doesn't have read access.
+type Permission struct {
+	ID uint `gorm:"primaryKey"`
+
+	// relation
+	Repository   Repository
+	RepositoryID uint `gorm:"foreignKey"`
+
+	User   User
+	UserID uint `gorm:"foreignKey"`
 }

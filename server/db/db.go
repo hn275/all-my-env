@@ -44,6 +44,7 @@ func init() {
 	autoMigrate(db, &User{})
 	autoMigrate(db, &Repository{})
 	autoMigrate(db, &Variable{})
+	autoMigrate(db, &Permission{})
 	fmt.Println("Automigrate done")
 }
 
