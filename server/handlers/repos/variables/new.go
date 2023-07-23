@@ -35,7 +35,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body EnvVariable
+	var body db.Variable
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
@@ -80,13 +80,13 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	go getRepoAccess(ghChan, repo.FullName, user)
 
 	// SERIALIZE VARIABLE
-	envVar, err := body.Cipher(uint32(repoID))
-	if err != nil {
+	body.GenID()
+	if err := body.EncryptValue(); err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
-	envVar.CreatedAt = db.TimeNow()
-	envVar.UpdatedAt = db.TimeNow()
+	body.CreatedAt = db.TimeNow()
+	body.UpdatedAt = db.TimeNow()
 
 	// WRITE TO DB
 	for {
@@ -104,7 +104,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			err := d.Create(envVar).Error
+			err := d.Create(&body).Error
 			if err == nil {
 				api.NewResponse(w).Status(http.StatusCreated).Done()
 				return

@@ -18,7 +18,10 @@ type mockGhCtxOK struct{}
 type mockGhCtxNotFound struct{}
 type mockGhCtxError struct{}
 
-var mockVar = EnvVariable{"foo", "bar"}
+var mockVar = db.Variable{
+	Key:   "foo",
+	Value: "bar",
+}
 
 func testInit(url string) (*httptest.ResponseRecorder, error) {
 	buf, err := json.Marshal(mockVar)
