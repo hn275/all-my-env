@@ -47,10 +47,10 @@ func (r *Response) Text(t string) {
 
 // ERROR HANLDING
 
-func (r *Response) Error(m string) {
+func (r *Response) Error(m string, a ...any) {
 	r.ResponseWriter.Header().Add("content-type", "application/json")
 	r.WriteHeader(r.status)
-	msg := map[string]string{"error": m}
+	msg := map[string]string{"error": fmt.Sprintf(m, a...)}
 	if err := json.NewEncoder(r).Encode(&msg); err != nil {
 		r.WriteHeader(http.StatusInternalServerError)
 		os.Stderr.WriteString(err.Error())
