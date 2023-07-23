@@ -16,11 +16,6 @@ func NewResponse(w http.ResponseWriter) *Response {
 	return &Response{w, 0}
 }
 
-func (r *Response) ServerError(err error) {
-	fmt.Fprint(os.Stderr, err)
-	r.WriteHeader(http.StatusInternalServerError)
-}
-
 func (r *Response) Status(c int) *Response {
 	r.status = c
 	return r
@@ -45,6 +40,13 @@ func (r *Response) JSON(data interface{}) {
 	}
 }
 
+func (r *Response) Text(t string) {
+	r.ResponseWriter.Header().Add("content-type", "application/text")
+	r.Write([]byte(t))
+}
+
+// ERROR HANLDING
+
 func (r *Response) Error(m string) {
 	r.ResponseWriter.Header().Add("content-type", "application/json")
 	r.WriteHeader(r.status)
@@ -55,7 +57,7 @@ func (r *Response) Error(m string) {
 	}
 }
 
-func (r *Response) Text(t string) {
-	r.ResponseWriter.Header().Add("content-type", "application/text")
-	r.Write([]byte(t))
+func (r *Response) ServerError(err error) {
+	fmt.Fprint(os.Stderr, err)
+	r.WriteHeader(http.StatusInternalServerError)
 }
