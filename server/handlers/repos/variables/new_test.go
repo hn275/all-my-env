@@ -19,8 +19,8 @@ type mockGhCtxNotFound struct{}
 type mockGhCtxError struct{}
 
 var mockVar = db.Variable{
-	Key:   "foo",
-	Value: "bar",
+	Key:   "test_foo",
+	Value: "test_bar",
 }
 
 func testInit(url string) (*httptest.ResponseRecorder, error) {
@@ -47,7 +47,7 @@ func testInit(url string) (*httptest.ResponseRecorder, error) {
 
 func cleanup() {
 	d := db.New()
-	d.Where("repository_id = ? AND key = ?", 1, "foo").Delete(&db.Variable{})
+	d.Where("key = ?", "test_foo").Delete(&db.Variable{})
 }
 
 func TestNewVariable(t *testing.T) {

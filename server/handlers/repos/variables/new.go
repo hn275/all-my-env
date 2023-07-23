@@ -76,10 +76,10 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ghChan := make(chan permission)
-	defer close(ghChan)
 	go getRepoAccess(ghChan, repo.FullName, user)
 
 	// SERIALIZE VARIABLE
+	body.RepositoryID = uint32(repoID)
 	body.GenID()
 	if err := body.EncryptValue(); err != nil {
 		api.NewResponse(w).ServerError(err)
@@ -92,6 +92,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case access := <-ghChan:
+			defer close(ghChan)
 			if access.err != nil {
 				api.NewResponse(w).
 					Status(http.StatusBadGateway).
