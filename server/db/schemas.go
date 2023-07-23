@@ -2,6 +2,9 @@ package db
 
 import (
 	"encoding/base64"
+	"encoding/binary"
+	"os"
+	"sync"
 	"time"
 
 	"github.com/hn275/envhub/server/crypto"
@@ -13,7 +16,15 @@ var (
 	TablePermissions = "permissions"
 
 	VendorGithub = "github"
+
+	idCounterMap map[uint32]uint16
+	m            sync.Mutex
 )
+
+func init() {
+	idCounterMap = make(map[uint32]uint16)
+	m = sync.Mutex{}
+}
 
 // UTC time stamp RFC3339
 type TimeStamp = time.Time
@@ -52,11 +63,11 @@ type Repository struct {
 // `Value`'s are never saved raw. always the base64 encoding of the ciphered text,
 // and the `ad` is the base64 decoded value of it's ID
 type Variable struct {
-	ID        Base64EncodedID `gorm:"primaryKey" json:"id"`
-	CreatedAt TimeStamp       `gorm:"not null" json:"created_at"`
-	UpdatedAt TimeStamp       `gorm:"not null" json:"updated_at"`
-	Key       string          `gorm:"not null;uniqueIndex:unique_key_repo" json:"key"`
-	Value     string          `gorm:"not null" json:"value"`
+	ID        Base64EncodedID `gorm:"primaryKey" json:"id,omitempty"`
+	CreatedAt TimeStamp       `gorm:"not null" json:"created_at,omitempty"`
+	UpdatedAt TimeStamp       `gorm:"not null" json:"updated_at,omitempty"`
+	Key       string          `gorm:"not null;uniqueIndex:unique_key_repo" json:"key,omitempty"`
+	Value     string          `gorm:"not null" json:"value,omitempty"`
 
 	// relation
 	Repository   Repository `json:"-"`
@@ -81,6 +92,65 @@ func (v *Variable) DecryptValue() error {
 
 	v.Value = string(plaintext)
 	return nil
+}
+
+// Generates an ID for the variable. Panics if `RepositoryID` is not set
+//
+// schema to generate id:
+// `[repository id, time utc, process id, counter var]`.
+// Where `counter var` is reset to 0 every second.
+func (v *Variable) GenID() {
+	if v.RepositoryID == 0 {
+		panic("repo id not set")
+	}
+
+	bufSize := 14
+	buf := make([]byte, bufSize)
+
+	binary.BigEndian.PutUint32(buf[:4], v.RepositoryID)
+
+	t := time.Now().UTC().Unix()
+	binary.BigEndian.PutUint32(buf[4:8], uint32(t))
+
+	pid := os.Getpid()
+	binary.BigEndian.PutUint32(buf[8:12], uint32(pid))
+
+	counter := idCounterMap[v.RepositoryID]
+	m.Lock()
+	idCounterMap[v.RepositoryID] = counter + 1
+	m.Unlock()
+	binary.BigEndian.PutUint16(buf[12:], counter)
+
+	v.ID = base64.StdEncoding.EncodeToString(buf)
+}
+
+// Cipher value, will panic if `Variable.ID` is an empty value
+func (v *Variable) EncryptValue() error {
+	if v.ID == "" {
+		panic("variable id not generated")
+	}
+
+	ad, err := base64.StdEncoding.DecodeString(v.ID)
+	if err != nil {
+		return err
+	}
+
+	ciphertext, err := crypto.Encrypt(v.Value, ad)
+	if err != nil {
+		return err
+	}
+
+	v.Value = base64.StdEncoding.EncodeToString(ciphertext)
+	return nil
+}
+
+func RefreshVariableCounter() {
+	for {
+		m.Lock()
+		idCounterMap = make(map[uint32]uint16)
+		m.Unlock()
+		time.Sleep(time.Second)
+	}
 }
 
 // This table describes the type of access an user have for each repo.

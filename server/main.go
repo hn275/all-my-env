@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/handlers/auth"
 	"github.com/hn275/envhub/server/handlers/repos"
 	"github.com/hn275/envhub/server/handlers/repos/variables"
@@ -53,7 +54,7 @@ func main() {
 	})
 
 	// refresh variable counter every second
-	go variables.RefreshVariableCounter()
+	go db.RefreshVariableCounter()
 	r.Route("/repos", func(r chi.Router) {
 		r.Handle("/", http.HandlerFunc(repos.Handlers.All))
 		r.Route("/{id}", func(r chi.Router) {
