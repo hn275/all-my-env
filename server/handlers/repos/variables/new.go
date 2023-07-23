@@ -43,11 +43,12 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repoIDStr := chi.URLParam(r, "id")
-	if repoIDStr == "" {
+	s := chi.URLParam(r, "id")
+	repoID, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
-			Error("missing url param: repo id")
+			Error("invalid repository id")
 		return
 	}
 
@@ -58,7 +59,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 
 	err = d.Table(db.TableRepos).
 		Select("repositories.full_name").
-		Where("permissions.repository_id = ?", repoIDStr).
+		Where("permissions.repository_id = ?", repoID).
 		InnerJoins("INNER JOIN permissions ON permissions.repository_id = repositories.id").
 		InnerJoins("INNER JOIN users ON permissions.user_id = users.id").
 		First(&repo).Error
@@ -79,15 +80,6 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	go getRepoAccess(ghChan, repo.FullName, user)
 
 	// SERIALIZE VARIABLE
-	s := chi.URLParam(r, "id")
-	repoID, err := strconv.ParseUint(s, 10, 32)
-	if err != nil {
-		api.NewResponse(w).
-			Status(http.StatusBadRequest).
-			Error(err.Error())
-		return
-	}
-
 	envVar, err := body.Cipher(uint32(repoID))
 	if err != nil {
 		api.NewResponse(w).ServerError(err)
@@ -103,7 +95,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 			if access.err != nil {
 				api.NewResponse(w).
 					Status(http.StatusBadGateway).
-					Error(err.Error())
+					Error(access.err.Error())
 				return
 			}
 
@@ -148,8 +140,7 @@ func getRepoAccess(c chan<- permission, repoURL string, u *jwt.GithubUser) {
 	}
 
 	g := gh.New(u.Token)
-	url := fmt.Sprintf("/repos/%s/collaborators/%s", repoURL, u.Login)
-	res, err := g.Get(url)
+	res, err := g.Get("/repos/%s/collaborators/%s", repoURL, u.Login)
 	if err != nil {
 		buf := permission{false, err}
 		c <- buf
