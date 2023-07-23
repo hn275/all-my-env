@@ -1,6 +1,7 @@
 package variables
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -32,7 +33,75 @@ func TestVariableIndexOK(t *testing.T) {
 	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
 	r.Header.Add("Authorization", "Bearer sometoken")
 	w := httptest.NewRecorder()
+
 	Handlers.Index(w, r)
 
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+
+	var response Repository
+	err := json.NewDecoder(w.Result().Body).Decode(&response)
+	assert.Nil(t, err)
+	assert.Equal(t, 1, len(response.Variables))
+	assert.Equal(t, "bar", response.Variables[0].Value)
+}
+
+func TestVariableIndexNotContributor(t *testing.T) {
+	// mock data
+	jwt.Mock()
+	gh.MockClient(&mockGhCtxNotFound{})
+
+	// test
+	params := map[string]string{"id": "1"}
+	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
+	r.Header.Add("Authorization", "Bearer sometoken")
+	w := httptest.NewRecorder()
+
+	Handlers.Index(w, r)
+
+	assert.Equal(t, http.StatusForbidden, w.Result().StatusCode)
+}
+
+func TestVariableIndexGithubError(t *testing.T) {
+	jwt.Mock()
+	gh.MockClient(&mockGhCtxError{})
+
+	params := map[string]string{"id": "1"}
+	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
+	r.Header.Add("Authorization", "Bearer sometoken")
+	w := httptest.NewRecorder()
+
+	Handlers.Index(w, r)
+
+	assert.Equal(t, http.StatusBadGateway, w.Result().StatusCode)
+}
+
+func TestVariableIndexNoVars(t *testing.T) {
+	jwt.Mock()
+	gh.MockClient(&mockGhCtxOK{})
+
+	params := map[string]string{"id": "3"}
+	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
+	r.Header.Add("Authorization", "Bearer token")
+	w := httptest.NewRecorder()
+
+	Handlers.Index(w, r)
+
+	var b Repository
+	err := json.NewDecoder(w.Result().Body).Decode(&b)
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
+	assert.Empty(t, b.Variables)
+}
+
+func TestVariableIndexRepoNotFound(t *testing.T) {
+	jwt.Mock()
+	gh.MockClient(&mockGhCtxOK{})
+
+	params := map[string]string{"id": "420"}
+	r := envhubtest.RequestWithParam(http.MethodGet, "/", params, nil)
+	r.Header.Add("Authorization", "Bearer token")
+	w := httptest.NewRecorder()
+
+	Handlers.Index(w, r)
+	assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
 }
