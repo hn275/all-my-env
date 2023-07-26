@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
@@ -57,9 +58,10 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// CHECK FOR USER ACCESS
-	c := make(chan permission)
+	c := make(chan error, 1)
+	wg := new(sync.WaitGroup)
 	defer close(c)
-	go getRepoAccess(c, repo.Meta.FullName, user)
+	go getRepoAccess(c, wg, repo.Meta.FullName, user)
 
 	// QUERY DB FOR ENV VARIABLES
 	err = h.Model(&[]db.Variable{}).
@@ -79,26 +81,21 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	for {
-		select {
-		case a := <-c:
-			if a.err != nil {
-				api.NewResponse(w).
-					Status(http.StatusBadGateway).
-					Error(a.err.Error())
-				return
-			}
+	wg.Wait()
+	switch err := <-c; err {
+	case nil:
+		api.NewResponse(w).Status(http.StatusOK).JSON(repo)
+		return
+	case errNotAContributor:
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		return
 
-			if !a.allowed {
-				api.NewResponse(w).
-					Status(http.StatusForbidden).
-					Done()
-			}
+	case errBadGateWay:
+		api.NewResponse(w).Status(http.StatusBadGateway).Error(err.Error())
+		return
 
-			api.NewResponse(w).Status(http.StatusOK).JSON(repo)
-			return
-		default:
-			continue
-		}
+	default:
+		api.NewResponse(w).ServerError(err)
 	}
+
 }

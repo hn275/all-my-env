@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
@@ -13,11 +14,6 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 )
-
-type permission struct {
-	allowed bool
-	err     error
-}
 
 func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	// VALIDATE REQUEST
@@ -75,8 +71,10 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ghChan := make(chan permission)
-	go getRepoAccess(ghChan, repo.FullName, user)
+	// CHECK FOR REPO ACCESS WITH GITHUB
+	wg := new(sync.WaitGroup)
+	c := make(chan error, 1)
+	go getRepoAccess(c, wg, repo.FullName, user)
 
 	// SERIALIZE VARIABLE
 	body.RepositoryID = uint32(repoID)
@@ -89,46 +87,41 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	body.UpdatedAt = db.TimeNow()
 
 	// WRITE TO DB
-	for {
-		select {
-		case access := <-ghChan:
-			defer close(ghChan)
-			if access.err != nil {
-				api.NewResponse(w).
-					Status(http.StatusBadGateway).
-					Error(access.err.Error())
-				return
-			}
+	wg.Wait()
+	defer close(c)
+	switch err := <-c; err {
+	case nil:
+		break
+	case errNotAContributor:
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		return
 
-			if !access.allowed {
-				api.NewResponse(w).Status(http.StatusForbidden).Done()
-				return
-			}
+	case errBadGateWay:
+		api.NewResponse(w).Status(http.StatusBadGateway).Error(err.Error())
+		return
 
-			err := d.Create(&body).Error
-			if err == nil {
-				api.NewResponse(w).Status(http.StatusCreated).Done()
-				return
-			}
-
-			pgErr, ok := err.(*pgconn.PgError)
-			if !ok {
-				api.NewResponse(w).ServerError(err)
-				return
-			}
-
-			if pgErr.Code == pgerrcode.UniqueViolation {
-				api.NewResponse(w).
-					Status(http.StatusConflict).
-					Error(pgErr.Error())
-				return
-			}
-
-			api.NewResponse(w).ServerError(pgErr)
-			return
-
-		default:
-			continue
-		}
+	default:
+		api.NewResponse(w).ServerError(err)
+		return
 	}
+
+	err = d.Create(&body).Error
+	if err == nil {
+		api.NewResponse(w).Status(http.StatusCreated).Done()
+		return
+	}
+
+	pgErr, ok := err.(*pgconn.PgError)
+	if !ok {
+		api.NewResponse(w).ServerError(err)
+		return
+	}
+
+	if pgErr.Code == pgerrcode.UniqueViolation {
+		api.NewResponse(w).
+			Status(http.StatusConflict).
+			Error(pgErr.Error())
+		return
+	}
+	api.NewResponse(w).ServerError(pgErr)
 }
