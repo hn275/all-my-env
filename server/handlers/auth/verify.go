@@ -109,8 +109,8 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 func githubOauth(code string) (*http.Response, error) {
 	ghEndpoint := "https://github.com/login/oauth/access_token"
 	v := url.Values{}
-	v.Set("client_id", gh.GithubClientID)
-	v.Set("client_secret", gh.GithubClientSecret)
+	v.Set("client_id", gh.GetCxID())
+	v.Set("client_secret", gh.GetCxSecret())
 	v.Set("code", code)
 	ghEndpoint += "?" + v.Encode()
 

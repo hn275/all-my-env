@@ -30,9 +30,7 @@ func cleanup() {
 }
 
 func testInit() (*chi.Mux, *bytes.Reader) {
-	// NOTE: since some of the tests override these, they won't be in the
-	// `init` function
-	gh.GithubClient = &githubMock{}
+	gh.MockClient(&githubMock{})
 	auth.AuthClient = &authCxMock{}
 
 	m := chi.NewMux()
@@ -117,7 +115,7 @@ func TestGithubAuthFailed(t *testing.T) {
 func TestGithubApiFailed(t *testing.T) {
 	defer cleanup()
 	_, body := testInit()
-	gh.GithubClient = &githubMockFailed{}
+	gh.MockClient(&githubMockFailed{})
 
 	srv := httptest.NewServer(http.HandlerFunc(auth.Handler.VerifyToken))
 	defer srv.Close()

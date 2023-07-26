@@ -143,7 +143,7 @@ func TestGithubServerNotFound(t *testing.T) {
 }
 
 func TestGithubServerError(t *testing.T) {
-	gh.GithubClient = &mockGhCtxError{}
+	gh.MockClient(&mockGhCtxError{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
