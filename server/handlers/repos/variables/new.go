@@ -2,15 +2,12 @@ package variables
 
 import (
 	"encoding/json"
-	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/db"
-	"github.com/hn275/envhub/server/gh"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -63,13 +60,17 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		InnerJoins("INNER JOIN users ON permissions.user_id = users.id").
 		First(&repo).Error
 
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			api.NewResponse(w).
-				Status(http.StatusBadRequest).
-				Error("Write-access not granted. Please contact repo owner.")
-			return
-		}
+	switch err {
+	case nil:
+		break
+
+	case gorm.ErrRecordNotFound:
+		api.NewResponse(w).
+			Status(http.StatusBadRequest).
+			Error("Write-access not granted. Please contact repo owner.")
+		return
+
+	default:
 		api.NewResponse(w).ServerError(err)
 		return
 	}
@@ -129,38 +130,5 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		default:
 			continue
 		}
-	}
-}
-
-// Endpoint:
-// https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#check-if-a-user-is-a-repository-collaborator
-func getRepoAccess(c chan<- permission, repoURL string, u *jwt.GithubUser) {
-	if repoURL[0] == '/' {
-		repoURL = repoURL[1:]
-	}
-
-	g := gh.New(u.Token)
-	res, err := g.Get("/repos/%s/collaborators/%s", repoURL, u.Login)
-	if err != nil {
-		buf := permission{false, err}
-		c <- buf
-		return
-	}
-
-	fmt.Println("DELETE ME:")
-	fmt.Printf("Status [%s]\n", res.Status)
-
-	switch res.StatusCode {
-	case http.StatusNoContent:
-		c <- permission{true, nil}
-		return
-
-	case http.StatusNotFound:
-		c <- permission{false, nil}
-		return
-
-	default:
-		c <- permission{false, fmt.Errorf("Github API reponses [%v]", res.Status)}
-		return
 	}
 }
