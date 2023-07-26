@@ -1,4 +1,4 @@
-package auth_test
+package auth
 
 import (
 	"bytes"
@@ -12,7 +12,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/db"
 	"github.com/hn275/envhub/server/gh"
-	"github.com/hn275/envhub/server/handlers/auth"
 	"github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/stretchr/testify/assert"
 )
@@ -31,10 +30,10 @@ func cleanup() {
 
 func testInit() (*chi.Mux, *bytes.Reader) {
 	gh.MockClient(&githubMock{})
-	auth.AuthClient = &authCxMock{}
+	authClient = &authCxMock{}
 
 	m := chi.NewMux()
-	m.Handle("/auth/github", http.HandlerFunc(auth.Handler.VerifyToken))
+	m.Handle("/auth/github", http.HandlerFunc(Handler.VerifyToken))
 
 	token := struct {
 		Code string `json:"code"`
@@ -91,16 +90,16 @@ func TestVerifyTokenOK(t *testing.T) {
 	assert.NotEmpty(t, token.Name)
 	assert.NotEmpty(t, token.Login)
 	assert.NotEmpty(t, token.GithubUser.ID)
-	assert.Equal(t, token.Issuer, "Envhub")
+	assert.Equal(t, token.Issuer, "EnvHub")
 	assert.Equal(t, token.Token, test_token)
 }
 
 func TestGithubAuthFailed(t *testing.T) {
 	defer cleanup()
 	_, body := testInit()
-	auth.AuthClient = &githubMockFailed{}
+	authClient = &githubMockFailed{}
 
-	srv := httptest.NewServer(http.HandlerFunc(auth.Handler.VerifyToken))
+	srv := httptest.NewServer(http.HandlerFunc(Handler.VerifyToken))
 	defer srv.Close()
 
 	r, err := http.NewRequest(http.MethodPost, srv.URL, body)
@@ -117,7 +116,7 @@ func TestGithubApiFailed(t *testing.T) {
 	_, body := testInit()
 	gh.MockClient(&githubMockFailed{})
 
-	srv := httptest.NewServer(http.HandlerFunc(auth.Handler.VerifyToken))
+	srv := httptest.NewServer(http.HandlerFunc(Handler.VerifyToken))
 	defer srv.Close()
 
 	r, err := http.NewRequest(http.MethodPost, srv.URL, body)
@@ -133,7 +132,7 @@ func TestDuplicateUser(t *testing.T) {
 	defer cleanup()
 	_, body := testInit()
 
-	srv := httptest.NewServer(http.HandlerFunc(auth.Handler.VerifyToken))
+	srv := httptest.NewServer(http.HandlerFunc(Handler.VerifyToken))
 	defer srv.Close()
 
 	r, err := http.NewRequest(http.MethodPost, srv.URL, body)

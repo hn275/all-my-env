@@ -3,6 +3,7 @@ package gh
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/hn275/envhub/server/lib"
 )
@@ -67,10 +68,13 @@ func (ctx *GithubContext) Get(path string, a ...any) (*http.Response, error) {
 	return githubClient.Do(req)
 }
 
-func GetCxSecret() string {
-	return githubClientSecret
-}
-
-func GetCxID() string {
-	return githubClientID
+// Build request to query github user oauth token
+func OAuthUrl(code string) string {
+	ghEndpoint := "https://github.com/login/oauth/access_token"
+	v := url.Values{}
+	v.Set("client_id", githubClientID)
+	v.Set("client_secret", githubClientSecret)
+	v.Set("code", code)
+	ghEndpoint += "?" + v.Encode()
+	return ghEndpoint
 }

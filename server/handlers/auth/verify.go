@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
-	"net/url"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/api"
@@ -15,7 +14,7 @@ import (
 
 // Verify token send from body, then query for user data.
 // Save user in database if they don't exists
-func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
+func (h *authHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -32,7 +31,14 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// GET AUTH TOKEN
-	res, err := githubOauth(t.Code)
+	req, err := http.NewRequest(http.MethodPost, gh.OAuthUrl(t.Code), nil)
+	if err != nil {
+		api.NewResponse(w).ServerError(err)
+		return
+	}
+	req.Header.Add("accept", "application/json")
+
+	res, err := authClient.Do(req)
 	if err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
@@ -91,7 +97,7 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	jwtToken := jsonwebtoken.JwtToken{
 		GithubUser: userInfo,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:  "Envhub",
+			Issuer:  "EnvHub",
 			Subject: userInfo.Name,
 		},
 	}
@@ -103,21 +109,4 @@ func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	api.NewResponse(w).Status(http.StatusOK).Text(jwtStr)
-}
-
-// Build request to query github user oauth token
-func githubOauth(code string) (*http.Response, error) {
-	ghEndpoint := "https://github.com/login/oauth/access_token"
-	v := url.Values{}
-	v.Set("client_id", gh.GetCxID())
-	v.Set("client_secret", gh.GetCxSecret())
-	v.Set("code", code)
-	ghEndpoint += "?" + v.Encode()
-
-	req, err := http.NewRequest(http.MethodPost, ghEndpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("accept", "application/json")
-	return AuthClient.Do(req)
 }
