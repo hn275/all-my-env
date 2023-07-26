@@ -11,6 +11,12 @@ const (
 	githubUrl = "https://api.github.com"
 )
 
+var (
+	githubClientID     string
+	githubClientSecret string
+	githubClient       Client
+)
+
 type GithubContext struct {
 	token string
 	param map[string]string
@@ -20,16 +26,10 @@ type Client interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-var (
-	GithubClientID     string
-	GithubClientSecret string
-	GithubClient       Client
-)
-
 func init() {
-	GithubClientID = lib.Getenv("GITHUB_CLIENT_ID")
-	GithubClientSecret = lib.Getenv("GITHUB_CLIENT_SECRET")
-	GithubClient = &http.Client{}
+	githubClientID = lib.Getenv("GITHUB_CLIENT_ID")
+	githubClientSecret = lib.Getenv("GITHUB_CLIENT_SECRET")
+	githubClient = &http.Client{}
 }
 
 func New(token string) *GithubContext {
@@ -64,5 +64,13 @@ func (ctx *GithubContext) Get(path string, a ...any) (*http.Response, error) {
 	req.Header.Add("Accept", "application/vnd.github+json")
 	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
 
-	return GithubClient.Do(req)
+	return githubClient.Do(req)
+}
+
+func GetCxSecret() string {
+	return githubClientSecret
+}
+
+func GetCxID() string {
+	return githubClientID
 }
