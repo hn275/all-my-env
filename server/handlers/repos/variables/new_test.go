@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/db"
-	"github.com/hn275/envhub/server/gh"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/stretchr/testify/assert"
 )
@@ -52,8 +51,6 @@ func cleanup() {
 
 func TestNewVariable(t *testing.T) {
 	defer cleanup()
-
-	gh.MockClient(&mockGhCtxOK{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
@@ -69,8 +66,6 @@ func TestNewVariable(t *testing.T) {
 
 func TestNewVariableDuplicate(t *testing.T) {
 	defer cleanup()
-
-	gh.MockClient(&mockGhCtxOK{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/1/variables/new")
@@ -83,8 +78,6 @@ func TestNewVariableDuplicate(t *testing.T) {
 }
 
 func TestWriteAccess(t *testing.T) {
-	// testing no repo not found
-	gh.MockClient(&mockGhCtxOK{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/420/variables/new")
@@ -105,7 +98,6 @@ func TestWriteAccess(t *testing.T) {
 }
 
 func TestInvalidRepoID(t *testing.T) {
-	gh.MockClient(&mockGhCtxOK{})
 	jwt.Mock()
 
 	w, err := testInit("/repos/lkasjdf/variables/new")
@@ -131,24 +123,6 @@ func TestMethodNotAllowed(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusMethodNotAllowed, res.StatusCode)
 	}
-}
-
-func TestGithubServerNotFound(t *testing.T) {
-	gh.MockClient(&mockGhCtxNotFound{})
-	jwt.Mock()
-
-	w, err := testInit("/repos/1/variables/new")
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusForbidden, w.Result().StatusCode)
-}
-
-func TestGithubServerError(t *testing.T) {
-	gh.MockClient(&mockGhCtxError{})
-	jwt.Mock()
-
-	w, err := testInit("/repos/1/variables/new")
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusBadGateway, w.Result().StatusCode)
 }
 
 // MOCK

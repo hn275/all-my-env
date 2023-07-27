@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
@@ -45,6 +44,9 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// CHECKS IF USER IS A COLLABORATOR
+	// NOTE: since this endpoint is a write only, no need to make a request
+	// to github api, since only the users with write access can do this,
+	// which can be done by querying th db `permissions` table.
 	var repo struct {
 		FullName string
 	}
@@ -71,11 +73,6 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// CHECK FOR REPO ACCESS WITH GITHUB
-	wg := new(sync.WaitGroup)
-	c := make(chan error, 1)
-	go getRepoAccess(c, wg, repo.FullName, user)
-
 	// SERIALIZE VARIABLE
 	body.RepositoryID = uint32(repoID)
 	body.GenID()
@@ -85,25 +82,6 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 	body.CreatedAt = db.TimeNow()
 	body.UpdatedAt = db.TimeNow()
-
-	// WRITE TO DB
-	wg.Wait()
-	defer close(c)
-	switch err := <-c; err {
-	case nil:
-		break
-	case errNotAContributor:
-		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
-		return
-
-	case errBadGateWay:
-		api.NewResponse(w).Status(http.StatusBadGateway).Error(err.Error())
-		return
-
-	default:
-		api.NewResponse(w).ServerError(err)
-		return
-	}
 
 	err = d.Create(&body).Error
 	if err == nil {
@@ -123,5 +101,6 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 			Error(pgErr.Error())
 		return
 	}
+
 	api.NewResponse(w).ServerError(pgErr)
 }
