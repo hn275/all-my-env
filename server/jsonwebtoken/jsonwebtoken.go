@@ -27,7 +27,7 @@ func init() {
 
 type GithubUser struct {
 	Token     string `json:"token,omitempty"`
-	ID        int    `json:"id"`
+	ID        uint64 `json:"id"`
 	Login     string `json:"login"`
 	AvatarUrl string `json:"avatar_url"`
 	Name      string `json:"name"`
@@ -71,17 +71,17 @@ func (d *JwtDecoder) Decode(t string) (*JwtToken, error) {
 func GetUser(r *http.Request) (*GithubUser, error) {
 	h := r.Header.Get("Authorization")
 	if h == "" {
-		return nil, errors.New("auth token not found")
+		return nil, errors.New("Authorization token not found")
 	}
 
 	t := strings.Split(h, " ")
 
 	if len(t) != 2 {
-		return nil, errors.New("invalid auth token")
+		return nil, errors.New("Invalid token")
 	}
 
 	if strings.ToLower(t[0]) != "bearer" {
-		return nil, errors.New("invalid auth token")
+		return nil, errors.New("Invalid token type")
 	}
 
 	decoded, err := Decoder.Decode(t[1])
