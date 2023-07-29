@@ -24,9 +24,36 @@ func init() {
 }
 
 func main() {
-
 	r := chi.NewMux()
+	routerConfig(r)
+
+	// refresh variable counter every second
+	go db.RefreshVariableCounter()
+
+	/* ROUTERS */
+	r.Route("/auth", func(r chi.Router) {
+		r.Handle("/github", http.HandlerFunc(auth.Handler.VerifyToken))
+	})
+
+	r.Route("/repos", func(r chi.Router) {
+		r.Handle("/", http.HandlerFunc(repos.Handlers.Index))
+		r.Handle("/link", http.HandlerFunc(repos.Handlers.Link))
+
+		r.Route("/{repoID}", func(r chi.Router) {
+			r.Route("/variables", func(r chi.Router) {
+				r.Handle("/", http.HandlerFunc(variables.Handlers.Index))
+				r.Handle("/new", http.HandlerFunc(variables.Handlers.NewVariable))
+			})
+		})
+	})
+
+	log.Println("Listening on port:", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
+}
+
+func routerConfig(r *chi.Mux) {
 	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{
 			"http://localhost:3000",
@@ -48,23 +75,4 @@ func main() {
 			"Content-Type",
 		},
 	}))
-
-	r.Route("/auth", func(r chi.Router) {
-		r.Handle("/github", http.HandlerFunc(auth.Handler.VerifyToken))
-	})
-
-	// refresh variable counter every second
-	go db.RefreshVariableCounter()
-	r.Route("/repos", func(r chi.Router) {
-		r.Handle("/", http.HandlerFunc(repos.Handlers.Index))
-		r.Route("/{repoID}", func(r chi.Router) {
-			r.Route("/variables", func(r chi.Router) {
-				r.Handle("/", http.HandlerFunc(variables.Handlers.Index))
-				r.Handle("/new", http.HandlerFunc(variables.Handlers.NewVariable))
-			})
-		})
-	})
-
-	log.Println("Listening on port:", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
 }
