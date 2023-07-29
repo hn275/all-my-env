@@ -9,6 +9,11 @@ interface Props {
 }
 
 export function Repo({ repo, isOwner }: Props) {
+  const params: string = new URLSearchParams({
+    "repo_id": String(repo.id),
+    "repo_name": encodeURIComponent(repo.full_name),
+  }).toString()
+
   return (
     <>
       <div>
@@ -27,7 +32,7 @@ export function Repo({ repo, isOwner }: Props) {
               <p>Linked</p>
             ) : (
               <Link
-                to={`${WEB.repo}/connect?repo_id=${repo.id}`}
+                to={`${WEB.repo}/connect?${params}`}
                 className="block bg-accent-blue w-max p-1"
               >
                 Link Repo
