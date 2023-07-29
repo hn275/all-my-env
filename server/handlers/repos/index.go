@@ -63,13 +63,13 @@ func (h *RepoHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ids := make([]uint, len(repos))
+	ids := make([]uint64, len(repos))
 	for i, repo := range repos {
 		ids[i] = repo.ID
 	}
 
 	// GET REPO ID's FROM DB
-	var dbRepos []uint
+	var dbRepos []uint64
 	trx := h.Table(db.TableRepos)
 	trx.Select("id")
 	trx.Where("user_id = ? AND id IN ?", user.ID, ids[:])

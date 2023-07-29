@@ -31,7 +31,7 @@ type TimeStamp = time.Time
 type Base64EncodedID = string
 
 type User struct {
-	ID        int `gorm:"primaryKey"`
+	ID        uint64 `gorm:"primaryKey"`
 	CreatedAt TimeStamp
 	Vendor    string `gorm:"not null"`
 	UserName  string `gorm:"not null,unique"`
@@ -42,7 +42,7 @@ type User struct {
 }
 
 type Repository struct {
-	ID        uint32    `gorm:"primaryKey" json:"id"`
+	ID        uint64    `gorm:"primaryKey" json:"id"`
 	CreatedAt TimeStamp `json:"created_at"`
 
 	// ie: hn275/envhub
@@ -51,8 +51,8 @@ type Repository struct {
 	Url string `gorm:"not null" json:"url"`
 
 	// relation
-	User   User `json:"-"`
-	UserID int  `gorm:"foreignKey" json:"-"`
+	User   User   `json:"-"`
+	UserID uint64 `gorm:"foreignKey" json:"-"`
 
 	Variables  []Variable   `gorm:"constraint:OnDelete:CASCADE" json:"-"`
 	Permission []Permission `gorm:"constraint:OnDelete:CASCADE" json:"-"`
