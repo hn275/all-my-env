@@ -15,9 +15,7 @@ type githubClient struct {
 	user     *jwt.GithubUser
 }
 
-type RepoHandler struct {
-	*gorm.DB
-}
+type RepoHandler struct{ *gorm.DB }
 
 var (
 	Handlers *RepoHandler
