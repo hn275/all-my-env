@@ -3,47 +3,50 @@ import { Session } from "./sessionStorage";
 const API = import.meta.env.VITE_ENVHUB_API;
 if (!API) throw new Error("`VITE_ENVHUB_API` not set");
 
+export class UnauthorizeError extends Error {
+  constructor() {
+    super("Session token not found.")
+    this.name = "UnauthorizeError"
+  }
+}
+
 export class Fetch {
   static async GET(
     path: string,
     query?: Record<string, string>,
   ): Promise<Response> {
-    if (path[0] != "/") path = "/" + path;
     let url = API + path;
-    if (query) {
-      url += "?" + new URLSearchParams(query).toString();
-    }
-    const headers = new Headers({
-      Authorization: `Bearer ${this.getToken()}`,
-      "Content-Type": "application/json",
-    });
-
+    if (query) url += "?" + new URLSearchParams(query).toString();
+    const headers = this.headers({ "content-type": "application/json" });
     return fetch(url, { method: "GET", headers });
   }
 
   static POST(
     path: string,
     query: Record<string, string> | null,
-    body: object | null
+    body?: object
   ): Promise<Response> {
-    return fetch(this.url(path, query))
+    return fetch(this.url(path, query ?? undefined), {
+      method: "POST",
+      headers: this.headers(),
+      body: body ? JSON.stringify(body) : undefined
+    })
 
   }
 
-
-  private static url(path: string, query: Record<string, string> | null): string {
-    if (path[0] != "/") path = "/" + path;
-    let url = API + path;
-    if (query) {
-      url += "?" + new URLSearchParams(query).toString();
-    }
-
-    return url
-  }
-
-  private static getToken(): string {
+  private static headers(headers?: Record<string, string>): Headers {
     const t = window.sessionStorage.getItem(Session.token);
-    if (!t) throw new Error("session token not found");
-    return t;
+    if (!t) throw new UnauthorizeError();
+    const h = new Headers({ Authorization: `Bearer ${t}` });
+    if (headers) Object.assign(h, headers);
+    return h;
+  }
+
+
+  private static url(path: string, query?: Record<string, string>): string {
+    if (path[0] != "/") path = "/" + path;
+    const url = API + path;
+    if (!query) return url
+    return url + "?" + new URLSearchParams(query).toString()
   }
 }

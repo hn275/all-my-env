@@ -40,19 +40,6 @@ export class Github {
     window.sessionStorage.setItem(Session.token, token);
   }
 
-  static POST(
-    path: string,
-    param: Record<string, string> | null,
-    body: object | null,
-  ): Promise<Response> {
-    return fetch(this.url(path, param), {
-      method: "POST",
-      headers: this.headers(),
-      body: JSON.stringify(body)
-    })
-
-  }
-
   static GET(
     path: string,
     params: Record<string, string> | null,
