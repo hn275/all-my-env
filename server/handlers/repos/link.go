@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/hn275/envhub/server/api"
-	database1 "github.com/hn275/envhub/server/database"
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/jackc/pgerrcode"
@@ -26,7 +26,7 @@ func Link(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var repo database1.Repository
+	var repo database.Repository
 	if err := json.NewDecoder(r.Body).Decode(&repo); err != nil {
 		// TODO: validate request json
 		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
@@ -36,8 +36,7 @@ func Link(w http.ResponseWriter, r *http.Request) {
 	// CHECK FOR REPO OWNER
 	// get repoInfo
 	var repoInfo Repository
-	ghCx := githubClient{repo.FullName, user}
-	status, err := ghCx.getRepo(&repoInfo)
+	status, err := ghCx.getRepo(repo.FullName, user.Token, &repoInfo)
 	if err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
@@ -58,7 +57,7 @@ func Link(w http.ResponseWriter, r *http.Request) {
 		return
 
 	default:
-		fmt.Fprintf(os.Stderr, "GitHub responded with %d", status)
+		fmt.Fprintf(os.Stderr, "GitHub responded with %d\n", status)
 		api.NewResponse(w).
 			Status(http.StatusBadGateway).Done()
 		return
@@ -107,13 +106,17 @@ func Link(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (cx *githubClient) getRepo(repo *Repository) (int, error) {
+func (cx *githubClient) getRepo(repoName, userToken string, repo *Repository) (int, error) {
 	// https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#get-a-repository
-	res, err := gh.New(cx.user.Token).Get("/repos/%s", cx.repoName)
+	res, err := gh.New(userToken).Get("/repos/%s", repoName)
 	if err != nil {
 		return -1, err
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return res.StatusCode, nil
+	}
 
 	if err := json.NewDecoder(res.Body).Decode(&repo); err != nil {
 		return -1, err
