@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -27,7 +27,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body db.Variable
+	var body database.Variable
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
@@ -51,7 +51,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		FullName string
 	}
 
-	err = d.Table(db.TableRepos).
+	err = d.Table(database.TableRepos).
 		Select("repositories.full_name").
 		Where("permissions.repository_id = ? AND users.id = ?", repoID, user.ID).
 		InnerJoins("INNER JOIN permissions ON permissions.repository_id = repositories.id").
@@ -80,8 +80,8 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
-	body.CreatedAt = db.TimeNow()
-	body.UpdatedAt = db.TimeNow()
+	body.CreatedAt = database.TimeNow()
+	body.UpdatedAt = database.TimeNow()
 
 	err = d.Create(&body).Error
 	if err == nil {

@@ -1,24 +1,24 @@
 package repos
 
 import (
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	"gorm.io/gorm"
 )
 
 var (
-	database repoDB
+	db repoModels
 )
 
-type repoDB interface {
-	newRepo(*db.Repository) error
+type repoModels interface {
+	newRepo(*database.Repository) error
 }
 
 type repoDatabase struct{ *gorm.DB }
 
 func init() {
-	database = &repoDatabase{db.New()}
+	db = &repoDatabase{database.New()}
 }
 
-func (repoDB *repoDatabase) newRepo(r *db.Repository) error {
+func (repoDB *repoDatabase) newRepo(r *database.Repository) error {
 	return repoDB.Create(r).Error
 }

@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"github.com/hn275/envhub/server/db"
+	database1 "github.com/hn275/envhub/server/database"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"gorm.io/gorm"
 )
@@ -23,5 +23,5 @@ var (
 )
 
 func init() {
-	Handlers = &RepoHandler{db.New()}
+	Handlers = &RepoHandler{database1.New()}
 }

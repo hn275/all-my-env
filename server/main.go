@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/handlers/auth"
 	"github.com/hn275/envhub/server/handlers/repos"
 	"github.com/hn275/envhub/server/handlers/repos/variables"
@@ -28,7 +28,7 @@ func main() {
 	routerConfig(r)
 
 	// refresh variable counter every second
-	go db.RefreshVariableCounter()
+	go database.RefreshVariableCounter()
 
 	/* ROUTERS */
 	r.Route("/auth", func(r chi.Router) {

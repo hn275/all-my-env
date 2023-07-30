@@ -6,7 +6,7 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/api"
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
 	"gorm.io/gorm/clause"
@@ -81,10 +81,10 @@ func (h *authHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// save user in db (if not exists)
-	user := db.User{
+	user := database.User{
 		ID:        userInfo.ID,
-		CreatedAt: db.TimeNow(),
-		Vendor:    db.VendorGithub,
+		CreatedAt: database.TimeNow(),
+		Vendor:    database.VendorGithub,
 		UserName:  userInfo.Login,
 	}
 	err = h.Clauses(clause.OnConflict{DoNothing: true}).Create(&user).Error

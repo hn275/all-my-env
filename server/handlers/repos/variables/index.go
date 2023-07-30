@@ -8,14 +8,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"gorm.io/gorm"
 )
 
 type Repository struct {
-	Meta      db.Repository `json:",inline"`
-	Variables []db.Variable `json:"variables"`
+	Meta      database.Repository `json:",inline"`
+	Variables []database.Variable `json:"variables"`
 }
 
 func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	// QUERY DB FOR REPO INFO
 	var repo Repository
-	err = h.Table(db.TableRepos).Where("id = ?", repoID).First(&repo.Meta).Error
+	err = h.Table(database.TableRepos).Where("id = ?", repoID).First(&repo.Meta).Error
 
 	switch err {
 	case nil:
@@ -64,7 +64,7 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 	go getRepoAccess(c, wg, repo.Meta.FullName, user)
 
 	// QUERY DB FOR ENV VARIABLES
-	err = h.Model(&[]db.Variable{}).
+	err = h.Model(&[]database.Variable{}).
 		Where("repository_id = ?", repoID).
 		Find(&repo.Variables).Error // TODO: add pagination
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {

@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +25,7 @@ type githubMockFailed struct{}
 type authCxMock struct{}
 
 func cleanup() {
-	db.New().Where("id = ?", 123).Delete(&db.User{})
+	database.New().Where("id = ?", 123).Delete(&database.User{})
 }
 
 func testInit() (*chi.Mux, *bytes.Reader) {

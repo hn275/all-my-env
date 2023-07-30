@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/handlers/repos"
 	"github.com/hn275/envhub/server/jsonwebtoken"
@@ -34,21 +34,21 @@ func TestLinkedRepo(t *testing.T) {
 		panic(err)
 	}
 
-	mockUser := db.User{
+	mockUser := database.User{
 		ID:        100,
-		CreatedAt: db.TimeNow(),
+		CreatedAt: database.TimeNow(),
 		Vendor:    "laksdjf",
 		UserName:  "octocat",
 	}
 
-	mockRepo := db.Repository{
+	mockRepo := database.Repository{
 		ID:        100,
-		CreatedAt: db.TimeNow(),
+		CreatedAt: database.TimeNow(),
 		FullName:  "octocat",
 		Url:       "https://github.com/octocat",
 		UserID:    mockUser.ID,
 	}
-	conn := db.New()
+	conn := database.New()
 	conn.Create(&mockUser)
 	conn.Create(&mockRepo)
 

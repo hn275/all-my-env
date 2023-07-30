@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +17,7 @@ type mockGhCtxOK struct{}
 type mockGhCtxNotFound struct{}
 type mockGhCtxError struct{}
 
-var mockVar = db.Variable{
+var mockVar = database.Variable{
 	Key:   "test_foo",
 	Value: "test_bar",
 }
@@ -45,8 +45,8 @@ func testInit(url string) (*httptest.ResponseRecorder, error) {
 }
 
 func cleanup() {
-	d := db.New()
-	d.Where("key = ?", "test_foo").Delete(&db.Variable{})
+	d := database.New()
+	d.Where("key = ?", "test_foo").Delete(&database.Variable{})
 }
 
 func TestNewVariable(t *testing.T) {
@@ -57,8 +57,8 @@ func TestNewVariable(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
 
-	var variable db.Variable
-	d := db.New()
+	var variable database.Variable
+	d := database.New()
 	err = d.Where("repository_id = ? AND key = ?", 1, "foo").First(&variable).Error
 	assert.Nil(t, err)
 	assert.NotEqual(t, mockVar.Value, variable.Value)
@@ -90,8 +90,8 @@ func TestWriteAccess(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
 
-	var variable db.Variable
-	d := db.New()
+	var variable database.Variable
+	d := database.New()
 	err = d.Where("repository_id = ? AND key = ?", 1, "foo").First(&variable).Error
 	assert.Nil(t, err)
 	assert.NotEqual(t, mockVar.Value, variable.Value)

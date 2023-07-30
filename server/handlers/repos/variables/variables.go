@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"gorm.io/gorm"
@@ -24,7 +24,7 @@ var (
 )
 
 func init() {
-	Handlers = &variableHandler{db.New()}
+	Handlers = &variableHandler{database.New()}
 }
 
 // Endpoint:

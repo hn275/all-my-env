@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/hn275/envhub/server/api"
-	"github.com/hn275/envhub/server/db"
+	database1 "github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
 )
@@ -70,7 +70,7 @@ func (h *RepoHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	// GET REPO ID's FROM DB
 	var dbRepos []uint64
-	trx := h.Table(db.TableRepos)
+	trx := h.Table(database1.TableRepos)
 	trx.Select("id")
 	trx.Where("user_id = ? AND id IN ?", user.ID, ids[:])
 	if err := trx.Find(&dbRepos).Error; err != nil {
