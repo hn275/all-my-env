@@ -1,4 +1,4 @@
-import { Github } from "lib/github/request";
+import { Fetch, UnauthorizeError } from "lib/api";
 import { WEB } from "lib/routes";
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -24,9 +24,9 @@ export function Connect() {
 
 type ConnectRepoHook = { loading: boolean, error: string | undefined }
 function useConnectRepo(): ConnectRepoHook {
-  const [param] = useSearchParams()
-  const repoNameEncoded = param.get("repo_name") as string
-  const nav = useNavigate()
+  const [param] = useSearchParams();
+  const repoNameEncoded = param.get("repo_name") as string;
+  const nav = useNavigate();
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>();
@@ -35,13 +35,13 @@ function useConnectRepo(): ConnectRepoHook {
     (async () => {
       try {
         if (!repoNameEncoded) {
-          setError(() => "Repository name not found.")
-          return
+          setError(() => "Repository name not found.");
+          return;
         }
 
-        const body = { "full_name": decodeURIComponent(repoNameEncoded) }
-        const res = await Github.POST("/repos/link", null, body)
-
+        const body = { "full_name": decodeURIComponent(repoNameEncoded) };
+        const queries = null;
+        const res = await Fetch.POST("/repos/link", queries, body);
         switch (res.status) {
           case 201:
             setError(() => undefined)
@@ -58,7 +58,8 @@ function useConnectRepo(): ConnectRepoHook {
             return
         }
       } catch (e) {
-        setError(() => "Something went wrong, try again later.")
+        if (e instanceof UnauthorizeError)
+          setError(() => "Something went wrong, try again later.")
         console.error(e)
       } finally {
         setLoading(() => false)
