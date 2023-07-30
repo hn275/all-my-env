@@ -78,8 +78,8 @@ func (h *RepoHandler) Link(w http.ResponseWriter, r *http.Request) {
 
 	err = db.New().Create(&repo).Error
 	if err == nil {
-		api.NewResponse(w).Status(http.StatusCreated).Done()
-
+		api.NewResponse(w).Status(http.StatusCreated).Text("%d", repo.ID)
+		return
 	}
 
 	pgErr, ok := err.(*pgconn.PgError)
