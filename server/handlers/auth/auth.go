@@ -3,7 +3,7 @@ package auth
 import (
 	"net/http"
 
-	"github.com/hn275/envhub/server/db"
+	"github.com/hn275/envhub/server/database"
 	"gorm.io/gorm"
 )
 
@@ -22,5 +22,5 @@ var (
 
 func init() {
 	authClient = &http.Client{}
-	Handler = &authHandler{db.New()}
+	Handler = &authHandler{database.New()}
 }

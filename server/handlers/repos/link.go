@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/hn275/envhub/server/api"
-	"github.com/hn275/envhub/server/db"
+	database1 "github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/jackc/pgerrcode"
@@ -26,7 +26,7 @@ func (h *RepoHandler) Link(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var repo db.Repository
+	var repo database1.Repository
 	if err := json.NewDecoder(r.Body).Decode(&repo); err != nil {
 		// TODO: validate request json
 		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
@@ -76,7 +76,7 @@ func (h *RepoHandler) Link(w http.ResponseWriter, r *http.Request) {
 	repo.UserID = user.ID
 	repo.ID = repoInfo.ID
 
-	err = database.newRepo(&repo)
+	err = db.newRepo(&repo)
 	if err == nil {
 		api.NewResponse(w).Status(http.StatusCreated).Text("%d", repo.ID)
 		return
