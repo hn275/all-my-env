@@ -35,7 +35,7 @@ func main() {
 		r.Handle("/github", http.HandlerFunc(auth.Handler.VerifyToken))
 	})
 
-	r.Route("/repos", func(r chi.Router) {
+	r.Route("/repo", func(r chi.Router) {
 		r.Handle("/", http.HandlerFunc(repos.Handlers.Index))
 		r.Handle("/link", http.HandlerFunc(repos.Handlers.Link))
 

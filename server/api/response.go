@@ -40,9 +40,10 @@ func (r *Response) JSON(data interface{}) {
 	}
 }
 
-func (r *Response) Text(t string) {
+func (r *Response) Text(t string, a ...any) {
 	r.ResponseWriter.Header().Add("content-type", "application/text")
-	r.Write([]byte(t))
+	r.WriteHeader(r.status)
+	r.Write([]byte(fmt.Sprintf(t, a...)))
 }
 
 // ERROR HANLDING

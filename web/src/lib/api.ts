@@ -1,12 +1,19 @@
 import { Session } from "./sessionStorage";
 
-const API = import.meta.env.VITE_ENVHUB_API;
-if (!API) throw new Error("`VITE_ENVHUB_API` not set");
+const API_URL = import.meta.env.VITE_ENVHUB_API;
+if (!API_URL) throw new Error("`VITE_ENVHUB_API` not set");
+
+export const API = {
+  repo: {
+    index: "/repo",
+    link: "/repo/link",
+  },
+};
 
 export class UnauthorizeError extends Error {
   constructor() {
-    super("Session token not found.")
-    this.name = "UnauthorizeError"
+    super("Session token not found.");
+    this.name = "UnauthorizeError";
   }
 }
 
@@ -15,7 +22,7 @@ export class Fetch {
     path: string,
     query?: Record<string, string>,
   ): Promise<Response> {
-    let url = API + path;
+    let url = API_URL + path;
     if (query) url += "?" + new URLSearchParams(query).toString();
     const headers = this.headers({ "content-type": "application/json" });
     return fetch(url, { method: "GET", headers });
@@ -24,14 +31,13 @@ export class Fetch {
   static POST(
     path: string,
     query: Record<string, string> | null,
-    body?: object
+    body?: object,
   ): Promise<Response> {
     return fetch(this.url(path, query ?? undefined), {
       method: "POST",
       headers: this.headers(),
-      body: body ? JSON.stringify(body) : undefined
-    })
-
+      body: body ? JSON.stringify(body) : undefined,
+    });
   }
 
   private static headers(headers?: Record<string, string>): Headers {
@@ -42,11 +48,10 @@ export class Fetch {
     return h;
   }
 
-
   private static url(path: string, query?: Record<string, string>): string {
     if (path[0] != "/") path = "/" + path;
-    const url = API + path;
-    if (!query) return url
-    return url + "?" + new URLSearchParams(query).toString()
+    const url = API_URL + path;
+    if (!query) return url;
+    return url + "?" + new URLSearchParams(query).toString();
   }
 }
