@@ -14,7 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-func (h *RepoHandler) Link(w http.ResponseWriter, r *http.Request) {
+func Link(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()
 		return

@@ -1,18 +1,20 @@
-package repos_test
+package repos
 
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"math"
+	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
-	"github.com/hn275/envhub/server/handlers/repos"
 	"github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 )
 
 type repoMock struct{}
@@ -24,57 +26,73 @@ func init() {
 
 func testInit() (*http.ServeMux, *httptest.ResponseRecorder) {
 	r := http.NewServeMux()
-	r.Handle("/test", http.HandlerFunc(repos.Handlers.Index))
+	r.Handle("/test", http.HandlerFunc(Index))
 	return r, &httptest.ResponseRecorder{}
 }
 
-func TestLinkedRepo(t *testing.T) {
-	var ghRepos []repos.Repository
-	if err := json.Unmarshal([]byte(mockData), &ghRepos); err != nil {
-		panic(err)
-	}
-
-	mockUser := database.User{
-		ID:        100,
-		CreatedAt: database.TimeNow(),
-		Vendor:    "laksdjf",
-		UserName:  "octocat",
-	}
-
-	mockRepo := database.Repository{
-		ID:        100,
-		CreatedAt: database.TimeNow(),
-		FullName:  "octocat",
-		Url:       "https://github.com/octocat",
-		UserID:    mockUser.ID,
-	}
-	conn := database.New()
-	conn.Create(&mockUser)
-	conn.Create(&mockRepo)
-
-	defer conn.Delete(&mockUser)
-	defer conn.Delete(&mockRepo)
-
-	s := httptest.NewServer(http.HandlerFunc(repos.Handlers.Index))
+func TestLinkRepoRecordNotFound(t *testing.T) {
+	db = &mockRepoDb{findRepoErr: gorm.ErrRecordNotFound}
+	s := httptest.NewServer(http.HandlerFunc(Index))
 	defer s.Close()
 
 	url := s.URL + "?show=69&page=420&sort=foo"
 	r, err := http.NewRequest(http.MethodGet, url, nil)
 	assert.Nil(t, err)
 
-	r.Header.Add("Authorization", "Bearer "+"alskdjf")
-
+	r.Header.Add("Authorization", "Bearer aslkfjsdklfj")
 	c := http.Client{}
 	res, err := c.Do(r)
 	assert.Nil(t, err)
-
 	defer res.Body.Close()
+
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 
-	var p []repos.Repository
-	err = json.NewDecoder(res.Body).Decode(&p)
+	var repos []Repository
+	err = json.NewDecoder(res.Body).Decode(&repos)
 	assert.Nil(t, err)
-	assert.True(t, p[0].Linked)
+	assert.False(t, repos[0].Linked)
+}
+
+func TestLinkRepoDBError(t *testing.T) {
+	db = &mockRepoDb{findRepoErr: errors.New("some error")}
+	s := httptest.NewServer(http.HandlerFunc(Index))
+	defer s.Close()
+
+	url := s.URL + "?show=69&page=420&sort=foo"
+	r, err := http.NewRequest(http.MethodGet, url, nil)
+	assert.Nil(t, err)
+
+	r.Header.Add("Authorization", "Bearer aslkfjsdklfj")
+	c := http.Client{}
+	res, err := c.Do(r)
+	assert.Nil(t, err)
+	defer res.Body.Close()
+
+	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
+	assert.Empty(t, res.Body)
+}
+
+func TestLinkedRepo(t *testing.T) {
+	db = &mockRepoDb{findRepoErr: nil}
+	s := httptest.NewServer(http.HandlerFunc(Index))
+	defer s.Close()
+
+	url := s.URL + "?show=69&page=420&sort=foo"
+	r, err := http.NewRequest(http.MethodGet, url, nil)
+	assert.Nil(t, err)
+
+	r.Header.Add("Authorization", "Bearer aslkfjsdklfj")
+	c := http.Client{}
+	res, err := c.Do(r)
+	assert.Nil(t, err)
+	defer res.Body.Close()
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+
+	var repos []Repository
+	err = json.NewDecoder(res.Body).Decode(&repos)
+	assert.Nil(t, err)
+	assert.True(t, repos[0].Linked)
 }
 
 func TestMethodAllow(t *testing.T) {
@@ -113,6 +131,19 @@ func TestAllBadRequest(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
 
+func TestMaxIDVal(t *testing.T) {
+	mockRepos := []Repository{}
+	for i := 0; i < 1000; i++ {
+		id := rand.Int() // since uint64 overflows assert.Equal
+		if id == math.MaxInt {
+			continue
+		}
+		mockRepos = append(mockRepos, Repository{ID: uint64(id)})
+	}
+	mockRepos = append(mockRepos, Repository{ID: uint64(math.MaxInt)})
+	assert.Equal(t, uint64(math.MaxInt), maxIDVal(mockRepos))
+}
+
 // MOCK
 // Do implements gh.Client
 func (mock *repoMock) Do(req *http.Request) (*http.Response, error) {
@@ -133,119 +164,7 @@ const mockData = `
     "id": 1,
     "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
     "name": "Hello-World",
-    "full_name": "octocat/Hello-World",
-    "owner": {
-      "login": "octocat",
-      "id": 1,
-      "node_id": "MDQ6VXNlcjE=",
-      "avatar_url": "https://github.com/images/error/octocat_happy.gif",
-      "gravatar_id": "",
-      "url": "https://api.github.com/users/octocat",
-      "html_url": "https://github.com/octocat",
-      "followers_url": "https://api.github.com/users/octocat/followers",
-      "following_url": "https://api.github.com/users/octocat/following{/other_user}",
-      "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
-      "organizations_url": "https://api.github.com/users/octocat/orgs",
-      "repos_url": "https://api.github.com/users/octocat/repos",
-      "events_url": "https://api.github.com/users/octocat/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/octocat/received_events",
-      "type": "User",
-      "site_admin": false
-    },
-    "private": false,
-    "html_url": "https://github.com/octocat/Hello-World",
-    "description": "This your first repo!",
-    "fork": false,
-    "url": "https://api.github.com/repos/octocat/Hello-World",
-    "archive_url": "https://api.github.com/repos/octocat/Hello-World/{archive_format}{/ref}",
-    "assignees_url": "https://api.github.com/repos/octocat/Hello-World/assignees{/user}",
-    "blobs_url": "https://api.github.com/repos/octocat/Hello-World/git/blobs{/sha}",
-    "branches_url": "https://api.github.com/repos/octocat/Hello-World/branches{/branch}",
-    "collaborators_url": "https://api.github.com/repos/octocat/Hello-World/collaborators{/collaborator}",
-    "comments_url": "https://api.github.com/repos/octocat/Hello-World/comments{/number}",
-    "commits_url": "https://api.github.com/repos/octocat/Hello-World/commits{/sha}",
-    "compare_url": "https://api.github.com/repos/octocat/Hello-World/compare/{base}...{head}",
-    "contents_url": "https://api.github.com/repos/octocat/Hello-World/contents/{+path}",
-    "contributors_url": "https://api.github.com/repos/octocat/Hello-World/contributors",
-    "deployments_url": "https://api.github.com/repos/octocat/Hello-World/deployments",
-    "downloads_url": "https://api.github.com/repos/octocat/Hello-World/downloads",
-    "events_url": "https://api.github.com/repos/octocat/Hello-World/events",
-    "forks_url": "https://api.github.com/repos/octocat/Hello-World/forks",
-    "git_commits_url": "https://api.github.com/repos/octocat/Hello-World/git/commits{/sha}",
-    "git_refs_url": "https://api.github.com/repos/octocat/Hello-World/git/refs{/sha}",
-    "git_tags_url": "https://api.github.com/repos/octocat/Hello-World/git/tags{/sha}",
-    "git_url": "git:github.com/octocat/Hello-World.git",
-    "issue_comment_url": "https://api.github.com/repos/octocat/Hello-World/issues/comments{/number}",
-    "issue_events_url": "https://api.github.com/repos/octocat/Hello-World/issues/events{/number}",
-    "issues_url": "https://api.github.com/repos/octocat/Hello-World/issues{/number}",
-    "keys_url": "https://api.github.com/repos/octocat/Hello-World/keys{/key_id}",
-    "labels_url": "https://api.github.com/repos/octocat/Hello-World/labels{/name}",
-    "languages_url": "https://api.github.com/repos/octocat/Hello-World/languages",
-    "merges_url": "https://api.github.com/repos/octocat/Hello-World/merges",
-    "milestones_url": "https://api.github.com/repos/octocat/Hello-World/milestones{/number}",
-    "notifications_url": "https://api.github.com/repos/octocat/Hello-World/notifications{?since,all,participating}",
-    "pulls_url": "https://api.github.com/repos/octocat/Hello-World/pulls{/number}",
-    "releases_url": "https://api.github.com/repos/octocat/Hello-World/releases{/id}",
-    "ssh_url": "git@github.com:octocat/Hello-World.git",
-    "stargazers_url": "https://api.github.com/repos/octocat/Hello-World/stargazers",
-    "statuses_url": "https://api.github.com/repos/octocat/Hello-World/statuses/{sha}",
-    "subscribers_url": "https://api.github.com/repos/octocat/Hello-World/subscribers",
-    "subscription_url": "https://api.github.com/repos/octocat/Hello-World/subscription",
-    "tags_url": "https://api.github.com/repos/octocat/Hello-World/tags",
-    "teams_url": "https://api.github.com/repos/octocat/Hello-World/teams",
-    "trees_url": "https://api.github.com/repos/octocat/Hello-World/git/trees{/sha}",
-    "clone_url": "https://github.com/octocat/Hello-World.git",
-    "mirror_url": "git:git.example.com/octocat/Hello-World",
-    "hooks_url": "https://api.github.com/repos/octocat/Hello-World/hooks",
-    "svn_url": "https://svn.github.com/octocat/Hello-World",
-    "homepage": "https://github.com",
-    "language": null,
-    "forks_count": 9,
-    "stargazers_count": 80,
-    "watchers_count": 80,
-    "size": 108,
-    "default_branch": "master",
-    "open_issues_count": 0,
-    "is_template": true,
-    "topics": ["octocat", "atom", "electron", "api"],
-    "has_issues": true,
-    "has_projects": true,
-    "has_wiki": true,
-    "has_pages": false,
-    "has_downloads": true,
-    "archived": false,
-    "disabled": false,
-    "visibility": "public",
-    "pushed_at": "2011-01-26T19:06:43Z",
-    "created_at": "2011-01-26T19:01:12Z",
-    "updated_at": "2011-01-26T19:14:43Z",
-    "permissions": {
-      "admin": false,
-      "push": false,
-      "pull": true
-    },
-    "allow_rebase_merge": true,
-    "template_repository": null,
-    "temp_clone_token": "ABTLWHOULUVAXGTRYU7OC2876QJ2O",
-    "allow_squash_merge": true,
-    "allow_auto_merge": false,
-    "delete_branch_on_merge": true,
-    "allow_merge_commit": true,
-    "subscribers_count": 42,
-    "network_count": 0,
-    "license": {
-      "key": "mit",
-      "name": "MIT License",
-      "url": "https://api.github.com/licenses/mit",
-      "spdx_id": "MIT",
-      "node_id": "MDc6TGljZW5zZW1pdA==",
-      "html_url": "https://github.com/licenses/mit"
-    },
-    "forks": 1,
-    "open_issues": 1,
-    "watchers": 1
+    "full_name": "octocat/Hello-World"
   }
 ]
 `

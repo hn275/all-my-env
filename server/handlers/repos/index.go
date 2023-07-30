@@ -5,12 +5,12 @@ import (
 	"net/http"
 
 	"github.com/hn275/envhub/server/api"
-	database1 "github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
+	"gorm.io/gorm"
 )
 
-func (h *RepoHandler) Index(w http.ResponseWriter, r *http.Request) {
+func Index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		api.NewResponse(w).
 			Status(http.StatusMethodNotAllowed).
@@ -69,26 +69,40 @@ func (h *RepoHandler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// GET REPO ID's FROM DB
-	var dbRepos []uint64
-	trx := h.Table(database1.TableRepos)
-	trx.Select("id")
-	trx.Where("user_id = ? AND id IN ?", user.ID, ids[:])
-	if err := trx.Find(&dbRepos).Error; err != nil {
+	dbRepos, err := db.findRepo(user.ID, ids[:])
+	switch err {
+	case nil:
+		isLinked := make([]bool, maxIDVal(repos)+1)
+		for _, v := range dbRepos {
+			isLinked[v] = true
+		}
+
+		for i := range repos {
+			repos[i].Linked = isLinked[repos[i].ID]
+		}
+		break
+
+	case gorm.ErrRecordNotFound:
+		break
+
+	default:
 		api.NewResponse(w).ServerError(err)
 		return
-	}
-
-	for i, repo := range repos {
-		for _, id := range dbRepos {
-			if id == repo.ID {
-				repos[i].Linked = true
-				break
-			}
-		}
 	}
 
 	api.NewResponse(w).
 		Header("Cache-Control", "max-age=30").
 		Status(http.StatusOK).
 		JSON(&repos)
+}
+
+func maxIDVal(ids []Repository) uint64 {
+	var max uint64 = 0
+	for _, v := range ids {
+		if v.ID > max {
+			max = v.ID
+		}
+	}
+
+	return max
 }
