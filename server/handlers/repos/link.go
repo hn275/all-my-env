@@ -76,7 +76,7 @@ func (h *RepoHandler) Link(w http.ResponseWriter, r *http.Request) {
 	repo.UserID = user.ID
 	repo.ID = repoInfo.ID
 
-	err = db.New().Create(&repo).Error
+	err = database.newRepo(&repo)
 	if err == nil {
 		api.NewResponse(w).Status(http.StatusCreated).Text("%d", repo.ID)
 		return
