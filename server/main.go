@@ -36,8 +36,8 @@ func main() {
 	})
 
 	r.Route("/repo", func(r chi.Router) {
-		r.Handle("/", http.HandlerFunc(repos.Handlers.Index))
-		r.Handle("/link", http.HandlerFunc(repos.Handlers.Link))
+		r.Handle("/", http.HandlerFunc(repos.Index))
+		r.Handle("/link", http.HandlerFunc(repos.Link))
 
 		r.Route("/{repoID}", func(r chi.Router) {
 			r.Route("/variables", func(r chi.Router) {
