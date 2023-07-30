@@ -59,6 +59,6 @@ func (r *Response) Error(m string, a ...any) {
 }
 
 func (r *Response) ServerError(err error) {
-	fmt.Fprint(os.Stderr, err)
+	fmt.Fprintf(os.Stderr, "ERROR %v\n", err)
 	r.WriteHeader(http.StatusInternalServerError)
 }

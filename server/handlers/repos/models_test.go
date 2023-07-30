@@ -7,9 +7,13 @@ import (
 
 type mockRepoDb struct {
 	findRepoErr error
+	newRepoErr  error
 }
 
 func (repoDB *mockRepoDb) newRepo(_ *database.Repository) error {
+	if repoDB.newRepoErr != nil {
+		return repoDB.newRepoErr.(error)
+	}
 	return nil
 }
 
