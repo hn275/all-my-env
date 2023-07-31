@@ -14,8 +14,8 @@ import (
 )
 
 type Repository struct {
-	Meta      database.Repository `json:",inline"`
-	Variables []database.Variable `json:"variables"`
+	database.Repository `json:",inline"`
+	Variables           []database.Variable `json:"variables"`
 }
 
 func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	// QUERY DB FOR REPO INFO
 	var repo Repository
-	err = h.Table(database.TableRepos).Where("id = ?", repoID).First(&repo.Meta).Error
+	err = h.Table(database.TableRepos).Where("id = ?", repoID).First(&repo).Error
 
 	switch err {
 	case nil:
@@ -61,12 +61,24 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 	c := make(chan error, 1)
 	wg := new(sync.WaitGroup)
 	defer close(c)
-	go getRepoAccess(c, wg, repo.Meta.FullName, user)
+	go getRepoAccess(c, wg, repo.FullName, user)
 
 	// QUERY DB FOR ENV VARIABLES
 	err = h.Model(&[]database.Variable{}).
 		Where("repository_id = ?", repoID).
 		Find(&repo.Variables).Error // TODO: add pagination
+	switch err {
+	case nil:
+		break
+
+	case gorm.ErrRecordNotFound:
+		api.NewResponse(w).Status(http.StatusNotFound).Done()
+		return
+
+	default:
+		api.NewResponse(w).ServerError(err)
+		return
+	}
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		api.NewResponse(w).ServerError(err)
 		return
