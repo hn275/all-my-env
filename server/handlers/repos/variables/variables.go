@@ -49,7 +49,7 @@ func getRepoAccess(c chan<- error, wg *sync.WaitGroup, repoURL string, u *jwt.Gi
 		return
 
 	default:
-		fmt.Fprintf(os.Stderr, "GitHub API responded with %d", res.StatusCode)
+		fmt.Fprintf(os.Stderr, "GitHub API responded with %d\n", res.StatusCode)
 		c <- errBadGateWay
 		return
 	}
