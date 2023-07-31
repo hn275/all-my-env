@@ -14,6 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// request body: { key: string, value: string }
 func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	// VALIDATE REQUEST
 	if r.Method != http.MethodPost {
