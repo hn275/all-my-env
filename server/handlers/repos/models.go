@@ -19,7 +19,22 @@ func init() {
 }
 
 func (repoDB *repoDatabase) newRepo(r *database.Repository) error {
-	return repoDB.Create(r).Error
+	return repoDB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(r).Error; err != nil {
+			return err
+		}
+
+		// enable write permission to for owner
+		perm := database.Permission{
+			RepositoryID: r.ID,
+			UserID:       r.UserID,
+		}
+		if err := tx.Create(&perm).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	// return repoDB.Create(r).Error
 }
 
 func (db *repoDatabase) findRepo(userID uint64, ids []uint64) ([]uint64, error) {
@@ -27,6 +42,6 @@ func (db *repoDatabase) findRepo(userID uint64, ids []uint64) ([]uint64, error) 
 	err := db.Table(database.TableRepos).
 		Select("id").
 		Where("user_id = ? AND id IN ?", userID, ids).
-		Find(repoIDs).Error
+		Find(&repoIDs).Error
 	return repoIDs, err
 }
