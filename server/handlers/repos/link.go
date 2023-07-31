@@ -74,6 +74,7 @@ func Link(w http.ResponseWriter, r *http.Request) {
 	// SAVE TO DB
 	repo.UserID = user.ID
 	repo.ID = repoInfo.ID
+	repo.Url = repoInfo.HTMLURL
 
 	err = db.newRepo(&repo)
 	if err == nil {
