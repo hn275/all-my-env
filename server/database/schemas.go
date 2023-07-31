@@ -164,8 +164,8 @@ type Permission struct {
 
 	// relation
 	Repository   Repository
-	RepositoryID uint `gorm:"foreignKey;uniqueIndex:unique_user_repo"`
+	RepositoryID uint64 `gorm:"foreignKey;uniqueIndex:unique_user_repo"`
 
 	User   User
-	UserID uint `gorm:"foreignKey;uniqueIndex:unique_user_repo"`
+	UserID uint64 `gorm:"foreignKey;uniqueIndex:unique_user_repo"`
 }
