@@ -58,6 +58,7 @@ function getLoginUrl(): string {
 	const githubLogin = "https://github.com/login/oauth/authorize";
 	const param = new URLSearchParams({
 		client_id: GITHUB_SECRET,
+    scope: "repo user read:org"
 	});
 	return githubLogin + "?" + param.toString();
 }
