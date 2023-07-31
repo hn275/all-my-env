@@ -153,7 +153,7 @@ function useRepos() {
             throw new Error(`status code ${status}`);
         }
       } catch (e) {
-        setError(() => "Github is not responding, try again later.");
+        setError(() => "Server is not responding, try again later.");
         console.error(e);
       } finally {
         setLoading(() => false);
