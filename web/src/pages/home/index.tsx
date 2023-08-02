@@ -1,14 +1,13 @@
-import { GITHUB_SECRET } from "lib/github/request";
+import { oauth } from "lib/auth";
 import { Nav } from "./Nav";
 import { AiFillGithub } from "react-icons/ai";
 import "./style.css";
 import cx from "classnames";
 
 export function Home() {
-	const oauthUrl = getLoginUrl();
 	return (
 		<>
-			<Nav oauthUrl={oauthUrl} githubUrl="" />
+			<Nav handleAuth={oauth} githubUrl="" />
 
 			{/* HERO */}
 			<section
@@ -29,20 +28,20 @@ export function Home() {
 				</p>
 
 				<div className="flex flex-col items-center justify-center gap-3 md:flex-row md:gap-6">
-					<button className="h-10 w-36 rounded-md border border-main font-semibold text-main">
+					<a className="py-2 w-36 rounded-md border border-main font-semibold text-main">
 						Get started
-					</button>
+					</a>
 
-					<a
+					<button
 						className={cx([
 							"flex items-center justify-center border border-main bg-main md:flex-row",
 							"h-10 w-36 rounded-md font-semibold hover:no-underline hover:brightness-90",
 						])}
-						href={oauthUrl}
+						onClick={() => oauth("/auth")}
 					>
 						Log In&nbsp;
 						<AiFillGithub />
-					</a>
+					</button>
 				</div>
 
 				<div className="hero-graphic-blur main" />
@@ -52,13 +51,4 @@ export function Home() {
 			<section className="relative min-h-screen bg-gradient-to-b from-[rgba(64,64,64,1)] to-[rgba(64,64,64,0)]"></section>
 		</>
 	);
-}
-
-function getLoginUrl(): string {
-	const githubLogin = "https://github.com/login/oauth/authorize";
-	const param = new URLSearchParams({
-		client_id: GITHUB_SECRET,
-    scope: "repo user read:org"
-	});
-	return githubLogin + "?" + param.toString();
 }
