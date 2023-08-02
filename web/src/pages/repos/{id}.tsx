@@ -5,6 +5,7 @@ import { Repository } from "./type";
 import { WEB } from "lib/routes";
 import { AiFillGithub } from "react-icons/ai";
 import { formatUtcTime } from "lib/time";
+import { oauth } from "lib/auth";
 
 export function Repo() {
 	const nav = useNavigate();
@@ -185,7 +186,6 @@ function useFetchVariables(repoID: string): FetchVariableProps {
 	const [data, setData] = useState<Repository | undefined>();
 	const [loading, setLoading] = useState<boolean>(true);
 	const [error, setError] = useState<string | undefined>(undefined);
-	const nav = useNavigate();
 
 	async function fetchVariables() {
 		try {
@@ -197,7 +197,7 @@ function useFetchVariables(repoID: string): FetchVariableProps {
 					return;
 
 				case 403 | 401:
-					nav(WEB.home);
+					oauth();
 					return;
 
 				default:
