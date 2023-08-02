@@ -34,7 +34,6 @@ func (repoDB *repoDatabase) newRepo(r *database.Repository) error {
 		}
 		return nil
 	})
-	// return repoDB.Create(r).Error
 }
 
 func (db *repoDatabase) findRepo(userID uint64, ids []uint64) ([]uint64, error) {
