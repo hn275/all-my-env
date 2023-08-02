@@ -6,10 +6,10 @@ import { BsChevronCompactUp } from "react-icons/bs";
 import { AiFillGithub, AiFillStar } from "react-icons/ai";
 
 interface Props {
-	oauthUrl: string;
+	handleAuth: (r?: string) => void;
 	githubUrl: string;
 }
-export function Nav({ oauthUrl, githubUrl }: Props) {
+export function Nav({ handleAuth, githubUrl }: Props) {
 	const { open, toggleOpen } = useMenu();
 	const show = useNavScroll();
 
@@ -17,7 +17,7 @@ export function Nav({ oauthUrl, githubUrl }: Props) {
 		<nav
 			className={cx([
 				"sticky left-0 top-0 z-50 transition-all",
-				"-translate-y-full justify-between md:flex md:backdrop-blur",
+				"-translate-y-full justify-between md:flex bg-dark md:bg-transparent md:backdrop-blur",
 				{ "translate-y-0": show },
 			])}
 		>
@@ -45,8 +45,8 @@ export function Nav({ oauthUrl, githubUrl }: Props) {
 					])}
 				>
 					<li>
-						<a
-							href={oauthUrl}
+						<button
+							onClick={() => handleAuth("/auth")}
 							className={cx([
 								"flex items-center hover:cursor-pointer hover:no-underline",
 								"text-main md:rounded-md md:bg-main md:px-3 md:py-2 md:text-dark",
@@ -57,7 +57,7 @@ export function Nav({ oauthUrl, githubUrl }: Props) {
 								<AiFillGithub />
 							</span>
 							&nbsp; Sign in
-						</a>
+						</button>
 					</li>
 					<li>
 						<a>Pricing</a>
@@ -108,8 +108,6 @@ function useNavScroll() {
 		window.addEventListener("scroll", fn);
 		return () => window.removeEventListener("scroll", fn);
 	}, [window.scrollY, window.innerHeight]);
-
-	useEffect(() => console.log(show), [show]);
 
 	return show;
 }
