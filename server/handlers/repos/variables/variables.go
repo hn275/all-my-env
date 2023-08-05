@@ -25,6 +25,7 @@ var (
 
 func init() {
 	Handlers = &variableHandler{database.New()}
+	db = &variableDB{database.New()}
 }
 
 // Endpoint:

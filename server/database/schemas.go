@@ -1,9 +1,12 @@
 package database
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
-	"os"
+	"encoding/hex"
+	"errors"
+	"io"
 	"sync"
 	"time"
 
@@ -17,12 +20,14 @@ var (
 
 	VendorGithub = "github"
 
-	idCounterMap map[uint32]uint16
+	idCounterMap map[uint64]uint16
 	m            sync.Mutex
+
+	ErrRepoMissingRepoID = errors.New("repository id not set")
 )
 
 func init() {
-	idCounterMap = make(map[uint32]uint16)
+	idCounterMap = make(map[uint64]uint16)
 	m = sync.Mutex{}
 }
 
@@ -71,7 +76,7 @@ type Variable struct {
 
 	// relation
 	Repository   Repository `json:"-"`
-	RepositoryID uint32     `gorm:"foreignKey;uniqueIndex:unique_key_repo" json:"-"`
+	RepositoryID uint64     `gorm:"foreignKey;uniqueIndex:unique_key_repo" json:"-"`
 }
 
 func (v *Variable) DecryptValue() error {
@@ -97,31 +102,34 @@ func (v *Variable) DecryptValue() error {
 // Generates an ID for the variable. Panics if `RepositoryID` is not set
 //
 // schema to generate id:
-// `[repository id, time utc, process id, counter var]`.
-// Where `counter var` is reset to 0 every second.
-func (v *Variable) GenID() {
+//   - repoID: 8 bytes
+//   - time: 4 bytes
+//   - counter var: 2 bytes, reset to 0 every second
+//   - random var: 2 bytes
+func (v *Variable) GenID() error {
 	if v.RepositoryID == 0 {
-		panic("repo id not set")
+		return ErrRepoMissingRepoID
 	}
 
-	bufSize := 14
-	buf := make([]byte, bufSize)
+	var buf [16]byte
 
-	binary.BigEndian.PutUint32(buf[:4], v.RepositoryID)
+	binary.BigEndian.PutUint64(buf[:8], v.RepositoryID)
 
 	t := time.Now().UTC().Unix()
-	binary.BigEndian.PutUint32(buf[4:8], uint32(t))
-
-	pid := os.Getpid()
-	binary.BigEndian.PutUint32(buf[8:12], uint32(pid))
+	binary.BigEndian.PutUint32(buf[8:12], uint32(t))
 
 	counter := idCounterMap[v.RepositoryID]
 	m.Lock()
 	idCounterMap[v.RepositoryID] = counter + 1
 	m.Unlock()
-	binary.BigEndian.PutUint16(buf[12:], counter)
+	binary.BigEndian.PutUint16(buf[12:14], counter)
 
-	v.ID = base64.StdEncoding.EncodeToString(buf)
+	if _, err := io.ReadFull(rand.Reader, buf[14:]); err != nil {
+		return err
+	}
+
+	v.ID = hex.EncodeToString(buf[:])
+	return nil
 }
 
 // Cipher value, will panic if `Variable.ID` is an empty value
@@ -147,7 +155,7 @@ func (v *Variable) EncryptValue() error {
 func RefreshVariableCounter() {
 	for {
 		m.Lock()
-		idCounterMap = make(map[uint32]uint16)
+		idCounterMap = make(map[uint64]uint16)
 		m.Unlock()
 		time.Sleep(time.Second)
 	}

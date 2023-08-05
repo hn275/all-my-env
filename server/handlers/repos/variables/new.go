@@ -14,6 +14,10 @@ import (
 	"gorm.io/gorm"
 )
 
+type repository struct {
+	FullName string
+}
+
 // request body: { key: string, value: string }
 func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	// VALIDATE REQUEST
@@ -47,18 +51,9 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	// CHECKS IF USER IS A COLLABORATOR
 	// NOTE: since this endpoint is a write only, no need to make a request
 	// to github api, since only the users with write access can do this,
-	// which can be done by querying th db `permissions` table.
-	var repo struct {
-		FullName string
-	}
-
-	err = d.Table(database.TableRepos).
-		Select("repositories.full_name").
-		Where("permissions.repository_id = ? AND users.id = ?", repoID, user.ID).
-		InnerJoins("INNER JOIN permissions ON permissions.repository_id = repositories.id").
-		InnerJoins("INNER JOIN users ON permissions.user_id = users.id").
-		First(&repo).Error
-
+	// which can be done by join querying with the `permissions` table.
+	repo := database.Repository{ID: repoID}
+	err = db.getRepoAccess(&repo, user.ID)
 	switch err {
 	case nil:
 		break
@@ -75,7 +70,7 @@ func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// SERIALIZE VARIABLE
-	body.RepositoryID = uint32(repoID)
+	body.RepositoryID = repoID
 	body.GenID()
 	if err := body.EncryptValue(); err != nil {
 		api.NewResponse(w).ServerError(err)
