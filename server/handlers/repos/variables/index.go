@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"gorm.io/gorm"
@@ -44,8 +45,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// QUERY DB FOR REPO INFO
-	var repo Repository
-	err = db.getRepoByID(repoID, &repo)
+	repo := Repository{
+		Repository: database.Repository{ID: repoID},
+		Variables:  []database.Variable{},
+	}
+	err = db.getRepoByID(&repo)
 	switch err {
 	case nil:
 		break
@@ -71,7 +75,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		api.NewResponse(w).ServerError(err)
 		return
-
 	}
 
 	// decrypt values

@@ -41,8 +41,8 @@ func main() {
 
 		r.Route("/{repoID}", func(r chi.Router) {
 			r.Route("/variables", func(r chi.Router) {
-				r.Handle("/", http.HandlerFunc(variables.Handlers.Index))
-				r.Handle("/new", http.HandlerFunc(variables.Handlers.NewVariable))
+				r.Handle("/", http.HandlerFunc(variables.Index))
+				r.Handle("/new", http.HandlerFunc(variables.NewVariable))
 			})
 		})
 	})

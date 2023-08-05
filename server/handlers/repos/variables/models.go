@@ -9,8 +9,9 @@ import (
 
 type models interface {
 	getRepoAccess(*database.Repository, uint64) error
-	getRepoByID(uint64, *Repository) error
+	getRepoByID(*Repository) error
 	getVariables(*Repository) error
+	newVariable(*database.Variable) error
 }
 
 type variableDB struct {
@@ -25,6 +26,10 @@ var (
 
 func init() {
 	db = &variableDB{database.New()}
+}
+
+func (db *variableDB) newVariable(v *database.Variable) error {
+	return nil
 }
 
 // `getVariables` is used to fetch all variables belongs to a repo.
@@ -67,12 +72,12 @@ func (db *variableDB) getRepoAccess(repo *database.Repository, userID uint64) er
 // returned error:
 //  1. `repo.ID` is not set (equals 0): `errRepoIDNotFound`
 //  2. if the repo is not found: `gorm.ErrRecordNotFound`
-func (db *variableDB) getRepoByID(repoID uint64, repo *Repository) error {
+func (db *variableDB) getRepoByID(repo *Repository) error {
 	if repo.ID == 0 {
 		return errRepoIDNotFound
 	}
 
 	return db.Table(database.TableRepos).
-		Where("id = ?", repoID).
+		Where("id = ?", repo.ID).
 		First(repo).Error
 }

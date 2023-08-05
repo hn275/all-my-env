@@ -28,8 +28,8 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body database.Variable
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+	var variable database.Variable
+	if err := json.NewDecoder(r.Body).Decode(&variable); err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
 			Error(err.Error())
@@ -66,16 +66,18 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// SERIALIZE VARIABLE
-	body.RepositoryID = repoID
-	body.GenID()
-	if err := body.EncryptValue(); err != nil {
+	variable.RepositoryID = repoID
+	if err := variable.GenID(); err != nil {
+		api.NewResponse(w).ServerError(err)
+	}
+	if err := variable.EncryptValue(); err != nil {
 		api.NewResponse(w).ServerError(err)
 		return
 	}
-	body.CreatedAt = database.TimeNow()
-	body.UpdatedAt = database.TimeNow()
+	variable.CreatedAt = database.TimeNow()
+	variable.UpdatedAt = database.TimeNow()
 
-	err = d.Create(&body).Error
+	err = db.newVariable(&variable)
 	if err == nil {
 		api.NewResponse(w).Status(http.StatusCreated).Done()
 		return

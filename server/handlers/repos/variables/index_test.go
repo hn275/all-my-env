@@ -15,7 +15,7 @@ import (
 
 func TestVariableIndexRequestMethods(t *testing.T) {
 	mux := chi.NewMux()
-	mux.Handle("/", http.HandlerFunc(Handlers.Index))
+	mux.Handle("/", http.HandlerFunc(Index))
 	for _, method := range envhubtest.AllowedRequestMethods(http.MethodGet) {
 		r, err := http.NewRequest(method, "/", nil)
 		assert.Nil(t, err)
@@ -34,7 +34,7 @@ func TestVariableIndexOK(t *testing.T) {
 	r.Header.Add("Authorization", "Bearer sometoken")
 	w := httptest.NewRecorder()
 
-	Handlers.Index(w, r)
+	Index(w, r)
 
 	assert.Equal(t, http.StatusOK, w.Result().StatusCode)
 
@@ -56,7 +56,7 @@ func TestVariableIndexNotContributor(t *testing.T) {
 	r.Header.Add("Authorization", "Bearer sometoken")
 	w := httptest.NewRecorder()
 
-	Handlers.Index(w, r)
+	Index(w, r)
 
 	assert.Equal(t, http.StatusForbidden, w.Result().StatusCode)
 }
@@ -70,7 +70,7 @@ func TestVariableIndexGithubError(t *testing.T) {
 	r.Header.Add("Authorization", "Bearer sometoken")
 	w := httptest.NewRecorder()
 
-	Handlers.Index(w, r)
+	Index(w, r)
 
 	assert.Equal(t, http.StatusBadGateway, w.Result().StatusCode)
 }
@@ -84,7 +84,7 @@ func TestVariableIndexNoVars(t *testing.T) {
 	r.Header.Add("Authorization", "Bearer token")
 	w := httptest.NewRecorder()
 
-	Handlers.Index(w, r)
+	Index(w, r)
 
 	var b Repository
 	err := json.NewDecoder(w.Result().Body).Decode(&b)
@@ -102,6 +102,6 @@ func TestVariableIndexRepoNotFound(t *testing.T) {
 	r.Header.Add("Authorization", "Bearer token")
 	w := httptest.NewRecorder()
 
-	Handlers.Index(w, r)
+	Index(w, r)
 	assert.Equal(t, http.StatusNotFound, w.Result().StatusCode)
 }
