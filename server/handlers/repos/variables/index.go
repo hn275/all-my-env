@@ -15,11 +15,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type Repository struct {
-	database.Repository `json:",inline"`
-	Variables           []database.Variable `json:"variables"`
-}
-
 type contributor struct {
 	*jwt.GithubUser
 	access bool
@@ -111,7 +106,7 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if access {
+	if !access {
 		api.NewResponse(w).
 			Status(http.StatusForbidden).
 			Error("not a contributor")

@@ -9,6 +9,7 @@ import (
 
 type models interface {
 	getRepoAccess(*database.Repository, uint64) error
+	getRepoByID(uint64, *Repository) error
 }
 
 type variableDB struct {
@@ -16,7 +17,7 @@ type variableDB struct {
 }
 
 var (
-	db *variableDB
+	db models
 
 	errRepoIDNotFound = errors.New("repository id not found.")
 )
@@ -38,4 +39,20 @@ func (db *variableDB) getRepoAccess(repo *database.Repository, userID uint64) er
 		InnerJoins("INNER JOIN permissions ON permissions.repository_id = repositories.id").
 		InnerJoins("INNER JOIN users ON permissions.user_id = users.id").
 		First(&repo).Error
+}
+
+// `getRepoByID` fetches the first (and only) repo that has the `repoID` and
+// marshals it into the `repo` struct
+//
+// returned error:
+//  1. `repo.ID` is not set (equals 0): `errRepoIDNotFound`
+//  2. if the repo is not found: `gorm.ErrRecordNotFound`
+func (db *variableDB) getRepoByID(repoID uint64, repo *Repository) error {
+	if repo.ID == 0 {
+		return errRepoIDNotFound
+	}
+
+	return db.Table(database.TableRepos).
+		Where("id = ?", repoID).
+		First(repo).Error
 }
