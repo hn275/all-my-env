@@ -15,7 +15,7 @@ import (
 )
 
 // request body: { key: string, value: string }
-func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
+func NewVariable(w http.ResponseWriter, r *http.Request) {
 	// VALIDATE REQUEST
 	if r.Method != http.MethodPost {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()

@@ -37,7 +37,7 @@ func testInit(url string) (*httptest.ResponseRecorder, error) {
 	r.Header.Add("Authorization", "Bearer "+"somejwttoken")
 
 	m := chi.NewMux()
-	m.Handle("/repos/{repoID}/variables/new", http.HandlerFunc(Handlers.NewVariable))
+	m.Handle("/repos/{repoID}/variables/new", http.HandlerFunc(NewVariable))
 
 	w := httptest.NewRecorder()
 	m.ServeHTTP(w, r)
@@ -106,7 +106,7 @@ func TestInvalidRepoID(t *testing.T) {
 }
 
 func TestMethodNotAllowed(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(Handlers.NewVariable))
+	srv := httptest.NewServer(http.HandlerFunc(NewVariable))
 	cx := http.Client{}
 
 	methods := []string{

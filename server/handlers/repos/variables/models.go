@@ -10,6 +10,7 @@ import (
 type models interface {
 	getRepoAccess(*database.Repository, uint64) error
 	getRepoByID(uint64, *Repository) error
+	getVariables(*Repository) error
 }
 
 type variableDB struct {
@@ -21,6 +22,25 @@ var (
 
 	errRepoIDNotFound = errors.New("repository id not found.")
 )
+
+func init() {
+	db = &variableDB{database.New()}
+}
+
+// `getVariables` is used to fetch all variables belongs to a repo.
+//
+// returned errors:
+//  1. `repo.ID` is not set (equals 0): `errRepoIDNotFound`
+//  2. no variables found: `gorm.ErrRecordNotFound`
+func (db *variableDB) getVariables(repo *Repository) error {
+	if repo.ID == 0 {
+		return errRepoIDNotFound
+	}
+
+	return db.Model(&[]database.Variable{}).
+		Where("repository_id = ?", repo.ID).
+		Find(&repo.Variables).Error
+}
 
 // `getRepoAccess` is used to check for write access. requires the `repo.ID` to
 // be set, and will marshal the `repo.FullName` field

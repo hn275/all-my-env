@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
-	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"gorm.io/gorm"
@@ -22,7 +21,7 @@ type contributor struct {
 	mut    sync.Mutex
 }
 
-func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
+func Index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()
 		return
@@ -46,9 +45,7 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	// QUERY DB FOR REPO INFO
 	var repo Repository
-	err = h.Table(database.TableRepos).
-		Where("id = ?", repoID).
-		First(&repo).Error
+	err = db.getRepoByID(repoID, &repo)
 	switch err {
 	case nil:
 		break
@@ -70,24 +67,11 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 	go contrib.fetchRepoAccess(repo.FullName, &wg)
 
 	// QUERY DB FOR ENV VARIABLES
-	err = h.Model(&[]database.Variable{}).
-		Where("repository_id = ?", repoID).
-		Find(&repo.Variables).Error // TODO: add pagination
-	switch err {
-	case nil:
-		break
-
-	case gorm.ErrRecordNotFound:
-		api.NewResponse(w).Status(http.StatusNotFound).Done()
-		return
-
-	default:
-		api.NewResponse(w).ServerError(err)
-		return
-	}
+	err = db.getVariables(&repo)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		api.NewResponse(w).ServerError(err)
 		return
+
 	}
 
 	// decrypt values
