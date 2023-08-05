@@ -11,6 +11,11 @@ type variableHandler struct {
 	*gorm.DB
 }
 
+type Repository struct {
+	database.Repository `json:",inline"`
+	Variables           []database.Variable `json:"variables"`
+}
+
 var (
 	Handlers      *variableHandler
 	errBadGateWay = errors.New("GitHub responded an with error")

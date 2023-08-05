@@ -14,10 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type repository struct {
-	FullName string
-}
-
 // request body: { key: string, value: string }
 func (d *variableHandler) NewVariable(w http.ResponseWriter, r *http.Request) {
 	// VALIDATE REQUEST
