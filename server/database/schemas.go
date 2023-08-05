@@ -33,7 +33,7 @@ func init() {
 
 // UTC time stamp RFC3339
 type TimeStamp = time.Time
-type Base64EncodedID = string
+type HexEncodedID = string
 
 type User struct {
 	ID        uint64 `gorm:"primaryKey"`
@@ -68,11 +68,11 @@ type Repository struct {
 // `Value`'s are never saved raw. always the base64 encoding of the ciphered text,
 // and the `ad` is the base64 decoded value of it's ID
 type Variable struct {
-	ID        Base64EncodedID `gorm:"primaryKey" json:"id,omitempty"`
-	CreatedAt TimeStamp       `gorm:"not null" json:"created_at,omitempty"`
-	UpdatedAt TimeStamp       `gorm:"not null" json:"updated_at,omitempty"`
-	Key       string          `gorm:"not null;uniqueIndex:unique_key_repo" json:"key,omitempty"`
-	Value     string          `gorm:"not null" json:"value,omitempty"`
+	ID        HexEncodedID `gorm:"primaryKey" json:"id,omitempty"`
+	CreatedAt TimeStamp    `gorm:"not null" json:"created_at,omitempty"`
+	UpdatedAt TimeStamp    `gorm:"not null" json:"updated_at,omitempty"`
+	Key       string       `gorm:"not null;uniqueIndex:unique_key_repo" json:"key,omitempty"`
+	Value     string       `gorm:"not null" json:"value,omitempty"`
 
 	// relation
 	Repository   Repository `json:"-"`
