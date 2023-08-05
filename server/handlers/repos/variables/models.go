@@ -29,7 +29,7 @@ func init() {
 }
 
 func (db *variableDB) newVariable(v *database.Variable) error {
-	return nil
+	return db.Create(v).Error
 }
 
 // `getVariables` is used to fetch all variables belongs to a repo.
