@@ -17,6 +17,7 @@ var (
 	TableUsers       = "users"
 	TableRepos       = "repositories"
 	TablePermissions = "permissions"
+	TableVariables   = "variables"
 
 	VendorGithub = "github"
 
@@ -113,7 +114,7 @@ func (v *Variable) GenID() error {
 
 	var buf [16]byte
 
-	binary.BigEndian.PutUint64(buf[:8], v.RepositoryID)
+	binary.LittleEndian.PutUint64(buf[:8], v.RepositoryID)
 
 	t := time.Now().UTC().Unix()
 	binary.BigEndian.PutUint32(buf[8:12], uint32(t))
