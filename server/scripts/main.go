@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/hn275/envhub/server/db"
+	db "github.com/hn275/envhub/server/database"
 	"gorm.io/gorm"
 )
 
