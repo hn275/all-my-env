@@ -2,6 +2,7 @@ package variables
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
@@ -9,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
+	"github.com/hn275/envhub/server/gh"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"gorm.io/gorm"
 )
@@ -16,6 +18,13 @@ import (
 type Repository struct {
 	database.Repository `json:",inline"`
 	Variables           []database.Variable `json:"variables"`
+}
+
+type contributor struct {
+	*jwt.GithubUser
+	access bool
+	err    error
+	mut    sync.Mutex
 }
 
 func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
@@ -42,26 +51,28 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	// QUERY DB FOR REPO INFO
 	var repo Repository
-	err = h.Table(database.TableRepos).Where("id = ?", repoID).First(&repo).Error
-
+	err = h.Table(database.TableRepos).
+		Where("id = ?", repoID).
+		First(&repo).Error
 	switch err {
 	case nil:
 		break
+
 	case gorm.ErrRecordNotFound:
 		api.NewResponse(w).
 			Status(http.StatusNotFound).
 			Error("Repository not found")
 		return
+
 	default:
 		api.NewResponse(w).ServerError(err)
 		return
 	}
 
 	// CHECK FOR USER ACCESS
-	c := make(chan error, 1)
-	wg := new(sync.WaitGroup)
-	defer close(c)
-	go getRepoAccess(c, wg, repo.FullName, user)
+	wg := sync.WaitGroup{}
+	contrib := newContributor(user)
+	go contrib.fetchRepoAccess(repo.FullName, &wg)
 
 	// QUERY DB FOR ENV VARIABLES
 	err = h.Model(&[]database.Variable{}).
@@ -94,20 +105,64 @@ func (h *variableHandler) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wg.Wait()
-	switch err := <-c; err {
-	case nil:
-		api.NewResponse(w).Status(http.StatusOK).JSON(repo)
+	access, err := contrib.result()
+	if err != nil {
+		api.NewResponse(w).Status(http.StatusBadGateway).Done()
 		return
-	case errNotAContributor:
-		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+	}
+
+	if access {
+		api.NewResponse(w).
+			Status(http.StatusForbidden).
+			Error("not a contributor")
+		return
+	}
+
+	api.NewResponse(w).Status(http.StatusOK).JSON(repo)
+}
+
+func newContributor(u *jwt.GithubUser) *contributor {
+	return &contributor{
+		GithubUser: u,
+		access:     false,
+		err:        nil,
+		mut:        sync.Mutex{},
+	}
+}
+
+// Endpoint to check for collaborators:
+// https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#check-if-a-user-is-a-repository-collaborator
+func (c *contributor) fetchRepoAccess(repoURL string, wg *sync.WaitGroup) {
+	wg.Add(1)
+	defer wg.Done()
+
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	r, err := gh.New(c.Token).Get("/repos/%s/collaborators/%s", repoURL, c.Login)
+	if err != nil {
+		c.err = err
+		return
+	}
+
+	switch r.StatusCode {
+	case http.StatusNoContent:
+		c.err = nil
+		c.access = true
 		return
 
-	case errBadGateWay:
-		api.NewResponse(w).Status(http.StatusBadGateway).Error(err.Error())
+	case http.StatusNotFound:
+		c.err = nil
+		c.access = false
 		return
 
 	default:
-		api.NewResponse(w).ServerError(err)
+		c.err = fmt.Errorf("GitHub API responded with %d\n", r.StatusCode)
+		c.access = false
+		return
 	}
+}
 
+func (c *contributor) result() (bool, error) {
+	return c.access, c.err
 }

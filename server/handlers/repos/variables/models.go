@@ -8,7 +8,7 @@ import (
 )
 
 type models interface {
-	getRepoAccess(uint64, uint64) error
+	getRepoAccess(*database.Repository, uint64) error
 }
 
 type variableDB struct {
