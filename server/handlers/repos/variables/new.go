@@ -2,16 +2,13 @@ package variables
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
-	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
-	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
-	"gorm.io/gorm"
 )
 
 // request body: { key: string, value: string }
@@ -22,9 +19,9 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := jwt.GetUser(r)
-	if err != nil {
-		api.NewResponse(w).Status(http.StatusForbidden).Done()
+	rCtx, ok := r.Context().Value("repoCtx").(*RepoContext)
+	if !ok {
+		api.NewResponse(w).ServerError(errors.New("invalid repo context"))
 		return
 	}
 
@@ -36,37 +33,8 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 32)
-	if err != nil {
-		api.NewResponse(w).
-			Status(http.StatusBadRequest).
-			Error("invalid repository id")
-		return
-	}
-
-	// CHECKS IF USER IS A COLLABORATOR
-	// NOTE: since this endpoint is a write only, no need to make a request
-	// to github api, since only the users with write access can do this,
-	// which can be done by join querying with the `permissions` table.
-	repo := database.Repository{ID: repoID}
-	err = db.getRepoAccess(&repo, user.ID)
-	switch err {
-	case nil:
-		break
-
-	case gorm.ErrRecordNotFound:
-		api.NewResponse(w).
-			Status(http.StatusBadRequest).
-			Error("Write-access not granted. Please contact repo owner.")
-		return
-
-	default:
-		api.NewResponse(w).ServerError(err)
-		return
-	}
-
 	// SERIALIZE VARIABLE
-	variable.RepositoryID = repoID
+	variable.RepositoryID = rCtx.RepoID
 	if err := variable.GenID(); err != nil {
 		api.NewResponse(w).ServerError(err)
 	}
@@ -77,7 +45,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 	variable.CreatedAt = database.TimeNow()
 	variable.UpdatedAt = database.TimeNow()
 
-	err = db.newVariable(&variable)
+	err := db.newVariable(&variable)
 	if err == nil {
 		api.NewResponse(w).Status(http.StatusCreated).Done()
 		return

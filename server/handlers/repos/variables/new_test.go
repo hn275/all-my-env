@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/database"
+	"github.com/hn275/envhub/server/envhubtest"
 	jwt "github.com/hn275/envhub/server/jsonwebtoken"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,21 +23,24 @@ var mockVar = database.Variable{
 	Value: "test_bar",
 }
 
-func testInit(url string) (*httptest.ResponseRecorder, error) {
+func testInit(url, repoID string) (*httptest.ResponseRecorder, error) {
 	buf, err := json.Marshal(mockVar)
 	if err != nil {
 		return nil, err
 	}
 	body := bytes.NewReader(buf)
 
-	r, err := http.NewRequest(http.MethodPost, url, body)
-	if err != nil {
-		return nil, err
-	}
+	r := envhubtest.RequestWithParam(
+		http.MethodPost,
+		url,
+		map[string]string{"repoID": repoID},
+		body,
+	)
 	r.Header.Add("Content-Type", "application/json")
 	r.Header.Add("Authorization", "Bearer "+"somejwttoken")
 
 	m := chi.NewMux()
+	m.Use(WriteAccessChecker)
 	m.Handle("/repos/{repoID}/variables/new", http.HandlerFunc(NewVariable))
 
 	w := httptest.NewRecorder()
@@ -53,7 +57,7 @@ func TestNewVariable(t *testing.T) {
 	defer cleanup()
 	jwt.Mock()
 
-	w, err := testInit("/repos/1/variables/new")
+	w, err := testInit("/repos/1/variables/new", "1")
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
 
@@ -68,11 +72,11 @@ func TestNewVariableDuplicate(t *testing.T) {
 	defer cleanup()
 	jwt.Mock()
 
-	w, err := testInit("/repos/1/variables/new")
+	w, err := testInit("/repos/1/variables/new", "1")
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
 
-	w, err = testInit("/repos/1/variables/new")
+	w, err = testInit("/repos/1/variables/new", "1")
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusConflict, w.Result().StatusCode)
 }
@@ -80,13 +84,13 @@ func TestNewVariableDuplicate(t *testing.T) {
 func TestWriteAccess(t *testing.T) {
 	jwt.Mock()
 
-	w, err := testInit("/repos/420/variables/new")
+	w, err := testInit("/repos/420/variables/new", "420")
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 
 	// testing write-access ok
 	defer cleanup()
-	w, err = testInit("/repos/1/variables/new")
+	w, err = testInit("/repos/1/variables/new", "1")
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusCreated, w.Result().StatusCode)
 
@@ -100,7 +104,7 @@ func TestWriteAccess(t *testing.T) {
 func TestInvalidRepoID(t *testing.T) {
 	jwt.Mock()
 
-	w, err := testInit("/repos/lkasjdf/variables/new")
+	w, err := testInit("/repos/lkasjdf/variables/new", "ajsdf")
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusBadRequest, w.Result().StatusCode)
 }
