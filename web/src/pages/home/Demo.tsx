@@ -6,16 +6,48 @@ export type Variables = {
 	value: string;
 	encoded: string;
 };
+const DemoVariables: Variables[] = [
+	{
+		key: "API_KEY",
+		value: "api-secret-key",
+		encoded: "Ym05M1lYeDV",
+	},
+	{
+		key: "TOKEN",
+		value: "my-token",
+		encoded: "YXVCZ29ZQm02ZGR2",
+	},
+	{
+		key: "PG_DSN",
+		value: "pg://foo:bar@153.531.6.2",
+		encoded: "cGc6L2ZvbzpiY",
+	},
+	{
+		key: "AWS_KEY",
+		value: "bucket",
+		encoded: "c2Q3YWZnZDkwZjg5YThk",
+	},
+	{
+		key: "AWS_SECRET",
+		value: "password",
+		encoded: "Zjd0c2RmNzk4YTd",
+	},
+	{
+		key: "JWT_SECRET",
+		value: "super-secure-secret",
+		encoded: "OGZkN2E2c2=",
+	},
+];
+
 
 interface Props {
-	content: Variables[];
 	encrypted: boolean;
 }
 
-export function Demo({ content, encrypted }: Props) {
+export function Demo({ encrypted }: Props) {
 	return (
 		<ul className="bg-dark-100 flex h-full w-full flex-col gap-2 rounded-lg p-5 lg:w-96">
-			{content.map(({ key, value, encoded }, i) => (
+			{DemoVariables.map(({ key, value, encoded }, i) => (
 				<li key={key} className="text-main flex w-96 flex-row font-semibold">
 					<p className="font-normal text-white">{key}=</p>
 					<AnimatePresence mode="wait">

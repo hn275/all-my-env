@@ -3,33 +3,9 @@ import { Nav } from "./Nav";
 import { AiFillGithub } from "react-icons/ai";
 import "./style.css";
 import cx from "classnames";
-import { type FeatureType, Features } from "./Feature";
-import { useState } from "react";
-
-const FEATURES: FeatureType[] = [
-	{
-		title: "First Thing",
-		content:
-			"Sit velit molestiae nesciunt aperiam ex. Fuga eius sapiente veritatis perspiciatis officia! Deserunt ut exercitationem accusamus quis iure. Deserunt ducimus ab rem voluptates ad cum, obcaecati consequuntur. Magnam nobis officiis.",
-		svg: "some svg 1",
-	},
-	{
-		title: "Second Thing",
-		content:
-			"Dolor dolorem officiis sed reprehenderit eveniet Iusto doloremque hic sint culpa nam illo ipsa minus culpa Cum eligendi atque delectus",
-		svg: "some svg 2",
-	},
-	{
-		title: "Third First",
-		content:
-			"Lorem cumque veniam tenetur corrupti molestiae? In necessitatibus sequi dolore neque sed? Aut explicabo voluptates laudantium culpa ratione? Fuga corrupti!",
-		svg: "some svg 3",
-	},
-];
+import { Features } from "./Feature";
 
 export function Home() {
-	const [activeTile, setActiveTile] = useState<number>(0);
-
 	return (
 		<>
 			<Nav handleAuth={oauth} githubUrl="" />
@@ -71,11 +47,7 @@ export function Home() {
 					<h2 className="font-accent hero-text-gradient text-center text-4xl font-bold md:ml-12 md:text-left">
 						How it works?
 					</h2>
-					<Features
-						features={FEATURES}
-						activeTile={activeTile}
-						setActiveTile={setActiveTile}
-					/>
+					<Features />
 				</section>
 			</main>
 			<div className="hero-graphic-blur main" />
