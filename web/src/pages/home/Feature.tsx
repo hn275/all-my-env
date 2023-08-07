@@ -69,8 +69,8 @@ export function Features({ features, activeTile, setActiveTile }: Props) {
 				"gap-8 lg:flex-row lg:gap-24",
 			])}
 		>
-			<div className="mt-5 flex w-1/2 flex-col items-start">
-				<div className="h-64 w-[25ch] lg:h-48 lg:w-[40ch]">
+      <div className="mt-5 flex w-3/4 lg:w-1/2 flex-col items-start">
+				<div className="h-64 w-full lg:w-[40ch]">
 					<h3 className="mb-5 text-xl font-bold">{f.title}</h3>
 					<p>{f.content}</p>
 				</div>
