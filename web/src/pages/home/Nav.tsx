@@ -7,9 +7,8 @@ import { AiFillGithub, AiFillStar } from "react-icons/ai";
 
 interface Props {
 	handleAuth: (r?: string) => void;
-	githubUrl: string;
 }
-export function Nav({ handleAuth, githubUrl }: Props) {
+export function Nav({ handleAuth }: Props) {
 	const { open, toggleOpen } = useMenu();
 	const show = useNavScroll();
 
@@ -69,16 +68,7 @@ export function Nav({ handleAuth, githubUrl }: Props) {
 						<a>FAQ</a>
 					</li>
 					<li>
-						<a
-							href={githubUrl}
-							target="_blank"
-							className="md:text-main flex items-center"
-						>
-							<span className="inline-block">
-								<AiFillStar />
-							</span>
-							&nbsp; us on GitHub
-						</a>
+						<StarUsOnGitHub />
 					</li>
 					<li>
 						<button
@@ -91,6 +81,17 @@ export function Nav({ handleAuth, githubUrl }: Props) {
 				</ul>
 			</div>
 		</nav>
+	);
+}
+
+export function StarUsOnGitHub() {
+	return (
+		<a href="" target="_blank" className="md:text-main flex items-center">
+			<span className="inline-block">
+				<AiFillStar />
+			</span>
+			&nbsp; us on GitHub
+		</a>
 	);
 }
 
