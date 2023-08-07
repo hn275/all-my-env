@@ -49,7 +49,7 @@ export function Nav({ handleAuth, githubUrl }: Props) {
 							onClick={() => handleAuth("/auth")}
 							className={cx([
 								"flex items-center hover:cursor-pointer hover:no-underline",
-								"text-main md:bg-main md:text-dark md:rounded-md md:px-3 md:py-2",
+								"md:bg-main md:text-dark md:rounded-md md:px-3 md:py-2",
 								"transition-all hover:brightness-95",
 							])}
 						>
