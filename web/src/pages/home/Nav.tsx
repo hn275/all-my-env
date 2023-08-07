@@ -17,7 +17,7 @@ export function Nav({ handleAuth, githubUrl }: Props) {
 		<nav
 			className={cx([
 				"sticky left-0 top-0 z-50 transition-all",
-				"-translate-y-full justify-between md:flex bg-dark md:bg-transparent md:backdrop-blur",
+				"bg-dark -translate-y-full justify-between bg-transparent backdrop-blur md:flex",
 				{ "translate-y-0": show },
 			])}
 		>
@@ -27,7 +27,7 @@ export function Nav({ handleAuth, githubUrl }: Props) {
 					onClick={toggleOpen}
 					className="rounded-md bg-inherit p-2 transition-all hover:bg-[#3a3a3a] md:hidden"
 				>
-					<MdMenu className="text-xl text-main" />
+					<MdMenu className="text-main text-xl" />
 				</button>
 			</div>
 
@@ -37,7 +37,7 @@ export function Nav({ handleAuth, githubUrl }: Props) {
 				<ul
 					className={cx([
 						`w-full ${open ? "h-[350px] py-5" : "h-0 py-0"}`,
-						"bg-[#1e1e1e] font-semibold text-light",
+						"text-light bg-[#1e1e1e] font-semibold",
 						"flex flex-col items-center justify-between",
 						"transition-all",
 						"relative overflow-clip",
@@ -49,7 +49,7 @@ export function Nav({ handleAuth, githubUrl }: Props) {
 							onClick={() => handleAuth("/auth")}
 							className={cx([
 								"flex items-center hover:cursor-pointer hover:no-underline",
-								"text-main md:rounded-md md:bg-main md:px-3 md:py-2 md:text-dark",
+								"text-main md:bg-main md:text-dark md:rounded-md md:px-3 md:py-2",
 								"transition-all hover:brightness-95",
 							])}
 						>
@@ -72,7 +72,7 @@ export function Nav({ handleAuth, githubUrl }: Props) {
 						<a
 							href={githubUrl}
 							target="_blank"
-							className="flex items-center md:text-main"
+							className="md:text-main flex items-center"
 						>
 							<span className="inline-block">
 								<AiFillStar />

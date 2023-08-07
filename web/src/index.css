@@ -5,11 +5,14 @@
 @tailwind utilities;
 
 body {
-	@apply bg-dark font-regular text-light;
-	overflow-x: hidden;
+  @apply bg-dark-200 font-regular text-light;
+}
+
+main {
+  overflow-x: hidden !important;
 }
 
 a:hover {
-	text-decoration: underline;
-	cursor: pointer;
+  text-decoration: underline;
+  cursor: pointer;
 }

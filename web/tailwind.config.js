@@ -9,7 +9,10 @@ export default {
 			},
 			colors: {
 				main: "#0d9488",
-				dark: "#262626",
+				dark: {
+					100: "#343135",
+					200: "#262626",
+				},
 				light: "#d4d4d4",
 				accent: {
 					blue: "#1D4ED8",
