@@ -2,7 +2,6 @@ package variables
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/hn275/envhub/server/api"
@@ -21,7 +20,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 
 	rCtx, ok := r.Context().Value("repoCtx").(*RepoContext)
 	if !ok {
-		api.NewResponse(w).ServerError(errors.New("invalid repo context"))
+		api.NewResponse(w).ServerError("invalid repo context")
 		return
 	}
 
@@ -36,10 +35,10 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 	// SERIALIZE VARIABLE
 	variable.RepositoryID = rCtx.RepoID
 	if err := variable.GenID(); err != nil {
-		api.NewResponse(w).ServerError(err)
+		api.NewResponse(w).ServerError(err.Error())
 	}
 	if err := variable.EncryptValue(); err != nil {
-		api.NewResponse(w).ServerError(err)
+		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 	variable.CreatedAt = database.TimeNow()
@@ -53,7 +52,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 
 	pgErr, ok := err.(*pgconn.PgError)
 	if !ok {
-		api.NewResponse(w).ServerError(err)
+		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
@@ -64,5 +63,5 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.NewResponse(w).ServerError(pgErr)
+	api.NewResponse(w).ServerError(pgErr.Error())
 }

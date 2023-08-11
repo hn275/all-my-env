@@ -81,7 +81,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	for i := range repo.Variables {
 		err := repo.Variables[i].DecryptValue()
 		if err != nil {
-			api.NewResponse(w).ServerError(err)
+			api.NewResponse(w).ServerError(err.Error())
 			return
 		}
 	}

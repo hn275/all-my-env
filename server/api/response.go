@@ -1,10 +1,15 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+)
+
+const (
+	CookieRefTok string = "refresh_token"
 )
 
 type Response struct {
@@ -14,6 +19,11 @@ type Response struct {
 
 func NewResponse(w http.ResponseWriter) *Response {
 	return &Response{w, 0}
+}
+
+func (r *Response) SetCookie(c *http.Cookie) *Response {
+	http.SetCookie(r.ResponseWriter, c)
+	return r
 }
 
 func (r *Response) Status(c int) *Response {
@@ -51,14 +61,25 @@ func (r *Response) Text(t string, a ...any) {
 func (r *Response) Error(m string, a ...any) {
 	r.ResponseWriter.Header().Add("content-type", "application/json")
 	r.WriteHeader(r.status)
-	msg := map[string]string{"error": fmt.Sprintf(m, a...)}
+	msg := map[string]string{"message": fmt.Sprintf(m, a...)}
 	if err := json.NewEncoder(r).Encode(&msg); err != nil {
 		r.WriteHeader(http.StatusInternalServerError)
 		os.Stderr.WriteString(err.Error())
 	}
 }
 
-func (r *Response) ServerError(err error) {
-	fmt.Fprintf(os.Stderr, "ERROR %v\n", err)
+func (r *Response) ServerError(m string, a ...any) {
+	fmt.Fprintf(os.Stderr, "[ERROR] - "+m, a...)
 	r.WriteHeader(http.StatusInternalServerError)
+}
+
+func (r *Response) ForwardBadRequest(res *http.Response) {
+	var buf bytes.Buffer
+	_, err := buf.ReadFrom(res.Body)
+	if err != nil {
+		r.ServerError(err.Error())
+		return
+	}
+	r.WriteHeader(res.StatusCode)
+	r.Write(buf.Bytes())
 }

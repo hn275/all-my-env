@@ -4,11 +4,12 @@ import { AiFillGithub } from "react-icons/ai";
 import "./style.css";
 import cx from "classnames";
 import { Features } from "./Feature";
+import { LogInButton } from "./LogInButton";
 
 export function Home() {
   return (
     <>
-      <Nav handleAuth={oauth} />
+      <Nav />
 
       {/* HERO */}
       <main className="relative mx-auto h-max min-h-[calc(100vh-65px)] max-w-7xl overflow-x-hidden">
@@ -29,16 +30,7 @@ export function Home() {
               Get started
             </a>
 
-            <button
-              className={cx([
-                "border-main bg-main flex items-center justify-center border md:flex-row",
-                "h-10 w-36 rounded-md font-semibold hover:no-underline hover:brightness-90",
-              ])}
-              onClick={() => oauth("/auth")}
-            >
-              Log In&nbsp;
-              <AiFillGithub />
-            </button>
+            <LogInButton onClick={() => oauth("/auth")} className="w-36" />
           </div>
         </section>
 

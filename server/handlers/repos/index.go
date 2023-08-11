@@ -6,7 +6,6 @@ import (
 
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/gh"
-	"github.com/hn275/envhub/server/jsonwebtoken"
 	"gorm.io/gorm"
 )
 
@@ -18,11 +17,9 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := jsonwebtoken.GetUser(r)
+	user, err := api.NewContext(r).User()
 	if err != nil {
-		api.NewResponse(w).
-			Status(http.StatusForbidden).
-			Error(err.Error())
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
 	}
 
@@ -49,23 +46,31 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	// GET REPOS FROM GITHUB
 	// https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repositories-for-the-authenticated-user
 	var repos []Repository
-	ghCtx := gh.New(user.Token).Params(params)
-
-	res, err := ghCtx.Get("/user/repos")
-	defer res.Body.Close()
 	if err != nil {
-		api.NewResponse(w).ServerError(err)
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		return
+	}
+	res, err := gh.New(user.Token).Params(params).Get("/user/repos")
+	if err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		api.NewResponse(w).ForwardBadRequest(res)
 		return
 	}
 
 	if err := json.NewDecoder(res.Body).Decode(&repos); err != nil {
-		api.NewResponse(w).ServerError(err)
+		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
 	ids := make([]uint64, len(repos))
 	for i, repo := range repos {
 		ids[i] = repo.ID
+		repos[i].IsOwner = repo.Owner.ID == user.ID
 	}
 
 	// GET REPO ID's FROM DB
@@ -86,7 +91,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		break
 
 	default:
-		api.NewResponse(w).ServerError(err)
+		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 

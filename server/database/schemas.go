@@ -37,10 +37,11 @@ type TimeStamp = time.Time
 type HexEncodedID = string
 
 type User struct {
-	ID        uint64 `gorm:"primaryKey"`
-	CreatedAt TimeStamp
-	Vendor    string `gorm:"not null"`
-	UserName  string `gorm:"not null,unique"`
+	ID           uint64 `gorm:"primaryKey"`
+	LastLogin    TimeStamp
+	Login        string `gorm:"not null,unique"`
+	RefreshToken string
+	Email        string
 
 	// relation
 	Repositories []Repository `gorm:"constraint:OnDelete:CASCADE"`
@@ -91,7 +92,7 @@ func (v *Variable) DecryptValue() error {
 		return err
 	}
 
-	plaintext, err := crypto.Decrypt(ciphertext, ad)
+	plaintext, err := crypto.Decrypt(crypto.VariableKey, ciphertext, ad)
 	if err != nil {
 		return err
 	}
@@ -144,7 +145,7 @@ func (v *Variable) EncryptValue() error {
 		return err
 	}
 
-	ciphertext, err := crypto.Encrypt(v.Value, ad)
+	ciphertext, err := crypto.Encrypt(crypto.VariableKey, []byte(v.Value), ad)
 	if err != nil {
 		return err
 	}

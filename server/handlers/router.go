@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/hn275/envhub/server/handlers/auth"
 	"github.com/hn275/envhub/server/handlers/repos"
-	"github.com/hn275/envhub/server/handlers/repos/variables"
 )
 
 func New() *chi.Mux {
@@ -20,6 +19,7 @@ func New() *chi.Mux {
 
 	// CORS
 	r.Use(cors.Handler(cors.Options{
+		AllowCredentials: true,
 		AllowedOrigins: []string{
 			"http://localhost:3000",
 			"http://localhost:3000/",
@@ -43,22 +43,28 @@ func New() *chi.Mux {
 
 	// ROUTES
 	r.Route("/auth", func(r chi.Router) {
-		r.Handle("/github", http.HandlerFunc(auth.Handler.VerifyToken))
+		r.Handle("/github", http.HandlerFunc(auth.GitHub))
+
+		r.Group(func(r chi.Router) {
+			r.Use(auth.TokenValidator)
+			r.Handle("/refresh", http.HandlerFunc(auth.RefreshToken))
+		})
 	})
 
-	r.Route("/repo", func(r chi.Router) {
+	r.Route("/repos", func(r chi.Router) {
+		r.Use(auth.TokenValidator)
 		r.Handle("/", http.HandlerFunc(repos.Index))
-		r.Handle("/link", http.HandlerFunc(repos.Link))
-
-		r.Route("/{repoID}", func(r chi.Router) {
-			r.Route("/variables", func(r chi.Router) {
-				r.Handle("/", http.HandlerFunc(variables.Index))
-				r.Group(func(r chi.Router) {
-					r.Use(variables.WriteAccessChecker)
-					r.Handle("/new", http.HandlerFunc(variables.NewVariable))
-				})
-			})
-		})
+		// r.Handle("/link", http.HandlerFunc(repos.Link))
+		//
+		// r.Route("/{repoID}", func(r chi.Router) {
+		// 	r.Route("/variables", func(r chi.Router) {
+		// 		r.Handle("/", http.HandlerFunc(variables.Index))
+		// 		r.Group(func(r chi.Router) {
+		// 			r.Use(variables.WriteAccessChecker)
+		// 			r.Handle("/new", http.HandlerFunc(variables.NewVariable))
+		// 		})
+		// 	})
+		// })
 	})
 
 	return r

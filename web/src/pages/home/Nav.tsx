@@ -3,19 +3,18 @@ import Logo from "assets/logo.svg";
 import cx from "classnames";
 import { MdMenu } from "react-icons/md";
 import { BsChevronCompactUp } from "react-icons/bs";
-import { AiFillGithub, AiFillStar } from "react-icons/ai";
+import { AiFillStar } from "react-icons/ai";
+import { LogInButton } from "./LogInButton";
+import { oauth } from "lib/auth";
 
-interface Props {
-	handleAuth: (r?: string) => void;
-}
-export function Nav({ handleAuth }: Props) {
+export function Nav() {
 	const { open, toggleOpen } = useMenu();
 	const show = useNavScroll();
 
 	return (
 		<nav
 			className={cx([
-				"sticky left-0 top-0 z-50 transition-all",
+				"sticky left-0 top-0 z-[49] transition-all",
 				"bg-dark -translate-y-full justify-between bg-transparent backdrop-blur md:flex",
 				{ "translate-y-0": show },
 			])}
@@ -44,19 +43,7 @@ export function Nav({ handleAuth }: Props) {
 					])}
 				>
 					<li>
-						<button
-							onClick={() => handleAuth("/auth")}
-							className={cx([
-								"flex items-center hover:cursor-pointer hover:no-underline",
-								"md:bg-main md:text-dark md:rounded-md md:px-3 md:py-2",
-								"transition-all hover:brightness-95",
-							])}
-						>
-							<span>
-								<AiFillGithub />
-							</span>
-							&nbsp; Sign in
-						</button>
+						<LogInButton onClick={() => oauth("/auth")} />
 					</li>
 					<li>
 						<a>Pricing</a>

@@ -2,92 +2,91 @@ package jsonwebtoken
 
 import (
 	"errors"
-	"net/http"
-	"strings"
+	"fmt"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/hn275/envhub/server/lib"
 )
 
 var (
-	secret  string
-	Decoder JsonWebToken
+	secret string
+	Secret string
+	// Decoder JsonWebToken
+	decoder JsonWebTokenDecoder
+	encoder JsonWebTokenEncoder
+
+	ErrInvalidToken     error = errors.New("token expired")
+	ErrInvalidTokenAlgo error = errors.New("invalid signing algorithm")
 )
 
-type JsonWebToken interface {
-	Decode(string) (*JwtToken, error)
+type AuthClaim struct {
+	AccessToken string `json:"access_token"`
+	*jwt.RegisteredClaims
 }
-
-type JwtDecoder struct{}
 
 func init() {
 	secret = lib.Getenv("JWT_SECRET")
-	Decoder = &JwtDecoder{}
+	Secret = lib.Getenv("JWT_SECRET")
+
+	decoder = &Decoder{}
+	encoder = &Encoder{}
 }
 
-type GithubUser struct {
-	Token     string `json:"token,omitempty"`
-	ID        uint64 `json:"id"`
-	Login     string `json:"login"`
-	AvatarUrl string `json:"avatar_url"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
+type JsonWebTokenDecoder interface {
+	Decode(string) (*AuthClaim, error)
+}
+type Decoder struct{}
+
+func NewDecoder() JsonWebTokenDecoder {
+	return decoder
 }
 
-type JwtToken struct {
-	GithubUser `json:",inline"`
-	jwt.RegisteredClaims
-}
-
-func Sign(data jwt.Claims) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, data)
-	return token.SignedString([]byte(secret))
-}
-
-func NewDecoder() JsonWebToken {
-	return Decoder
-}
-
-func (d *JwtDecoder) Decode(t string) (*JwtToken, error) {
-	token, err := jwt.ParseWithClaims(t, &JwtToken{}, func(t *jwt.Token) (interface{}, error) {
+func (d *Decoder) Decode(token string) (*AuthClaim, error) {
+	tok, err := jwt.ParseWithClaims(token, &AuthClaim{}, func(t *jwt.Token) (interface{}, error) {
 		if t.Method.Alg() != jwt.SigningMethodHS256.Name {
-			return nil, errors.New("invalid signing algo")
+			return nil, ErrInvalidTokenAlgo
 		}
 		return []byte(secret), nil
 	})
 
+	if !tok.Valid {
+		return nil, ErrInvalidToken
+	}
+
 	if err != nil {
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*JwtToken)
-	if !ok || !token.Valid {
-		return nil, errors.New("invalid jwt type")
+	a, ok := tok.Claims.(*AuthClaim)
+	if !ok {
+		return nil, errors.New("invalid auth type")
 	}
 
-	return claims, nil
+	return a, nil
 }
 
-func GetUser(r *http.Request) (*GithubUser, error) {
-	h := r.Header.Get("Authorization")
-	if h == "" {
-		return nil, errors.New("Authorization token not found")
+type JsonWebTokenEncoder interface {
+	Encode(userID uint64, maskedToken, aud string) (string, error)
+}
+type Encoder struct{}
+
+func NewEncoder() JsonWebTokenEncoder {
+	return encoder
+}
+
+func (e *Encoder) Encode(userID uint64, maskedToken, aud string) (string, error) {
+	c := AuthClaim{
+		AccessToken: maskedToken,
+		RegisteredClaims: &jwt.RegisteredClaims{
+			Issuer:    "EnvHub",
+			Subject:   fmt.Sprintf("%d", userID),
+			Audience:  []string{aud},
+			ExpiresAt: &jwt.NumericDate{Time: time.Now().UTC().Add(time.Hour * 24 * 7)},
+			NotBefore: &jwt.NumericDate{Time: time.Now().UTC()},
+			IssuedAt:  &jwt.NumericDate{Time: time.Now().UTC()},
+		},
 	}
-
-	t := strings.Split(h, " ")
-
-	if len(t) != 2 {
-		return nil, errors.New("Invalid token")
-	}
-
-	if strings.ToLower(t[0]) != "bearer" {
-		return nil, errors.New("Invalid token type")
-	}
-
-	decoded, err := Decoder.Decode(t[1])
-	if err != nil {
-		return nil, err
-	}
-
-	return &decoded.GithubUser, nil
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
+	return token.SignedString([]byte(secret))
 }

@@ -14,7 +14,9 @@ services:
       GITHUB_CLIENT_ID:
       GITHUB_CLIENT_SECRET:
       JWT_SECRET:
-      ROW_KEY:
+      VARIABLE_KEY:
+      USER_TOKEN_KEY:
+      USER_ID_KEY:
       POSTGRES_PASSWORD: password
       POSTGRES_USER: username
       POSTGRES_DB: envhub

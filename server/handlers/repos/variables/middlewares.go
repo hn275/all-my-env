@@ -49,7 +49,7 @@ func WriteAccessChecker(next http.Handler) http.Handler {
 			return
 
 		default:
-			api.NewResponse(w).ServerError(err)
+			api.NewResponse(w).ServerError(err.Error())
 			return
 		}
 	})

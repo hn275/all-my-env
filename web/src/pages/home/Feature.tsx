@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
-import {  MouseEventHandler, ReactNode,  useState } from "react";
-import { Demo} from "./Demo";
+import { MouseEventHandler, ReactNode, useState } from "react";
+import { Demo } from "./Demo";
 import { AnimatePresence, Variants, motion } from "framer-motion";
 import cx from "classnames";
 import ShareSVG from "./assets/share.svg";
@@ -32,7 +32,7 @@ const FEATURES: FeatureType[] = [
 ];
 
 export function Features() {
-  const [activeTile, setActiveTile] = useState<number>(0);
+	const [activeTile, setActiveTile] = useState<number>(0);
 	const f = FEATURES[activeTile];
 	const pages: number[] = [];
 	for (let i = 0; i < FEATURES.length; ++i) {
@@ -48,7 +48,11 @@ export function Features() {
 		>
 			<div className="mt-5 flex w-3/4 lg:w-1/2 flex-col items-start">
 				<AnimatePresence mode="wait">
-					<FeatureWrapper key={f.title} title={f.title} content={f.content} />
+					<FeatureWrapper
+						featureKey={f.title}
+						title={f.title}
+						content={f.content}
+					/>
 				</AnimatePresence>
 
 				<ul className="mt-3 flex items-center justify-start gap-3">
@@ -100,11 +104,11 @@ export function Features() {
 }
 
 interface FeatureWrapperProps {
-	key: any;
+	featureKey: string;
 	content: string;
 	title: string;
 }
-function FeatureWrapper({ content, title, key }: FeatureWrapperProps) {
+function FeatureWrapper({ content, title, featureKey }: FeatureWrapperProps) {
 	const variants: Variants = {
 		init: { opacity: 0 },
 		animate: { opacity: 1 },
@@ -114,7 +118,7 @@ function FeatureWrapper({ content, title, key }: FeatureWrapperProps) {
 	return (
 		<motion.div className="h-64 w-full lg:h-48 lg:w-[40ch]">
 			<motion.h3
-				key={key}
+				key={featureKey}
 				variants={variants}
 				initial="init"
 				animate="animate"
@@ -124,7 +128,7 @@ function FeatureWrapper({ content, title, key }: FeatureWrapperProps) {
 				{title}
 			</motion.h3>
 			<motion.p
-				key={key + 1}
+				key={featureKey + 1}
 				variants={variants}
 				initial="init"
 				animate="animate"
