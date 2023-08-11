@@ -1,7 +1,6 @@
 package api
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -74,12 +73,13 @@ func (r *Response) ServerError(m string, a ...any) {
 }
 
 func (r *Response) ForwardBadRequest(res *http.Response) {
-	var buf bytes.Buffer
-	_, err := buf.ReadFrom(res.Body)
-	if err != nil {
+	var buf struct {
+		Message string `json:"message"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&buf); err != nil {
 		r.ServerError(err.Error())
 		return
 	}
-	r.WriteHeader(res.StatusCode)
-	r.Write(buf.Bytes())
+	buf.Message = "GitHub message: " + buf.Message
+	r.Status(res.StatusCode).JSON(buf)
 }

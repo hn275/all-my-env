@@ -53,7 +53,7 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		api.NewResponse(w).Status(res.StatusCode).Done()
+		api.NewResponse(w).ForwardBadRequest(res)
 		return
 	}
 
@@ -77,7 +77,7 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 	defer ghRes.Body.Close()
 
 	if ghRes.StatusCode != http.StatusOK {
-		api.NewResponse(w).Status(ghRes.StatusCode).Done()
+		api.NewResponse(w).ForwardBadRequest(ghRes)
 		return
 	}
 

@@ -3,7 +3,6 @@
 	import Logo from "@assets/logo.svg";
 	import StarUs from "./star.svelte";
 	import LogInBtn from "./login.svelte";
-	import { oauth } from "@lib/auth";
 
 	export let loading: boolean;
 
@@ -42,10 +41,7 @@
 			])}
 		>
 			<li>
-				<LogInBtn
-					{loading}
-					handleClick={() => oauth()}
-				/>
+				<LogInBtn {loading} />
 			</li>
 			<li>
 				<a href="/pricing">Pricing</a>

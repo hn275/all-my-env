@@ -23,3 +23,7 @@ a:hover {
 .btn {
   @apply normal-case;
 }
+
+.btn-outline:hover {
+  @apply bg-main/20 border-main text-main;
+}

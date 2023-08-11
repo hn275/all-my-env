@@ -1,4 +1,4 @@
-import { makeUrl } from "@lib/api";
+import { makeUrl } from "@lib/url";
 import type { User } from "@lib/auth";
 
 export async function signIn(code: string): Promise<User> {
