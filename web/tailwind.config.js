@@ -24,5 +24,14 @@ export default {
 			},
 		},
 	},
-	plugins: [],
+	plugins: [require("daisyui")],
+	daisyui: {
+		themes: [
+			{
+				envhub: {
+					primary: "#0d9488",
+				},
+			},
+		],
+	},
 };

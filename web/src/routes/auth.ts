@@ -1,7 +1,7 @@
-import { makeUrl } from "$lib/api";
-import type { User } from "$lib/auth";
+import { makeUrl } from "@lib/api";
+import type { User } from "@lib/auth";
 
-export async function auth(code: string): Promise<User> {
+export async function signIn(code: string): Promise<User> {
 	const res = await fetch(makeUrl("/auth/github"), {
 		method: "POST",
 		headers: {
@@ -15,7 +15,7 @@ export async function auth(code: string): Promise<User> {
 	return payload as User;
 }
 
-export async function refresh(token: string): Promise<User | undefined> {
+export async function refresh(token: string): Promise<User> {
 	const res = await fetch(makeUrl("/auth/refresh"), {
 		method: "GET",
 		credentials: "include",

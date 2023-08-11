@@ -5,21 +5,21 @@ import dns from "dns";
 
 dns.setDefaultResultOrder("verbatim");
 export default defineConfig({
-	plugins: [sveltekit()],
-	server: {
-		host: "localhost",
-		port: 3000,
+  plugins: [sveltekit()],
+  server: {
+    host: "localhost",
+    port: 3000,
     proxy: {
       "/app": {
         target: "http://localhost:8080",
         changeOrigin: false,
-      }
-    }
-	},
-	resolve: {
-		alias: {
-			"@lib": path.resolve("./src/lib"),
-			"@assets": path.resolve("./src/assets"),
-		},
-	},
-});
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      "@lib": path.resolve("./src/lib"),
+      "@assets": path.resolve("./src/assets"),
+      "@components": path.resolve("./src/components"),
+    },
+  }, });

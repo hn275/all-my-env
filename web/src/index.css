@@ -13,6 +13,13 @@ main {
 }
 
 a:hover {
-  text-decoration: underline;
   cursor: pointer;
+}
+
+.btn:disabled {
+  @apply bg-gray-600 opacity-50;
+}
+
+.btn {
+  @apply normal-case;
 }

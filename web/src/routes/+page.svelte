@@ -1,42 +1,44 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import Nav from "./nav.svelte";
-	import { auth, refresh } from "./auth";
-	import type { User } from "$lib";
-	import { TokenStorage, UserStorage } from "$lib/storage";
+	import { signIn, refresh } from "./auth";
+	import type { AuthStore, User } from "@lib/auth";
+	import { authStore } from "@lib/auth";
+	import Main from "@components/main.svelte";
+	import { goto } from "$app/navigation";
 
 	let loading: boolean = false;
-	let loadingMsg: string | undefined = undefined;
 	let err: string | undefined;
 	onMount(async () => {
 		const url = new URL(window.location.href);
 		const code: string | null = url.searchParams.get("code");
-		let user: User | undefined = UserStorage.get();
+		let user: User;
+		const authState: AuthStore = authStore.get();
+
 		try {
 			loading = true;
 			if (!code) {
-				if (TokenStorage.refreshed() || !user) return;
-				loadingMsg = "refreshing token...";
-				user = await refresh(user.access_token);
+				if (authState.tokenRefreshed || !authState.user) return;
+				user = await refresh(authState.user.access_token);
 			} else {
-				loadingMsg = "signing in...";
-				user = await auth(code);
+				user = await signIn(code);
+				url.searchParams.delete("code");
+				goto(url);
 			}
-		if (!user) return;
-			UserStorage.set(user);
-			TokenStorage.setRefreshed();
+			authStore.set({ tokenRefreshed: true, user });
 		} catch (e) {
 			err = (e as Error).message;
 		} finally {
 			loading = false;
-			loadingMsg = undefined;
 		}
 	});
 </script>
 
-<Nav {loadingMsg} />
-<h1 class="text-light">Hello world</h1>
+<Nav {loading} />
+<Main>
+	<h1 class="text-light">Hello world</h1>
 
-{#if loading}
-	<p>Loading</p>
-{/if}
+	{#if loading}
+		<p>Loading</p>
+	{/if}
+</Main>

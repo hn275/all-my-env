@@ -3,9 +3,9 @@
 	import Logo from "@assets/logo.svg";
 	import StarUs from "./star.svelte";
 	import LogInBtn from "./login.svelte";
-	import { oauth } from "$lib";
+	import { oauth } from "@lib/auth";
 
-	export let loadingMsg: string | undefined;
+	export let loading: boolean;
 
 	let show: boolean = true;
 	function toggleOpen(): void {
@@ -42,7 +42,10 @@
 			])}
 		>
 			<li>
-				<LogInBtn {loadingMsg} handleClick={() => oauth()} />
+				<LogInBtn
+					{loading}
+					handleClick={() => oauth()}
+				/>
 			</li>
 			<li>
 				<a href="/pricing">Pricing</a>
