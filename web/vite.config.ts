@@ -1,15 +1,25 @@
+import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import vitePath from "vite-tsconfig-paths";
+import path from "path";
 import dns from "dns";
 
 dns.setDefaultResultOrder("verbatim");
-
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), vitePath()],
-  server: {
-    host: "localhost",
-    port: 3000,
-  },
+	plugins: [sveltekit()],
+	server: {
+		host: "localhost",
+		port: 3000,
+    proxy: {
+      "/app": {
+        target: "http://localhost:8080",
+        changeOrigin: false,
+      }
+    }
+	},
+	resolve: {
+		alias: {
+			"@lib": path.resolve("./src/lib"),
+			"@assets": path.resolve("./src/assets"),
+		},
+	},
 });

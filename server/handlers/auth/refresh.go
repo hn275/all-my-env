@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -18,7 +19,7 @@ import (
 )
 
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
-	if !strings.EqualFold(r.Method, http.MethodPost) {
+	if !strings.EqualFold(r.Method, http.MethodGet) {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()
 		return
 	}
@@ -64,7 +65,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	go func(wg *sync.WaitGroup, dbErr error) {
 		wg.Add(1)
 		defer wg.Done()
-		var ref interface{}
+		var ref struct{}
 		dbErr = database.New().
 			Table(database.TableUsers).
 			Select("refresh_token").
@@ -81,6 +82,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
+		fmt.Println("laksjfklsdkfjk")
 		api.NewResponse(w).ForwardBadRequest(res)
 		return
 	}
