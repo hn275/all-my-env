@@ -7,10 +7,6 @@ import (
 )
 
 const (
-	CtxUser      string = "user"
-	CtxUserID    string = "user_id"
-	CtxUserToken string = "user_token"
-
 	appCtx string = "app_ctx"
 )
 

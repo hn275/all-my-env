@@ -4,22 +4,45 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/hn275/envhub/server/crypto"
 )
 
 func refreshToken(userID uint64) (string, error) {
 	var buf [16]byte
-	_, err := io.ReadFull(rand.Reader, buf[:8])
+	binary.BigEndian.PutUint64(buf[:8], userID)
+	binary.LittleEndian.PutUint64(buf[8:16], uint64(time.Now().UTC().Unix()))
+
+	// truncating leading - trailing 0s
+	l := 0
+	for {
+		if buf[l] != 0 {
+			break
+		}
+		l++
+	}
+	r := len(buf) - 1
+	for {
+		if buf[r] != 0 {
+			break
+		}
+		r--
+	}
+	for i := 0; i < r; i++ {
+		a := i + l
+		buf[i] = buf[a]
+	}
+
+	// random bytes filler
+	_, err := io.ReadFull(rand.Reader, buf[r-l+1:])
 	if err != nil {
 		return "", err
 	}
-	binary.LittleEndian.PutUint64(buf[8:], userID)
-	return hex.EncodeToString(buf[:]), nil
+	return base64.RawStdEncoding.EncodeToString(buf[:]), nil
 }
 
 func getUint(b []byte) uint64 {
