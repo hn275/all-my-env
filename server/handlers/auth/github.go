@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -138,6 +139,8 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: false,
 		SameSite: http.SameSiteNoneMode,
 	}
+
+	fmt.Println("refresh Token", refreshToken)
 
 	api.NewResponse(w).
 		SetCookie(&cookie).

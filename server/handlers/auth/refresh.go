@@ -65,20 +65,25 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	type dberr struct {
+		err error
+	}
 	wg := sync.WaitGroup{}
-	dbErr := error(nil)
-	go func(wg *sync.WaitGroup, dbErr error) {
+	dbErr := dberr{}
+
+	go func(wg *sync.WaitGroup, dbErr *dberr) {
 		wg.Add(1)
 		defer wg.Done()
 		var ref struct {
 			RefreshToken string
 		}
-		dbErr = database.New().
+		dbErr.err = database.New().
 			Table(database.TableUsers).
 			Select("refresh_token").
 			Where("id = ? AND refresh_token = ?", userID, tok.Value).
 			First(&ref).Error
-	}(&wg, dbErr)
+		fmt.Println("db func, token", tok.Value)
+	}(&wg, &dbErr)
 
 	// get user info
 	res, err := gh.New(string(accessToken)).Get("/user")
@@ -115,12 +120,14 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wg.Wait()
-	if dbErr != nil {
-		if errors.Is(dbErr, gorm.ErrRecordNotFound) {
-			api.NewResponse(w).Status(http.StatusForbidden).Error("user not found")
+	if dbErr.err != nil {
+		if errors.Is(dbErr.err, gorm.ErrRecordNotFound) {
+			api.NewResponse(w).
+				Status(http.StatusForbidden).
+				Error("refresh token not found")
 			return
 		}
-		api.NewResponse(w).ServerError(dbErr.Error())
+		api.NewResponse(w).ServerError(dbErr.err.Error())
 		return
 	}
 	api.NewResponse(w).Status(http.StatusOK).JSON(&userInfo)
