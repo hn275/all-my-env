@@ -60,16 +60,23 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := tok.Valid(); err != nil {
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		return
+	}
+
 	wg := sync.WaitGroup{}
 	dbErr := error(nil)
 	go func(wg *sync.WaitGroup, dbErr error) {
 		wg.Add(1)
 		defer wg.Done()
-		var ref struct{}
+		var ref struct {
+			RefreshToken string
+		}
 		dbErr = database.New().
 			Table(database.TableUsers).
 			Select("refresh_token").
-			Where("id = ? AND refresh_token = ?", userID, tok).
+			Where("id = ? AND refresh_token = ?", userID, tok.Value).
 			First(&ref).Error
 	}(&wg, dbErr)
 
