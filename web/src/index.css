@@ -4,8 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-dark-200 font-regular text-light;
+  overflow-x: hidden;
 }
 
 main {
@@ -26,4 +31,11 @@ a:hover {
 
 .btn-outline:hover {
   @apply bg-main/20 border-main text-main;
+}
+
+.text-gradient {
+  @apply bg-gradient-to-tr from-light to-main;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

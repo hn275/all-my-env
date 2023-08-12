@@ -1,4 +1,4 @@
-<a href="github.com/hn275/envhub" target="_blank" class="text-main">
+<a href="https://github.com/hn275/envhub" target="_blank" class="text-main">
 	<span class="inline-block mr-1">
 		<svg
 			width="18"

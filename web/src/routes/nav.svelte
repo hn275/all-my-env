@@ -3,20 +3,18 @@
 	import Logo from "@assets/logo.svg";
 	import StarUs from "./star.svelte";
 	import LogInBtn from "./login.svelte";
+	import Hamburger from "./hamburger.svelte";
 
 	export let loading: boolean;
 
-	let show: boolean = true;
-	function toggleOpen(): void {
-		show != show;
-	}
+	let show: boolean = false;
+	const toggleOpen: () => void = () => (show = !show);
 </script>
 
 <nav
 	class={cx([
-		"sticky left-0 top-0 z-[49] transition-all",
-		"bg-dark -translate-y-full justify-between bg-transparent backdrop-blur md:flex",
-		{ "translate-y-0": show },
+		"sticky left-0 top-0 z-[49] transition-all translate-y-0",
+		"bg-dark justify-between bg-dark-200/60 backdrop-blur md:flex",
 	])}
 >
 	<div class="flex h-16 items-center justify-between px-5">
@@ -25,14 +23,15 @@
 			on:click={toggleOpen}
 			class="rounded-md bg-inherit p-2 transition-all hover:bg-[#3a3a3a] md:hidden"
 		>
-			menu button
+			<Hamburger />
 		</button>
 	</div>
 
-	<div class={cx(["absolute left-0 top-16 w-full", "md:static md:w-max"])}>
+	<div class="absolute left-0 top-16 w-full pr-4 md:static md:w-max">
 		<ul
 			class={cx([
-				`w-full ${show ? "h-[350px] py-5" : "h-0 py-0"}`,
+				`w-full h-0 py-0`,
+				{ "h-[350px] py-5": show },
 				"text-light bg-[#1e1e1e] font-semibold",
 				"flex flex-col items-center justify-between",
 				"transition-all",
@@ -47,21 +46,13 @@
 				<a href="/pricing">Pricing</a>
 			</li>
 			<li>
-				<a href="docs">Docs</a>
+				<a href="/docs">Docs</a>
 			</li>
 			<li>
-				<a href="faq">FAQ</a>
+				<a href="/faq">FAQ</a>
 			</li>
 			<li>
 				<StarUs />
-			</li>
-			<li>
-				<button
-					on:click={toggleOpen}
-					class="absolute bottom-2 left-1/2 -translate-x-1/2 md:hidden"
-				>
-					close menu button
-				</button>
 			</li>
 		</ul>
 	</div>
