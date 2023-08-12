@@ -3,7 +3,7 @@ import { AuthCtxProps, AuthCtx, User } from "./auth";
 import { Entry } from "lib/storage";
 
 export const GITHUB_SECRET = import.meta.env.VITE_GITHUB_CLIENT_ID;
-if (!GITHUB_SECRET) throw new Error("`GITHUB_SECRET` not set");
+if (!GITHUB_SECRET) throw new Error("`VITE_GITHUB_CLIENT_ID` not set");
 
 export interface UseAuthProps extends AuthCtxProps {
 	getToken: () => string | null;

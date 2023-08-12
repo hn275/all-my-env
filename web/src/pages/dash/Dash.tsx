@@ -1,8 +1,8 @@
 import { useEffect, useState, ChangeEvent } from "react";
-import { Api } from "lib/api";
 import { Repository } from "./types";
 import { Repo } from "./Repo";
 import { useAuth } from "context/auth";
+import { makeUrl } from "lib/url";
 
 // sort
 type Sort = "created" | "updated" | "pushed" | "full_name";
@@ -131,36 +131,36 @@ function useRepos() {
 	const [error, setError] = useState<string>();
 	const [loading, setLoading] = useState<boolean>(true);
 	useEffect(() => {
+		const tok = getToken();
+		if (!tok) {
+			dispatch({ type: "logout" });
+			return;
+		}
+
+		const url = makeUrl("/repos", { page, sort, show });
+
+		const headers = new Headers({
+			Accept: "application/json",
+			Authorization: `Bearer ${tok}`,
+		});
 		(async () => {
 			try {
 				setLoading(() => true);
-				const url = Api.makeUrl("/repos", { page, sort, show });
-				const tok = getToken();
-				if (!tok) {
-					console.log("tok not found");
-					dispatch({ type: "logout" });
-					return;
-				}
 				const response = await fetch(url, {
 					method: "GET",
-					headers: {
-						Accept: "application/json",
-						Authorization: `Bearer ${tok}`,
-					},
+					headers,
 					credentials: "include",
 				});
 				const { status } = response;
-				const payload = await response.json();
 
-				switch (status) {
-					case 200:
-						setData(() => payload as Repository[]);
-						return;
-					case 401 | 403:
-						return;
-					default:
-						throw new Error(`status code ${status} `);
+				if (status === 401 || status === 403) {
+					dispatch({ type: "logout" });
+					return;
 				}
+
+				const payload = await response.json();
+				if (status === 200) setData(() => payload as Repository[]);
+				else setError(() => payload["message"]);
 			} catch (e) {
 				setError(() => "Server is not responding, try again later.");
 				console.error(e);

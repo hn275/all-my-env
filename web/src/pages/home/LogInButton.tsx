@@ -1,36 +1,32 @@
-import cx from "classnames";
 import { useAuth } from "context/auth";
-import { HTMLAttributes } from "react";
+import { oauthHref } from "lib/url";
 import { AiFillGithub } from "react-icons/ai";
 import { Link } from "react-router-dom";
 
-interface Props extends HTMLAttributes<HTMLButtonElement> {}
-export function LogInButton({ className, ...rest }: Props) {
-	const {
-		state: { auth },
-	} = useAuth();
-	return (
-		<button
-			className={cx([
-				"flex items-center justify-center hover:cursor-pointer hover:no-underline",
-				"md:bg-main font-bold md:text-dark md:rounded-md md:px-3 md:py-2",
-				"transition-all hover:brightness-95",
-				className,
-			])}
-			{...rest}
-		>
-			{auth ? (
-				<>
-          <Link to="/dash">Dashboard</Link>
+interface Props {
+  to?: string;
+}
+export function LogInButton({ to }: Props) {
+  const {
+    state: { auth },
+  } = useAuth();
+
+  return (
+    <Link
+      className="btn btn-primary flex w-[14ch] items-center justify-center"
+
+      to={auth ? "/dash" : oauthHref(to)}
+    >
+      {auth ? (
+        "Dashboard"
+      ) : (
+        <>
+          <span>
+            <AiFillGithub />
+          </span>
+          &nbsp; Sign in
         </>
-			) : (
-				<>
-					<span>
-						<AiFillGithub />
-					</span>
-					&nbsp; Sign in
-				</>
-			)}
-		</button>
-	);
+      )}
+    </Link>
+  );
 }

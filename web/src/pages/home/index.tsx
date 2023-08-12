@@ -30,12 +30,12 @@ export function Home() {
               Get started
             </a>
 
-            <LogInButton onClick={() => oauth("/auth")} className="w-36" />
+            <LogInButton to="/" />
           </div>
         </section>
 
         {/* GET STARTED */}
-        <section className="mx-auto w-full max-w-4xl mb-40">
+        <section className="mx-auto mb-40 w-full max-w-4xl">
           <h2 className="font-accent hero-text-gradient text-center text-4xl font-bold md:ml-12 md:text-left">
             How it works?
           </h2>
@@ -44,8 +44,8 @@ export function Home() {
       </main>
       <footer
         className={cx([
-          "relative grid grid-cols-3 place-items-center max-w-screen-2xl mx-auto",
-          "text-sm text-light/40 py-5",
+          "relative mx-auto grid max-w-screen-2xl grid-cols-3 place-items-center",
+          "text-light/40 py-5 text-sm",
         ])}
       >
         <div>

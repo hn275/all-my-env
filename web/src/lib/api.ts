@@ -16,6 +16,9 @@ export const API = {
 	},
 };
 
+/**
+ * @deprecated too much boilerplate
+ * */
 export class Api {
 	public static makeUrl(path: string, param?: object): string {
 		if (path[0] !== "/") {

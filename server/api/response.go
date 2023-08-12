@@ -69,7 +69,8 @@ func (r *Response) Error(m string, a ...any) {
 }
 
 func (r *Response) ServerError(m string, a ...any) {
-	fmt.Fprintf(os.Stderr, "[ERROR] - "+m, a...)
+	fmt.Fprintf(os.Stderr, "[ERROR] -"+m+": ", a...)
+	fmt.Println()
 	r.WriteHeader(http.StatusInternalServerError)
 }
 
