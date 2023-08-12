@@ -3,7 +3,7 @@
 	import Logo from "@assets/logo.svg";
 	import StarUs from "./star.svelte";
 	import LogInBtn from "./login.svelte";
-	import Hamburger from "./hamburger.svelte";
+	import Hamburger from "../assets/hamburger.svelte";
 
 	export let loading: boolean;
 

@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import Nav from "./nav.svelte";
+	import Nav from "./index/components/nav.svelte";
 	import { refresh } from "./auth";
 	import { AuthStore, type User } from "@lib/auth";
 	import cx from "classnames";
-	import LogInBtn from "./login.svelte";
-	import StarUs from "./star.svelte";
+	import LogInBtn from "./index/components/login.svelte";
+	import StarUs from "./index/components/star.svelte";
+	import Features from "./index/components/features.svelte";
 
 	let loading: boolean = false;
 	let err: string | undefined;
@@ -70,7 +71,7 @@
 		>
 			How it works?
 		</h2>
-		Feature component
+		<Features />
 	</section>
 </main>
 <footer

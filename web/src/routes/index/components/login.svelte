@@ -7,7 +7,7 @@
 		PUBLIC_GITHUB_CLIENT_ID,
 		PUBLIC_NODE_ENV,
 	} from "$env/static/public";
-	import Github from "@assets/github.svelte";
+	import Github from "../assets/github.svelte";
 
 	export let loading: boolean;
 	let oauth: string = "/dash";
