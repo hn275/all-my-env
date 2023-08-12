@@ -46,9 +46,8 @@ export class AuthStore {
 	}
 
 	public static sessionRefreshed(): boolean {
-		return (
-			window.sessionStorage.getItem(AuthStore.tokenEntry) !== undefined
-		);
+		const r = window.sessionStorage.getItem(AuthStore.tokenEntry);
+		return r !== null;
 	}
 }
 

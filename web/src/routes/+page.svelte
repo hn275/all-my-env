@@ -14,6 +14,8 @@
 	onMount(async () => {
 		try {
 			user = AuthStore.user();
+      const isRef = AuthStore.sessionRefreshed()
+      console.log(isRef)
 			if (AuthStore.sessionRefreshed() || !user) return;
 			loading = true;
 			user = await refresh(user.access_token);
@@ -87,8 +89,8 @@
 	<StarUs />
 
 	<div class="flex gap-5">
-		<a href="/terms" class="hover:text-light"> Terms & Conditions </a>
-		<a href="/privacy" class="hover:text-light"> Privacy Agreement </a>
+		<a href="/terms" class="hover:text-light">Terms & Conditions</a>
+		<a href="/privacy" class="hover:text-light">Privacy Agreement</a>
 	</div>
 </footer>
 <div class="hero-graphic-blur main" />

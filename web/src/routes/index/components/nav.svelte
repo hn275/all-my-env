@@ -40,7 +40,7 @@
 			])}
 		>
 			<li>
-				<LogInBtn {loading} />
+				<StarUs />
 			</li>
 			<li>
 				<a href="/pricing">Pricing</a>
@@ -52,7 +52,7 @@
 				<a href="/faq">FAQ</a>
 			</li>
 			<li>
-				<StarUs />
+				<LogInBtn {loading} />
 			</li>
 		</ul>
 	</div>

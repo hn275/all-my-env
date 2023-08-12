@@ -45,16 +45,6 @@ func refreshToken(userID uint64) (string, error) {
 	return base64.RawStdEncoding.EncodeToString(buf[:]), nil
 }
 
-func getUint(b []byte) uint64 {
-	l := len(b) - 1
-	num := uint64(0)
-	for i := l; i >= 0; i-- {
-		byteOffset := (l - i) * 8
-		num |= uint64(b[i]) << byteOffset
-	}
-	return num
-}
-
 func validateAuthToken(t string) (string, error) {
 	if t == "" {
 		return "", errors.New("missing auth token")
