@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   @apply bg-dark-200 font-regular text-light;
 }
@@ -13,6 +17,23 @@ main {
 }
 
 a:hover {
-  text-decoration: underline;
   cursor: pointer;
+}
+
+.btn {
+  @apply px-3 py-2 rounded-lg text-light font-semibold cursor-pointer transition;
+}
+
+.btn-primary {
+  @apply bg-main border border-main;
+}
+
+.btn-primary:hover {
+  @apply brightness-95
+}
+
+.btn-primary-outline {
+  @apply border border-main bg-main/5 text-main;
+  @apply flex justify-center items-center;
+  @apply hover:bg-main/20;
 }

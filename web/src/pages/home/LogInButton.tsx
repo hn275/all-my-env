@@ -3,10 +3,7 @@ import { oauthHref } from "lib/url";
 import { AiFillGithub } from "react-icons/ai";
 import { Link } from "react-router-dom";
 
-interface Props {
-  to?: string;
-}
-export function LogInButton({ to }: Props) {
+export function LogInButton() {
   const {
     state: { auth },
   } = useAuth();
@@ -14,8 +11,7 @@ export function LogInButton({ to }: Props) {
   return (
     <Link
       className="btn btn-primary flex w-[14ch] items-center justify-center"
-
-      to={auth ? "/dash" : oauthHref(to)}
+      to={auth ? "/dash" : oauthHref()}
     >
       {auth ? (
         "Dashboard"

@@ -1,6 +1,4 @@
-import { oauth } from "lib/auth";
 import { Nav, StarUsOnGitHub } from "./Nav";
-import { AiFillGithub } from "react-icons/ai";
 import "./style.css";
 import cx from "classnames";
 import { Features } from "./Feature";
@@ -26,16 +24,16 @@ export function Home() {
           </p>
 
           <div className="flex flex-col items-center justify-center gap-3 md:flex-row md:gap-6">
-            <a className="border-main text-main w-36 rounded-md border py-2 text-center font-semibold">
+            <a href="#get-started" className="btn btn-primary-outline w-[14ch]">
               Get started
             </a>
 
-            <LogInButton to="/" />
+            <LogInButton />
           </div>
         </section>
 
         {/* GET STARTED */}
-        <section className="mx-auto mb-40 w-full max-w-4xl">
+        <section className="mx-auto mb-40 w-full max-w-4xl" id="get-started">
           <h2 className="font-accent hero-text-gradient text-center text-4xl font-bold md:ml-12 md:text-left">
             How it works?
           </h2>
