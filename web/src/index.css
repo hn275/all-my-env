@@ -37,3 +37,9 @@ a:hover {
   @apply flex justify-center items-center;
   @apply hover:bg-main/20;
 }
+
+.text-gradient {
+	@apply bg-gradient-to-tr from-light to-main;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}

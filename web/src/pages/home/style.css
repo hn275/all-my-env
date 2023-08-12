@@ -1,9 +1,3 @@
-.hero-text-gradient {
-	@apply bg-gradient-to-tr from-light to-main;
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-}
-
 span.hero-text-underline {
 	position: relative;
 	font-weight: 700;
