@@ -139,9 +139,10 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 	cookie := http.Cookie{
 		Name:     api.CookieRefTok,
 		Value:    refreshToken,
-		Expires:  time.Now().Add(365 * 24 * time.Hour),
+		Expires:  time.Now().UTC().Add(365 * 24 * time.Hour),
 		Path:     "/",
 		HttpOnly: false,
+		Secure:   false,
 		SameSite: http.SameSiteNoneMode,
 	}
 

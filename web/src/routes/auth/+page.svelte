@@ -15,7 +15,7 @@
 			if (!code) return;
 			const user = await signIn(code);
 			AuthStore.login(user);
-			urlRedirect();
+      // urlRedirect();
 		} catch (e) {
 			error = (e as Error).message;
 		} finally {

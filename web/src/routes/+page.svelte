@@ -14,9 +14,8 @@
 	onMount(async () => {
 		try {
 			user = AuthStore.user();
-      const isRef = AuthStore.sessionRefreshed()
-      console.log(isRef)
-			if (AuthStore.sessionRefreshed() || !user) return;
+      const refreshed = AuthStore.sessionRefreshed()
+			if (refreshed || !user) return;
 			loading = true;
 			user = await refresh(user.access_token);
 			AuthStore.login(user);
