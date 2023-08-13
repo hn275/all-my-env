@@ -2,7 +2,6 @@ import { PUBLIC_GITHUB_CLIENT_ID, PUBLIC_NODE_ENV } from "$env/static/public";
 
 // store
 export type User = {
-	access_token: string;
 	name: string;
 	avatar_url: string;
 	login: string;
@@ -14,8 +13,9 @@ export type AuthStoreType = {
 };
 
 export class AuthStore {
-	private static userEntry = "envhub:user";
-	private static tokenEntry = "envhub:refreshed";
+	private static userEntry: string = "envhub:user";
+	private static tokenEntry: string = "envhub:refreshed";
+	private static redirectEntry: string = "envhub:redirect";
 
 	public static init() {}
 
@@ -37,15 +37,27 @@ export class AuthStore {
 		return AuthStore;
 	}
 
-	public static user(): User | undefined {
+	public static user(): User {
 		const u = window.localStorage.getItem(AuthStore.userEntry);
-		if (!u) return;
-		return JSON.parse(u) as User;
+		if (!u) {
+			AuthStore.refreshSession();
+		}
+		return JSON.parse(u!) as User;
 	}
 
 	public static sessionRefreshed(): boolean {
 		const r = window.sessionStorage.getItem(AuthStore.tokenEntry);
 		return r !== null;
+	}
+
+	public static refreshSession(redirect?: string): void {
+		const r = redirect ?? window.location.href;
+		window.sessionStorage.setItem(this.redirectEntry, r);
+		window.location.replace("/auth/refresh");
+	}
+
+	public static redirectUrl(): string {
+		return window.sessionStorage.getItem(this.redirectEntry) ?? "/";
 	}
 }
 

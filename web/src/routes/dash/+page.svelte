@@ -18,13 +18,18 @@
 	const ShowDefault: number = 30;
 
 	let user: User | undefined;
-	onMount(() => {
-		user = AuthStore.user();
-	});
-
 	let page: number = 0;
 	let show: number = ShowDefault;
 	let sort: Sort = SortDefault;
+
+	onMount(() => {
+		user = AuthStore.user();
+    if (!user) {
+AuthStore.refreshSession();
+      return
+    }
+	});
+
 	const data = fetchRepos(page, sort, show);
 
 	let search: string = "";
@@ -96,7 +101,7 @@
 			{:else}
 				<ul>
 					{#each repos.filter( (d) => d.full_name.includes(search ?? ""), ) as repo}
-						<Repo  {repo} />
+						<Repo {repo} />
 					{/each}
 				</ul>
 				<div class="">

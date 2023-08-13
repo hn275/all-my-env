@@ -6,6 +6,10 @@ declare global {
 		// interface Locals {}
 		// interface PageData {}
 		// interface Platform {}
+		interface ApiResponseError {
+			message: string;
+		}
+		type ApiResponse<T> = T | ApiResponse;
 	}
 }
 
