@@ -15,16 +15,17 @@ export async function signIn(code: string): Promise<User> {
 	return payload as User;
 }
 
-export async function refresh(token: string): Promise<User> {
+export async function refresh(): Promise<User> {
 	const res = await fetch(makeUrl("/auth/refresh"), {
 		method: "GET",
-		credentials: "include",
 		headers: {
 			Accept: "application/json",
-			Authorization: `Bearer ${token}`,
 		},
+		credentials: "include",
 	});
-	const payload = await res.json();
-	if (res.status !== 200) throw new Error(payload["message"]);
+	const payload: EnvHub.Response<User> = await res.json();
+	if (res.status !== 200) {
+		throw new Error((payload as EnvHub.Error)["message"]);
+	}
 	return payload as User;
 }

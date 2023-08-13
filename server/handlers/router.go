@@ -44,6 +44,7 @@ func New() *chi.Mux {
 	// ROUTES
 	r.Route("/auth", func(r chi.Router) {
 		r.Handle("/github", http.HandlerFunc(auth.GitHub))
+		r.Handle("/logout", http.HandlerFunc(auth.Logout))
 
 		r.Group(func(r chi.Router) {
 			r.Use(auth.TokenValidator)

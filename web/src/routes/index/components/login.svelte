@@ -2,12 +2,15 @@
 	import Spinner from "@components/spinner.svelte";
 	import { AuthStore, type User } from "@lib/auth";
 	import { onMount } from "svelte";
-	import cx from "classnames";
 	import {
 		PUBLIC_GITHUB_CLIENT_ID,
 		PUBLIC_NODE_ENV,
 	} from "$env/static/public";
 	import Github from "../assets/github.svelte";
+	import Logout from "../assets/logout.svg";
+	import Files from "../assets/files.svg";
+	import { logout } from "./requests";
+	import cx from "classnames";
 
 	export let loading: boolean;
 	let oauth: string = "/dash";
@@ -23,7 +26,27 @@
 		const p = new URLSearchParams({ client_id, redirect_uri, scope });
 		oauth = "https://github.com/login/oauth/authorize?" + p.toString();
 	});
-	$: loggedIn = oauth === "/dash";
+	let loggedIn: boolean;
+
+	let dropdownOpen: boolean = false;
+	const handleDropdown = () => (dropdownOpen = !dropdownOpen);
+
+	let logoutLoading: boolean = false;
+	let logoutError: string | undefined;
+	async function handleLogout(): Promise<void> {
+		try {
+			logoutLoading = true;
+			await logout();
+			AuthStore.logout();
+			user = undefined;
+		} catch (e) {
+			console.error(e);
+		} finally {
+			logoutLoading = false;
+		}
+	}
+
+	$: loggedIn = user !== undefined;
 </script>
 
 <div class="w-[14ch] overflow-x-hidden">
@@ -31,7 +54,7 @@
 		<a
 			href={oauth}
 			class={cx([
-				"btn normal-case text-dark-100 w-full h-full",
+				"btn text-dark-100 h-full w-full normal-case",
 				loggedIn ? "btn-outline border-main text-main" : "btn-primary",
 				{ "btn-disabled cursor-default": loading },
 			])}
@@ -46,8 +69,67 @@
 			{/if}
 		</a>
 	{:else}
-		<p class="font-semibold text-main text-gradient">
-			Welcome back, {user?.name}
-		</p>
+		<div class="relative">
+			<button class="w-full" on:click={handleDropdown}>
+				<img
+					src={user?.avatar_url}
+					alt={user?.name}
+					class="rounded-full w-8 inline"
+				/>
+				<span>
+					{user?.name}
+				</span>
+			</button>
+
+			<ul
+				class={cx([
+					"user-dropdown transition-all",
+					"bg-dark-100 fixed top-full right-3 flex h-0 w-max -translate-y-[7px]",
+					"flex-col items-start justify-center overflow-y-clip rounded-md",
+					{ "h-[90px]": !dropdownOpen },
+				])}
+			>
+				<li>
+					<a href="/dash">
+						<img src={Files} alt="files" role="presentation" />
+						<span>.env</span>
+					</a>
+				</li>
+
+				<li>
+					<button on:click={handleLogout}>
+						{#if logoutLoading}
+							loading
+						{:else}
+							<img src={Logout} alt="files" role="presentation" />
+						{/if}
+            <span>Log out</span>
+					</button>
+				</li>
+			</ul>
+		</div>
 	{/if}
 </div>
+
+<style lang="postcss">
+	.user-dropdown li {
+		@apply w-max;
+	}
+
+	.user-dropdown button,
+	.user-dropdown a {
+		@apply flex justify-start items-center w-[125px] px-4 h-[40px];
+	}
+
+	.user-dropdown img {
+		@apply w-4 mr-4;
+	}
+	.user-dropdown span {
+		@apply font-normal;
+	}
+
+	.user-dropdown button:hover span,
+	.user-dropdown a:hover span {
+		@apply underline;
+	}
+</style>
