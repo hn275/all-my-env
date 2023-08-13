@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -24,15 +23,15 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// validate auth token
-	authToken, err := validateAuthToken(r.Header.Get("Authorization"))
+	// validate access token
+	c, err := r.Cookie(api.CookieAccTok)
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
 	}
 
 	// verifying jwt
-	clms, err := jsonwebtoken.NewDecoder().Decode(authToken)
+	clms, err := jsonwebtoken.NewDecoder().Decode(c.Value)
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusForbidden).
@@ -82,7 +81,6 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 			Select("refresh_token").
 			Where("id = ? AND refresh_token = ?", userID, tok.Value).
 			First(&ref).Error
-		fmt.Println("db func, token", tok.Value)
 	}(&wg, &dbErr)
 
 	// get user info
@@ -94,7 +92,6 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		fmt.Println("laksjfklsdkfjk")
 		api.NewResponse(w).ForwardBadRequest(res)
 		return
 	}

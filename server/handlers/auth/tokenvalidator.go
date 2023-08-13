@@ -17,14 +17,14 @@ func TokenValidator(next http.Handler) http.Handler {
 			return
 		}
 
-		t, err := validateAuthToken(r.Header.Get("Authorization"))
+		accessToken, err := r.Cookie(api.CookieAccTok)
 		if err != nil {
 			api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 			return
 		}
 
 		// DECODE JWT
-		token, err := jsonwebtoken.NewDecoder().Decode(t)
+		token, err := jsonwebtoken.NewDecoder().Decode(accessToken.Value)
 		if err != nil {
 			api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 			return

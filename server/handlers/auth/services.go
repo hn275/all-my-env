@@ -4,9 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
-	"errors"
 	"io"
-	"strings"
 	"time"
 
 	"github.com/hn275/envhub/server/crypto"
@@ -43,23 +41,6 @@ func refreshToken(userID uint64) (string, error) {
 		return "", err
 	}
 	return base64.RawStdEncoding.EncodeToString(buf[:]), nil
-}
-
-func validateAuthToken(t string) (string, error) {
-	if t == "" {
-		return "", errors.New("missing auth token")
-	}
-
-	auth := strings.Split(t, " ")
-	if len(auth) != 2 {
-		return "", errors.New("illegal auth token")
-	}
-
-	if !strings.EqualFold(auth[0], "bearer") {
-		return "", errors.New("illegal token type")
-	}
-
-	return auth[1], nil
 }
 
 func encodeAccessToken(userID uint64, accessToken string) (string, error) {

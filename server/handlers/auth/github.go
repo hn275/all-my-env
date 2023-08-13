@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -94,7 +93,6 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-	fmt.Println(refreshToken)
 
 	// SAVE TO DB
 	user := database.User{
@@ -104,8 +102,6 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 		Email:        u.Email,
 		RefreshToken: refreshToken,
 	}
-	fmt.Printf("pre db write - token: [%s]\n", refreshToken)
-	fmt.Printf("pre db write - user: [%v]\n", user)
 
 	db := database.New()
 	err = db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&user).Error
@@ -114,7 +110,6 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Printf("post db write - token: [%s]\n", refreshToken)
 	// NEW JWT
 	maskedAccessTok, err := encodeAccessToken(u.ID, oauth.AccessToken)
 	if err != nil {
@@ -135,21 +130,28 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 		AvatarUrl:   u.AvatarURL,
 		Login:       u.Login,
 	}
-	fmt.Printf("pre cookie - token: [%s]\n", refreshToken)
-	cookie := http.Cookie{
+	refreshCookie := http.Cookie{
 		Name:     api.CookieRefTok,
 		Value:    refreshToken,
 		Expires:  time.Now().UTC().Add(365 * 24 * time.Hour),
 		Path:     "/",
-		HttpOnly: false,
-		Secure:   false,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteNoneMode,
+	}
+	accessCookie := http.Cookie{
+		Name:     api.CookieAccTok,
+		Value:    accessJWT,
+		Expires:  time.Now().UTC().Add(24 * time.Hour),
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
 	}
 
-	fmt.Println("refresh Token", refreshToken)
 	api.NewResponse(w).
-		SetCookie(&cookie).
+		SetCookie(&refreshCookie).
+		SetCookie(&accessCookie).
 		Status(http.StatusOK).
 		JSON(&userInfo)
-	fmt.Printf("post cookie - token: [%s]\n", refreshToken)
 }

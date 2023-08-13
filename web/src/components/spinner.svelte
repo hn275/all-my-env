@@ -1,4 +1,4 @@
-<svg id="spinner" viewBox="25 25 50 50">
+<svg id="spinner" viewBox="25 25 50 50" {...$$restProps}>
 	<circle id="spinner-circle" r="20" cy="50" cx="50" />
 </svg>
 
@@ -17,7 +17,6 @@
 		stroke-dashoffset: 0;
 		stroke-linecap: round;
 		animation: dash4 1.5s ease-in-out infinite;
-		@apply stroke-dark-200;
 	}
 
 	@keyframes rotate4 {

@@ -9,6 +9,7 @@ import (
 
 const (
 	CookieRefTok string = "refresh_token"
+	CookieAccTok string = "access_token"
 )
 
 type Response struct {

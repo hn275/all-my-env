@@ -1,6 +1,4 @@
 import { PUBLIC_GITHUB_CLIENT_ID, PUBLIC_NODE_ENV } from "$env/static/public";
-import { deepMap, type DeepMapStore } from "nanostores";
-import { TokenStorage, UserStorage } from "./storage";
 
 // store
 export type User = {

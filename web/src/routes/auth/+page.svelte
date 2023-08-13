@@ -15,7 +15,7 @@
 			if (!code) return;
 			const user = await signIn(code);
 			AuthStore.login(user);
-      // urlRedirect();
+      urlRedirect("/dash");
 		} catch (e) {
 			error = (e as Error).message;
 		} finally {
@@ -36,7 +36,7 @@
 			<a href="/" class="btn btn-outline">Back to home page</a>
 		</section>
 	{:else if loading}
-		<Spinner />
+		<Spinner class="stroke-dark-200" />
 		<p>Authenticating...</p>
 	{/if}
 </main>
