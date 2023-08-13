@@ -11,15 +11,15 @@ export async function refreshSession(): Promise<User> {
 		headers,
 		credentials: "include",
 	});
-	const payload = await rsp.json();
+	const payload: EnvHub.Response<User> = await rsp.json();
 	switch (rsp.status) {
 		case 200:
 			AuthStore.login(payload as User);
 			return payload as User;
 		case 401 | 403:
 			AuthStore.logout();
-			throw new Error(payload["message"]);
+			throw new Error((payload as EnvHub.Error).message);
 		default:
-			throw new Error(payload["message"]);
+			throw new Error((payload as EnvHub.Error).message);
 	}
 }

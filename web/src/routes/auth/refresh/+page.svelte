@@ -5,7 +5,7 @@
 
 	let url: string;
 	let r: string;
-	let data: User;
+	let data: EnvHub.Response<User>;
 	onMount(async () => {
 		r = AuthStore.redirectUrl() ?? "not found";
 		url = window.location.href;

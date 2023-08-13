@@ -1,15 +1,11 @@
 // See https://kit.svelte.dev/docs/types#app
 // for information about these interfaces
 declare global {
-	namespace App {
-		// interface Error {}
-		// interface Locals {}
-		// interface PageData {}
-		// interface Platform {}
-		interface ApiResponseError {
+	declare namespace EnvHub {
+		interface Error {
 			message: string;
 		}
-		type ApiResponse<T> = T | ApiResponse;
+		type Response<T> = T | EnvHub.Error;
 	}
 }
 
