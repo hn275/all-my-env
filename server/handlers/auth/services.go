@@ -4,7 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
+	"errors"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/hn275/envhub/server/crypto"
@@ -67,4 +69,17 @@ func decodeAccessToken(userID uint64, maskedToken string) (string, error) {
 		return "", err
 	}
 	return string(tok), nil
+}
+
+func getToken(token string) (string, error) {
+	t := strings.Split(token, " ")
+	if len(t) != 2 {
+		return "", errors.New("invalid auth token")
+	}
+
+	if !strings.EqualFold(t[0], "bearer") {
+		return "", errors.New("illegal token type")
+	}
+
+	return t[1], nil
 }

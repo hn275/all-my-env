@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -24,14 +23,14 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate access token
-	c, err := r.Cookie(api.CookieAccTok)
+	c, err := getToken(r.Header.Get("Authorization"))
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
 	}
 
 	// verifying jwt
-	clms, err := jsonwebtoken.NewDecoder().Decode(c.Value)
+	clms, err := jsonwebtoken.NewDecoder().Decode(c)
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusForbidden).
@@ -64,12 +63,12 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// query db to get refresh token
 	type dberr struct {
 		err error
 	}
 	wg := sync.WaitGroup{}
 	dbErr := dberr{}
-
 	go func(wg *sync.WaitGroup, dbErr *dberr) {
 		wg.Add(1)
 		defer wg.Done()
@@ -102,8 +101,12 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clms.ExpiresAt = jwt.NewNumericDate(time.Now().UTC().Add(7 * 24 * time.Hour))
-	jwtToken, err := jsonwebtoken.NewEncoder().Encode(userID, clms.AccessToken, clms.Audience[0])
+	clms.ExpiresAt = jwt.NewNumericDate(time.Now().UTC().Add(24 * time.Hour))
+	jwtToken, err := jsonwebtoken.NewEncoder().Encode(
+		userID,
+		clms.AccessToken,
+		clms.Audience[0],
+	)
 	if err != nil {
 		api.NewResponse(w).ServerError("%v", err)
 		return
@@ -117,15 +120,19 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wg.Wait()
-	if dbErr.err != nil {
-		if errors.Is(dbErr.err, gorm.ErrRecordNotFound) {
-			api.NewResponse(w).
-				Status(http.StatusForbidden).
-				Error("refresh token not found")
-			return
-		}
-		api.NewResponse(w).ServerError(dbErr.err.Error())
+	switch err := dbErr.err; err {
+	case nil:
+		api.NewResponse(w).Status(http.StatusOK).JSON(&userInfo)
+		return
+
+	case gorm.ErrRecordNotFound:
+		api.NewResponse(w).
+			Status(http.StatusForbidden).
+			Error("refresh token not found")
+		return
+
+	default:
+		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-	api.NewResponse(w).Status(http.StatusOK).JSON(&userInfo)
 }

@@ -139,19 +139,9 @@ func GitHub(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteNoneMode,
 	}
-	accessCookie := http.Cookie{
-		Name:     api.CookieAccTok,
-		Value:    accessJWT,
-		Expires:  time.Now().UTC().Add(24 * time.Hour),
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteNoneMode,
-	}
 
 	api.NewResponse(w).
 		SetCookie(&refreshCookie).
-		SetCookie(&accessCookie).
 		Status(http.StatusOK).
 		JSON(&userInfo)
 }
