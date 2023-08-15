@@ -26,9 +26,9 @@ type GithubUser struct {
 	Name              string `json:"name"`
 	AvatarURL         string `json:"avatar_url"`
 	HTMLURL           string `json:"html_url"`
-	PublicRepos       int64  `json:"public_repos"`
-	TotalPrivateRepos int64  `json:"total_private_repos"`
-	OwnedPrivateRepos int64  `json:"owned_private_repos"`
+	PublicRepos       uint16 `json:"public_repos"`
+	TotalPrivateRepos uint16  `json:"total_private_repos"`
+	OwnedPrivateRepos uint16  `json:"owned_private_repos"`
 	CreatedAt         string `json:"created_at"`
 	UpdatedAt         string `json:"updated_at"`
 	/* unused fields

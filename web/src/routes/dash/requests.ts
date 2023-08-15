@@ -9,7 +9,7 @@ export async function fetchRepos(
 	page: number,
 	sort: Sort,
 	show: string,
-): Promise<Repository[]> {
+): Promise<Array<Repository>> {
 	const url = makeUrl("/repos", { page, sort, show });
 	const headers = new Headers({
 		Accept: "application/json",
@@ -23,7 +23,7 @@ export async function fetchRepos(
 
 	switch (rsp.status) {
 		case 200:
-			return payload as Repository[];
+			return payload as Array<Repository>;
 		case 401 | 403:
 			// AuthStore.refreshSession();
 			throw new Error(payload["message"]);

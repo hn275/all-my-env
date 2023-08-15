@@ -8,6 +8,7 @@ import (
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
+	"github.com/hn275/envhub/server/handlers/auth"
 	"gorm.io/gorm"
 )
 
@@ -41,26 +42,44 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		"per_page": show,
 	}
 
+	ghCtx := gh.New(user.Token)
 	// NOTE: Since we are only interested in the repo that got sent back
 	// by Github, this ops won't be a go routine.
 	// get repos from github, then query db for the id of the same set of repos.
 
+	// GET REPOS COUNT
+	userRes, err := ghCtx.Get("/user")
+	if err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+	}
+	defer userRes.Body.Close()
+	if userRes.StatusCode != http.StatusOK {
+		api.NewResponse(w).ForwardBadRequest(userRes)
+		return
+	}
+
+	var ghUser auth.GithubUser
+	if err := json.NewDecoder(userRes.Body).Decode(&ghUser); err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+
 	// GET REPOS FROM GITHUB
 	// https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repositories-for-the-authenticated-user
 	var repos []Repository
-	res, err := gh.New(user.Token).Params(params).Get("/user/repos")
+	repoRes, err := ghCtx.Params(params).Get("/user/repos")
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-	defer res.Body.Close()
+	defer repoRes.Body.Close()
 
-	if res.StatusCode != http.StatusOK {
-		api.NewResponse(w).ForwardBadRequest(res)
+	if repoRes.StatusCode != http.StatusOK {
+		api.NewResponse(w).ForwardBadRequest(repoRes)
 		return
 	}
 
-	if err := json.NewDecoder(res.Body).Decode(&repos); err != nil {
+	if err := json.NewDecoder(repoRes.Body).Decode(&repos); err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
@@ -87,6 +106,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		repos[i].Linked = true
 		repos[i].VariableCounter = counter
 	}
+
 	api.NewResponse(w).
 		Header("Cache-Control", "max-age=30").
 		Status(http.StatusOK).

@@ -4,7 +4,6 @@
 	import Spinner from "@components/spinner.svelte";
 	import Repo from "./components/Repo.svelte";
   import { onMount } from "svelte";
-  import { refresh } from "../auth";
 	import type { Repository } from "./types";
 
 	// sort
@@ -17,26 +16,11 @@
 	};
 
 	// page limit
-	const ShowDefault: string = "30";
+	const ShowDefault: number = 30;
 
 	let user: User | undefined;
-	let page: number = 0;
-  function handlePage(i: number): (e: Event) => void {
-    return async (e: Event) => {
-      e.preventDefault();
-      if (page === 0 && i === -1) return;
-      page += i;
-      await getRepos()
-    }
-  }
-
-	let show: string = ShowDefault;
-  async function handleShow(e: Event) {
-    e.preventDefault();
-    show = (e.target as HTMLSelectElement)?.value;
-    await getRepos();
-  }
-
+	let page: number = 1;
+	let show: number = ShowDefault;
 
 	let sort: Sort = SortDefault;
   async function handleSort(e: Event) {
@@ -57,16 +41,42 @@
     await getRepos();
 	});
 
+  let hasMoreRepo: boolean = true;
   async function getRepos() {
     try {
       loading = true;
-      repos = await fetchRepos(page, sort, show)
+      repos = await fetchRepos(page, sort, show.toString());
     } catch (e) {
       error = (e as Error).message;
     } finally {
       loading = false;
     }
   }
+
+  let loadMoreLoading: boolean = false;
+  async function loadMore() {
+    if (!hasMoreRepo) return;
+    page++;
+    try {
+      loadMoreLoading = true;
+      const res = await fetchRepos(page, sort, show.toString());
+      repos = [...repos, ...res];
+      hasMoreRepo = res.length === show;
+    } catch (e) {
+      error = (e as Error).message;
+    } finally {
+      loadMoreLoading = false;
+    }
+  }
+
+  onMount(() => {
+    window.onscroll = async function(_: Event) {
+      const bottom: boolean = (window.innerHeight + Math.round(window.scrollY)) >= document.body.offsetHeight
+      if (bottom) {
+        await loadMore();
+      }
+    };
+  })
 
 
 	let search: string = "";
@@ -96,31 +106,17 @@
 	<section class="bg-dark-100 mt-12 rounded-lg p-5 md:p-7">
 		<h1 class="text-gradient mb-3 text-2xl font-semibold">Repositories</h1>
 
-		<div class="">
-			<div class="grid grid-cols-2">
-
-				<div>
-					<label for="sort">Sort by: </label>
-					<select name="sort" class="" on:change={handleSort}>
-						{#each Object.entries(sortFunctions) as [name, s]}
-							<option value={s} selected={sort === s}>
-								{name}
-							</option>
-						{/each}
-					</select>
-				</div>
-
-				<div>
-					<label for="show">Show:</label>
-					<select name="show" class="" on:change={handleShow}>
-						{#each ["10", "20", "30"] as i}
-							<option selected={i === show}>
-								{i}
-							</option>
-						{/each}
-					</select>
-				</div>
-			</div>
+    <div class="">
+      <div>
+        <label for="sort">Sort by: </label>
+        <select name="sort" class="" on:change={handleSort}>
+          {#each Object.entries(sortFunctions) as [name, s]}
+            <option value={s} selected={sort === s}>
+              {name}
+            </option>
+          {/each}
+        </select>
+      </div>
 
 			<div class="flex flex-col">
 				<label for="repo-search">Search bar</label>
@@ -154,17 +150,14 @@
           {#each repos.filter((d) => d.full_name.includes(search ?? "")) as repo (repo.id)}
             <Repo {repo} />
           {/each}
-
         </ul>
-
-        <div class="">
-          <button on:click={handlePage(-1)}>prev</button>
-          <p>{page}</p>
-          <button on:click={handlePage(1)}>next</button>
-        </div>
-
       {/if}
+    {/if}
 
+    {#if hasMoreRepo && loadMoreLoading && !loading}
+      <div class="mt-5 flex w-full justify-center">
+        <div class="loading bg-main"></div>
+      </div>
     {/if}
   </section>
 </main>
