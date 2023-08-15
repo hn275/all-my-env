@@ -9,12 +9,22 @@
 
 	let show: boolean = false;
 	const toggleOpen: () => void = () => (show = !show);
+
+	type NavMap = {
+		href: string;
+		text: string;
+	};
+	const navMap: Array<NavMap> = [
+		{ href: "/pricing", text: "Pricing" },
+		{ href: "/docs", text: "Docs" },
+		{ href: "/faq", text: "FAQ" },
+	];
 </script>
 
 <nav
 	class={cx([
-		"sticky left-0 top-0 z-[49] transition-all translate-y-0",
-		"bg-dark justify-between bg-dark-200/60 backdrop-blur md:flex",
+		"sticky left-0 top-0 z-[49] translate-y-0 transition-all",
+		"bg-dark bg-dark-200/60 justify-between backdrop-blur md:flex",
 	])}
 >
 	<div class="flex h-16 items-center justify-between px-5">
@@ -30,9 +40,9 @@
 	<div class="absolute left-0 top-16 w-full pr-4 md:static md:w-max">
 		<ul
 			class={cx([
-				`w-full h-0 py-0`,
+				"h-0 w-full py-0",
 				{ "h-[350px] py-5": show },
-				"text-light bg-[#1e1e1e] font-semibold",
+				"text-light md:text-light/60 bg-[#1e1e1e]",
 				"flex flex-col items-center justify-between",
 				"transition-all",
 				"relative overflow-clip",
@@ -42,15 +52,13 @@
 			<li>
 				<StarUs />
 			</li>
-			<li>
-				<a href="/pricing">Pricing</a>
-			</li>
-			<li>
-				<a href="/docs">Docs</a>
-			</li>
-			<li>
-				<a href="/faq">FAQ</a>
-			</li>
+			{#each navMap as { href, text } (text)}
+				<li>
+					<a class="transition hover:text-light" {href}>
+						{text}
+					</a>
+				</li>
+			{/each}
 			<li>
 				<LogInBtn {loading} />
 			</li>

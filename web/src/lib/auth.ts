@@ -37,7 +37,7 @@ export class AuthStore {
     return AuthStore;
   }
 
-  public static user(): User | void {
+  public static user(): User | undefined {
     const u = window.localStorage.getItem(AuthStore.userEntry);
     if (!u) return;
     return JSON.parse(u!) as User;

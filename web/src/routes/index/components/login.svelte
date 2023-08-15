@@ -32,7 +32,6 @@
 	const handleDropdown = () => (dropdownOpen = !dropdownOpen);
 
 	let logoutLoading: boolean = false;
-	let logoutError: string | undefined;
 	async function handleLogout(): Promise<void> {
 		try {
 			logoutLoading = true;
@@ -70,13 +69,13 @@
 		</a>
 	{:else}
 		<div class="relative">
-			<button class="w-full" on:click={handleDropdown}>
+			<button class="w-full hover:text-light transition" on:click={handleDropdown}>
 				<img
 					src={user?.avatar_url}
 					alt={user?.name}
-					class="rounded-full w-8 inline"
+					class="rounded-full w-7 mb-2 inline mr-2"
 				/>
-				<span>
+				<span class="font-normal">
 					{user?.name}
 				</span>
 			</button>
@@ -84,9 +83,9 @@
 			<ul
 				class={cx([
 					"user-dropdown transition-all",
-					"bg-dark-100 fixed top-full right-3 flex h-0 w-max -translate-y-[7px]",
+					"bg-dark-100 fixed right-3 top-full flex h-0 w-max -translate-y-[7px]",
 					"flex-col items-start justify-center overflow-y-clip rounded-md",
-					{ "h-[90px]": !dropdownOpen },
+					{ "h-[90px]": dropdownOpen },
 				])}
 			>
 				<li>
@@ -103,7 +102,7 @@
 						{:else}
 							<img src={Logout} alt="files" role="presentation" />
 						{/if}
-            <span>Log out</span>
+						<span>Log out</span>
 					</button>
 				</li>
 			</ul>
