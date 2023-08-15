@@ -56,6 +56,7 @@ type Repository struct {
 	FullName string `gorm:"not null" json:"full_name"`
 	// ie: https://github.com/hn275/envhub
 	Url string `gorm:"not null" json:"url"`
+	VariableCount uint16 `gorm:"default:0"`
 
 	// relation
 	User   User   `json:"-"`

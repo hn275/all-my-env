@@ -2,9 +2,11 @@ package repos
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/hn275/envhub/server/api"
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"gorm.io/gorm"
 )
@@ -46,10 +48,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	// GET REPOS FROM GITHUB
 	// https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repositories-for-the-authenticated-user
 	var repos []Repository
-	if err != nil {
-		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
-		return
-	}
 	res, err := gh.New(user.Token).Params(params).Get("/user/repos")
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
@@ -75,26 +73,20 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	// GET REPO ID's FROM DB
 	dbRepos, err := db.findRepo(user.ID, ids[:])
-	switch err {
-	case nil:
-		isLinked := make([]bool, maxIDVal(repos)+1)
-		for _, v := range dbRepos {
-			isLinked[v] = true
-		}
-
-		for i := range repos {
-			repos[i].Linked = isLinked[repos[i].ID]
-		}
-		break
-
-	case gorm.ErrRecordNotFound:
-		break
-
-	default:
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
+	repoMap := repoMap(dbRepos)
+	for i := range repos {
+		counter, ok := repoMap[repos[i].ID]
+		if !ok {
+			continue
+		}
+		repos[i].Linked = true
+		repos[i].VariableCounter = counter
+	}
 	api.NewResponse(w).
 		Header("Cache-Control", "max-age=30").
 		Status(http.StatusOK).
@@ -110,4 +102,12 @@ func maxIDVal(ids []Repository) uint64 {
 	}
 
 	return max
+}
+
+func repoMap(r []database.Repository) map[uint64]uint8 {
+	m := make(map[uint64]uint8)
+	for _, v := range r {
+		m[v.ID] = uint8(v.VariableCount)
+	}
+	return m
 }

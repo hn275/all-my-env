@@ -34,7 +34,10 @@
 
 </script>
 
-<li class="bg-dark-200  border-light/10 relative rounded-lg border p-5 shadow-lg">
+<li class={cx([
+  "bg-dark-200  border-light/10 relative rounded-lg border p-5 shadow-lg",
+  "flex flex-col justify-between"
+])}>
 	<div class="mb-6 flex gap-4">
 		<img
 			src={repo.owner.avatar_url}
@@ -51,7 +54,7 @@
     </div>
   </div>
 
-  <div class="flex items-center justify-between">
+  <div class="flex h-11 items-center justify-between">
     <div class="text-light/70 flex items-center gap-2">
       <Icon show={true} tooltip={repo.full_name}>
         <a href={githubHref} target="_blank" class="mr-2">
@@ -80,10 +83,10 @@
           "btn text-main/80 hover:text-main border-none px-0 font-normal normal-case", 
           "bg-transparent text-sm transition hover:bg-transparent"
         ])}>
-          see x variables
+          see {repo.variable_counter} variable(s)
         </a>
       </div>
-    {:else}
+    {:else if repo.is_owner}
       <button 
         on:click={handleLinkRepo}
         class={cx([
@@ -94,6 +97,8 @@
           Connect repo
         {/if}
       </button>
+    {:else}
+      <p class="text-light/50 text-sm">not connected</p>
     {/if}
   </div>
 </li>

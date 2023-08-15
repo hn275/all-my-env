@@ -7,7 +7,7 @@ import (
 
 type repoModels interface {
 	newRepo(repoBuf *database.Repository) error
-	findRepo(userID uint64, ids []uint64) ([]uint64, error)
+	findRepo(userID uint64, ids []uint64) ([]database.Repository, error)
 }
 
 type repoDatabase struct{ *gorm.DB }
@@ -36,11 +36,11 @@ func (repoDB *repoDatabase) newRepo(r *database.Repository) error {
 	})
 }
 
-func (db *repoDatabase) findRepo(userID uint64, ids []uint64) ([]uint64, error) {
-	var repoIDs []uint64
+func (db *repoDatabase) findRepo(userID uint64, ids []uint64) ([]database.Repository, error) {
+	var repos []database.Repository
 	err := db.Table(database.TableRepos).
-		Select("id").
+		Select([]string{"id", "variable_count"}).
 		Where("user_id = ? AND id IN ?", userID, ids).
-		Find(&repoIDs).Error
-	return repoIDs, err
+		Find(&repos).Error
+	return repos, err
 }

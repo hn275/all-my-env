@@ -3,8 +3,9 @@ package repos
 // types
 type Repository struct {
 	// added attributes:
-	Linked  bool `json:"linked"`
-	IsOwner bool `json:"is_owner"`
+	Linked          bool   `json:"linked"`
+	IsOwner         bool   `json:"is_owner"`
+	VariableCounter uint8 `json:"variable_counter"`
 
 	ID                       uint64      `json:"id"`
 	NodeID                   string      `json:"node_id"`
