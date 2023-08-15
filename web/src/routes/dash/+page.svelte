@@ -4,6 +4,8 @@
 	import Spinner from "@components/spinner.svelte";
 	import Repo from "./components/Repo.svelte";
 	import { onMount } from "svelte";
+	import { refresh } from "../auth";
+	import type { Repository } from "./types";
 
 	// sort
 	const SortDefault: Sort = "pushed";
@@ -15,24 +17,68 @@
 	};
 
 	// page limit
-	const ShowDefault: number = 30;
+	const ShowDefault: string = "30";
 
 	let user: User | undefined;
 	let page: number = 0;
-	let show: number = ShowDefault;
-	let sort: Sort = SortDefault;
+  function handlePage(i: number): (e: Event) => void {
+    return async (e: Event) => {
+      e.preventDefault();
+      if (page === 0 && i === -1) return;
+      page += i;
+      await getRepos()
+    }
+  }
 
-	onMount(() => {
+	let show: string = ShowDefault;
+  async function handleShow(e: Event) {
+    e.preventDefault();
+    show = (e.target as HTMLSelectElement)?.value;
+    await getRepos();
+  }
+
+
+	let sort: Sort = SortDefault;
+  async function handleSort(e: Event) {
+    e.preventDefault();
+    sort = (e.target as HTMLSelectElement)?.value as Sort;
+    await getRepos();
+  }
+
+  let repos: Array<Repository> = [];
+  let loading: boolean = true;
+  let error: string | undefined;
+	onMount(async () => {
 		user = AuthStore.user();
     if (!user) {
-AuthStore.refreshSession();
+      AuthStore.refreshSession();
       return
     }
+    await getRepos();
 	});
 
-	const data = fetchRepos(page, sort, show);
+  async function handleRefetch(e: Event) {
+    e.preventDefault();
+    await getRepos();
+  }
+
+  async function getRepos() {
+    try {
+      loading = true;
+      repos = await fetchRepos(page, sort, show)
+    } catch (e) {
+      error = (e as Error).message;
+    } finally {
+      loading = false;
+    }
+  }
+
 
 	let search: string = "";
+  function handleSearch(e: Event) {
+    search = (e.target as HTMLInputElement)?.value ?? "";
+  }
+
 </script>
 
 <main class="px-4 md:px-10">
@@ -52,16 +98,17 @@ AuthStore.refreshSession();
 		</div>
 	</section>
 
-	<section class="">
-		<h1 class="text-gradient text-2xl font-semibold">Repositories</h1>
+	<section class="p-5 md:p-7 mt-12 bg-dark-100 rounded-lg">
+		<h1 class="text-gradient text-2xl font-semibold mb-3">Repositories</h1>
 
 		<div class="">
 			<div class="grid grid-cols-2">
+
 				<div>
 					<label for="sort">Sort by: </label>
-					<select name="sort" class="">
-						{#each Object.entries(sortFunctions) as [name, sort]}
-							<option value={sort}>
+					<select name="sort" class="" on:change={handleSort}>
+						{#each Object.entries(sortFunctions) as [name, s]}
+							<option value={s} selected={sort === s}>
 								{name}
 							</option>
 						{/each}
@@ -69,10 +116,10 @@ AuthStore.refreshSession();
 				</div>
 
 				<div>
-					<label for="show">Show: </label>
-					<select name="show" class="">
-						{#each [10, 20, 30] as i}
-							<option>
+					<label for="show">Show:</label>
+					<select name="show" class="" on:change={handleShow}>
+						{#each ["10", "20", "30"] as i}
+							<option selected={i === show}>
 								{i}
 							</option>
 						{/each}
@@ -82,36 +129,47 @@ AuthStore.refreshSession();
 
 			<div class="flex flex-col">
 				<label for="repo-search">Search bar</label>
-				<input name="repo-search" />
+        <input name="repo-search" on:input={handleSearch}/>
 			</div>
 		</div>
 
-		<hr class="text-main border-main my-4 rounded-lg border" />
+		<hr class="text-main border-main my-6 rounded-lg border" />
 
-		{#await data}
-			<div
-				class="flex h-64 w-full flex-col items-center justify-center gap-3"
-			>
-				<Spinner class="stroke-main" />
-				<p>Fetching data...</p>
-			</div>
-		{:then repos}
-			{#if repos.length === 0}
-				<p>You don't have any repository yet.</p>
-			{:else}
-				<ul>
-					{#each repos.filter( (d) => d.full_name.includes(search ?? ""), ) as repo}
-						<Repo {repo} />
-					{/each}
-				</ul>
-				<div class="">
-					<button>prev</button>
-					<p>{page}</p>
-					<button>next</button>
-				</div>
-			{/if}
-		{:catch error}
-			<p>{error}</p>
-		{/await}
-	</section>
+    {#if error}
+      <div class="p-5 bg-red-400 rounded-lg text-dark-200">
+        <h2 class="font-bold text-lg inline">Whoops!</h2>
+        <span>An error has occured:</span>
+        <p>{error}</p>
+      </div>
+
+    {:else if loading}
+      <div
+        class="flex h-64 w-full flex-col items-center justify-center gap-3"
+      >
+        <Spinner class="stroke-main" />
+        <p>Fetching data...</p>
+      </div>
+
+    {:else}
+      {#if repos.length === 0}
+        <p>You don't have any repository yet.</p>
+
+      {:else}
+        <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {#each repos.filter((d) => d.full_name.includes(search ?? "")) as repo (repo.id)}
+            <Repo {repo} />
+          {/each}
+
+        </ul>
+
+        <div class="">
+          <button on:click={handlePage(-1)}>prev</button>
+          <p>{page}</p>
+          <button on:click={handlePage(1)}>next</button>
+        </div>
+
+      {/if}
+
+    {/if}
+  </section>
 </main>

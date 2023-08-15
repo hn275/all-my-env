@@ -2,6 +2,7 @@ import { PUBLIC_GITHUB_CLIENT_ID, PUBLIC_NODE_ENV } from "$env/static/public";
 
 // store
 export type User = {
+  access_token: string;
   name: string;
   avatar_url: string;
   login: string;

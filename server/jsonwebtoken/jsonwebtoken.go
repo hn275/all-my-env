@@ -82,7 +82,7 @@ func (e *Encoder) Encode(userID uint64, maskedToken, aud string) (string, error)
 			Issuer:    "EnvHub",
 			Subject:   fmt.Sprintf("%d", userID),
 			Audience:  []string{aud},
-			ExpiresAt: &jwt.NumericDate{Time: time.Now().UTC().Add(time.Hour * 24 * 7)},
+			ExpiresAt: &jwt.NumericDate{Time: time.Now().UTC().Add(time.Hour * 24)},
 			NotBefore: &jwt.NumericDate{Time: time.Now().UTC()},
 			IssuedAt:  &jwt.NumericDate{Time: time.Now().UTC()},
 		},
