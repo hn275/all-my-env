@@ -5,37 +5,37 @@
 @tailwind utilities;
 
 html {
-  scroll-behavior: smooth;
+	scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-dark-200 font-regular text-light;
-  overflow-x: hidden;
+	@apply bg-dark-200 font-regular text-light;
+	overflow-x: hidden;
 }
 
 main {
-  overflow-x: hidden !important;
+	overflow-x: hidden !important;
 }
 
 a:hover {
-  cursor: pointer;
+	cursor: pointer;
 }
 
 .btn:disabled {
-  @apply bg-gray-600 opacity-50;
+	@apply bg-gray-600 opacity-50;
 }
 
 .btn {
-  @apply normal-case;
+	@apply normal-case;
 }
 
 .btn-outline:hover {
-  @apply bg-main/20 border-main text-main;
+	@apply bg-main/20 border-main text-main;
 }
 
 .text-gradient {
-  @apply bg-gradient-to-tr from-light to-main;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+	@apply bg-gradient-to-tr from-light to-main;
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
 }

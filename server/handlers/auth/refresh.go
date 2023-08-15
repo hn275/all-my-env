@@ -22,15 +22,26 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// validate refresh cookie
+	tok, err := r.Cookie(api.CookieRefTok)
+	if err != nil {
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		return
+	}
+	if err := tok.Valid(); err != nil {
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		return
+	}
+
 	// validate access token
-	c, err := getToken(r.Header.Get("Authorization"))
+	jwtTok, err := getToken(r.Header.Get("Authorization"))
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
 	}
 
 	// verifying jwt
-	clms, err := jsonwebtoken.NewDecoder().Decode(c)
+	clms, err := jsonwebtoken.NewDecoder().Decode(jwtTok)
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusForbidden).
@@ -47,18 +58,6 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	accessToken, err := decodeAccessToken(userID, clms.AccessToken)
 	if err != nil {
-		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
-		return
-	}
-
-	// validate ref token
-	tok, err := r.Cookie(api.CookieRefTok)
-	if err != nil {
-		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
-		return
-	}
-
-	if err := tok.Valid(); err != nil {
 		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
 	}

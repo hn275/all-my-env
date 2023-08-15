@@ -9,6 +9,8 @@ import (
 	"github.com/hn275/envhub/server/gh"
 )
 
+// returns 201 on success, no body
+// { "message": "err" } otherwise
 func Link(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()

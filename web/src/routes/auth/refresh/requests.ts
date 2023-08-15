@@ -17,7 +17,6 @@ export async function refreshSession(): Promise<User> {
 			AuthStore.login(payload as User);
 			return payload as User;
 		case 401 | 403:
-			AuthStore.logout();
 			throw new Error((payload as EnvHub.Error).message);
 		default:
 			throw new Error((payload as EnvHub.Error).message);

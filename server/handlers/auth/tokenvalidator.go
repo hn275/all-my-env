@@ -11,13 +11,17 @@ import (
 func TokenValidator(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// VALIDATE COOKIE
-		_, err := r.Cookie(api.CookieRefTok)
+		refCookie, err := r.Cookie(api.CookieRefTok)
 		if err != nil {
 			api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 			return
 		}
+		if err := refCookie.Valid(); err != nil {
+			api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		}
 
-		accessToken, err := getToken(r.Header.Get("Authorization"))
+		tok := r.Header.Get("Authorization")
+		accessToken, err := getToken(tok)
 		if err != nil {
 			api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 			return

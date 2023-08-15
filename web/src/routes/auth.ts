@@ -1,5 +1,6 @@
 import { makeUrl } from "@lib/url";
 import type { User } from "@lib/auth";
+import { apiFetch } from "@lib/requests";
 
 export async function signIn(code: string): Promise<User> {
 	const res = await fetch(makeUrl("/auth/github"), {
@@ -16,12 +17,11 @@ export async function signIn(code: string): Promise<User> {
 }
 
 export async function refresh(): Promise<User> {
-	const res = await fetch(makeUrl("/auth/refresh"), {
+	const res = await apiFetch(makeUrl("/auth/refresh"), {
 		method: "GET",
 		headers: {
 			Accept: "application/json",
 		},
-		credentials: "include",
 	});
 	const payload: EnvHub.Response<User> = await res.json();
 	if (res.status !== 200) {

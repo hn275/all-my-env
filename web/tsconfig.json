@@ -15,7 +15,7 @@
 			"@lib/*": ["./src/lib/*"],
 			"@assets/*": ["./src/assets/*"],
 			"$lib": ["./src/lib/"],
-			"$lib/*": ["./src/lib/*"],
+			"$lib/*": ["./src/lib/*"]
 		}
 	}
 }

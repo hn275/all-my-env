@@ -3,8 +3,8 @@
 	import { type Sort, fetchRepos } from "./requests";
 	import Spinner from "@components/spinner.svelte";
 	import Repo from "./components/Repo.svelte";
-	import { onMount } from "svelte";
-	import { refresh } from "../auth";
+  import { onMount } from "svelte";
+  import { refresh } from "../auth";
 	import type { Repository } from "./types";
 
 	// sort
@@ -57,11 +57,6 @@
     await getRepos();
 	});
 
-  async function handleRefetch(e: Event) {
-    e.preventDefault();
-    await getRepos();
-  }
-
   async function getRepos() {
     try {
       loading = true;
@@ -98,8 +93,8 @@
 		</div>
 	</section>
 
-	<section class="p-5 md:p-7 mt-12 bg-dark-100 rounded-lg">
-		<h1 class="text-gradient text-2xl font-semibold mb-3">Repositories</h1>
+	<section class="bg-dark-100 mt-12 rounded-lg p-5 md:p-7">
+		<h1 class="text-gradient mb-3 text-2xl font-semibold">Repositories</h1>
 
 		<div class="">
 			<div class="grid grid-cols-2">
@@ -136,8 +131,8 @@
 		<hr class="text-main border-main my-6 rounded-lg border" />
 
     {#if error}
-      <div class="p-5 bg-red-400 rounded-lg text-dark-200">
-        <h2 class="font-bold text-lg inline">Whoops!</h2>
+      <div class="text-dark-200 rounded-lg bg-red-400 p-5">
+        <h2 class="inline text-lg font-bold">Whoops!</h2>
         <span>An error has occured:</span>
         <p>{error}</p>
       </div>
@@ -155,7 +150,7 @@
         <p>You don't have any repository yet.</p>
 
       {:else}
-        <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <ul class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {#each repos.filter((d) => d.full_name.includes(search ?? "")) as repo (repo.id)}
             <Repo {repo} />
           {/each}

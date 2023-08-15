@@ -7,23 +7,12 @@ export function apiFetch(path: string, r: RequestInit): Promise<Response> {
 		throw new Error("user not found");
 	}
 
-	const req: RequestInit = {
-		credentials: "include",
-		headers: {
-			Authorization: "Bearer " + user.access_token,
-		},
-	};
+	const headers = new Headers({
+		...r.headers,
+		Authorization: "Bearer " + user.access_token,
+	});
+	r.credentials = "include";
+	r.headers = headers;
 
-	return fetch(path, deepCopy(r, req));
-}
-
-function deepCopy(dst: any, src: any): any {
-	for (const [k, v] of Object.entries(src)) {
-		if (typeof v === "object") {
-			deepCopy(dst[k], v);
-		} else {
-			dst[k] = v;
-		}
-	}
-	return dst;
+	return fetch(path, r);
 }
