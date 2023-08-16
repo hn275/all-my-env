@@ -9,7 +9,7 @@
   import type { Breadcrumbs } from "@lib/types"
 
 
-  export let breadcrumbs: Array<Breadcrumbs> | undefined;
+  export let breadcrumbs: Array<Breadcrumbs> = [];
 
   let user: User | undefined;
   onMount(() => {
