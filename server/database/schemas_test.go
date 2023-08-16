@@ -34,3 +34,37 @@ func TestGenID(t *testing.T) {
 	assert.Equal(t, 1, len(idCounterMap))
 	assert.Equal(t, iteration*2, len(idSet))
 }
+
+func TestVariableGenID(t *testing.T) {
+	v := Variable{Key: "foo", Value: "bar"}
+	err := v.GenID()
+	assert.Equal(t, ErrRepoMissingRepoID, err)
+
+	v.RepositoryID = 123
+	err = v.GenID()
+	assert.Nil(t, err)
+	assert.NotEmpty(t, v.ID)
+	assert.Equal(t, 32, len(v.ID))
+}
+
+func TestVariableEncryptDecrypt(t *testing.T) {
+	var err error
+	v := Variable{Key: "foo", RepositoryID: 123}
+	err = v.EncryptValue()
+	assert.Equal(t, ErrIDNotGenerated, err)
+
+	err = v.GenID()
+	assert.Nil(t, err)
+
+	err = v.EncryptValue()
+	assert.Equal(t, ErrValueNotFound, err)
+
+	v.Value = "bar"
+	err = v.EncryptValue()
+	assert.Nil(t, err)
+	assert.NotEqual(t, "bar", v.Value)
+
+	err = v.DecryptValue()
+	assert.Nil(t, err)
+	assert.Equal(t, "bar", v.Value)
+}

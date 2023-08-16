@@ -25,6 +25,8 @@ var (
 	m            sync.Mutex
 
 	ErrRepoMissingRepoID = errors.New("repository id not set")
+	ErrIDNotGenerated    = errors.New("id not generated")
+	ErrValueNotFound     = errors.New("value not found")
 )
 
 func init() {
@@ -55,7 +57,7 @@ type Repository struct {
 	// ie: hn275/envhub
 	FullName string `gorm:"not null" json:"full_name"`
 	// ie: https://github.com/hn275/envhub
-	Url string `gorm:"not null" json:"url"`
+	Url           string `gorm:"not null" json:"url"`
 	VariableCount uint16 `gorm:"default:0"`
 
 	// relation
@@ -138,7 +140,11 @@ func (v *Variable) GenID() error {
 // Cipher value, will panic if `Variable.ID` is an empty value
 func (v *Variable) EncryptValue() error {
 	if v.ID == "" {
-		panic("variable id not generated")
+		return ErrIDNotGenerated
+	}
+
+	if v.Value == "" {
+		return ErrValueNotFound
 	}
 
 	ad, err := base64.StdEncoding.DecodeString(v.ID)
