@@ -30,6 +30,7 @@
   let loading: boolean = true;
   let error: string | undefined;
   onMount(async () => {
+    page = 1;
     await getRepos();
   });
 
@@ -50,13 +51,14 @@
     window.onscroll = async function(_: Event) {
       const bottom = window.innerHeight + Math.round(window.scrollY);
       const isBottom: boolean = bottom >= document.body.offsetHeight
-      if (!isBottom || !hasMoreRepo) return;
+      if (!isBottom || !hasMoreRepo || loadMoreLoading) return;
       page++;
       try {
         loadMoreLoading = true;
         const res = await fetchRepos(page, sort, Show.toString());
-        for (const r of res) repos.push(r);
+        repos = [...repos, ...res];
         hasMoreRepo = res.length === Show;
+        console.log(hasMoreRepo, page)
       } catch (e) {
         error = (e as Error).message;
       } finally {
@@ -103,7 +105,7 @@
 				<div class="text-dark-200 rounded-lg bg-red-400 p-5">
 					<h2 class="inline text-lg font-bold">Whoops!</h2>
 					<span>An error has occured:</span>
-					<p>{error}</p>
+                      <p>{error}</p>
 				</div>
 			{:else if loading}
 				<div
