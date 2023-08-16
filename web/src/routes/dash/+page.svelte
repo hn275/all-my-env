@@ -88,61 +88,64 @@
 </script>
 
 <Main breadcrumbs={undefined}>
-	<section class="h-full p-5 md:p-7">
-		<h1 class="text-gradient mb-3 text-2xl font-semibold">Repositories</h1>
-
-    <div class="">
-      <div>
-        <label for="sort">Sort by: </label>
-        <select name="sort" class="" on:change={handleSort}>
-          {#each Object.entries(sortFunctions) as [name, s]}
-            <option value={s} selected={sort === s}>
-              {name}
-            </option>
-          {/each}
-        </select>
+  <div class="mx-auto max-w-screen-2xl">
+    <section class="h-full p-5 md:p-7">
+      <h1 class="text-gradient mb-3 text-2xl font-semibold">Repositories</h1>
+      <div class="mb-8">
+        <div class="flex gap-5">
+          <input 
+            type="text" 
+            placeholder="Search repositories" 
+            class="input input-bordered bg-dark-200 w-full flex-grow"
+            on:input={handleSearch}
+          />
+          <select 
+            class="select bg-dark-200 text-light/70 font-normal" 
+            name="sort"
+            on:change={handleSort}
+          >
+            {#each Object.entries(sortFunctions) as [name, s]}
+              <option value={s} selected={sort === s}>
+                {name}
+              </option>
+            {/each}
+          </select>
+        </div>
       </div>
 
-			<div class="flex flex-col">
-				<label for="repo-search">Search bar</label>
-        <input name="repo-search" on:input={handleSearch}/>
-			</div>
-		</div>
+      {#if error}
+        <div class="text-dark-200 rounded-lg bg-red-400 p-5">
+          <h2 class="inline text-lg font-bold">Whoops!</h2>
+          <span>An error has occured:</span>
+          <p>{error}</p>
+        </div>
 
-		<hr class="text-main border-main my-6 rounded-lg border" />
-
-    {#if error}
-      <div class="text-dark-200 rounded-lg bg-red-400 p-5">
-        <h2 class="inline text-lg font-bold">Whoops!</h2>
-        <span>An error has occured:</span>
-        <p>{error}</p>
-      </div>
-
-    {:else if loading}
-      <div
-        class="flex h-full min-h-[calc(100vh-420px)] w-full flex-col items-center justify-center gap-3"
-      >
-        <Spinner class="stroke-main" />
-        <p>Fetching data...</p>
-      </div>
-
-    {:else}
-      {#if repos.length === 0}
-        <p>You don't have any repository yet.</p>
+        {:else if loading}
+        <div
+          class="flex h-full min-h-[calc(100vh-420px)] w-full flex-col items-center justify-center gap-3"
+        >
+          <Spinner class="stroke-main" />
+          <p>Fetching data...</p>
+        </div>
 
       {:else}
-        <ul class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {#each repos.filter((d) => d.full_name.includes(search ?? "")) as repo (repo.id)}
-            <Repo {repo} />
-          {/each}
-        </ul>
-      {/if}
-    {/if}
+        {#if repos.length === 0}
+          <p>You don't have any repository yet.</p>
 
-    {#if hasMoreRepo && loadMoreLoading && !loading}
-      <div class="mt-5 flex w-full justify-center">
-        <div class="loading bg-main"></div>
-      </div>
-    {/if}
-  </section>
+        {:else}
+          <ul class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {#each repos.filter((d) => d.full_name.includes(search ?? "")) as repo (repo.id)}
+              <Repo {repo} />
+            {/each}
+          </ul>
+        {/if}
+      {/if}
+
+      {#if hasMoreRepo && loadMoreLoading && !loading}
+        <div class="mb-4 mt-12 flex w-full justify-center">
+          <div class="loading bg-main"></div>
+        </div>
+      {/if}
+    </section>
+  </div>
 </Main>
