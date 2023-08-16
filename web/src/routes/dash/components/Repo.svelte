@@ -54,7 +54,7 @@
     </div>
   </div>
 
-  <div class="flex h-11 items-center justify-between">
+  <div class="flex items-center justify-between">
     <div class="text-light/70 flex items-center gap-2">
       <Icon show={true} tooltip={repo.full_name}>
         <a href={githubHref} target="_blank" class="mr-2">
@@ -80,7 +80,7 @@
     {#if repo.linked}
       <div class="flex items-center justify-between py-2">
         <a href={repoURL()} class={cx([
-          "btn text-main/80 hover:text-main border-none px-0 font-normal normal-case", 
+          "link link-primary text-xs", 
           "bg-transparent text-sm transition hover:bg-transparent"
         ])}>
           see {repo.variable_counter} variable(s)
@@ -90,15 +90,15 @@
       <button 
         on:click={handleLinkRepo}
         class={cx([
-        "btn btn-outline bg-main/10 border-main text-main hover:bg-main/20",
-        { "loading loading-spinner loading-xs": loading }
+          "text-main border-main bg-main/5 hover:bg-main/10 rounded-lg border p-2 text-sm transition",
+        { "loading loading-dots": loading }
       ])}>
         {#if !loading}
           Connect repo
         {/if}
       </button>
     {:else}
-      <p class="text-light/50 text-sm">not connected</p>
+      <p class="text-light/50 text-xs">not connected</p>
     {/if}
   </div>
 </li>

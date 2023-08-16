@@ -3,6 +3,7 @@
 	import { type Sort, fetchRepos } from "./requests";
 	import Spinner from "@components/spinner.svelte";
 	import Repo from "./components/Repo.svelte";
+  import Main from "@components/main.svelte";
   import { onMount } from "svelte";
 	import type { Repository } from "./types";
 
@@ -86,24 +87,8 @@
 
 </script>
 
-<main class="px-4 md:px-10">
-	<section class="mt-5 px-4">
-		<div class="flex flex-col items-center justify-center gap-2 md:w-max">
-			<img
-				alt="hn275"
-				role="presentation"
-				src={user?.avatar_url}
-				class="w-20 rounded-full"
-			/>
-			<div>
-				<h2 class="inline-block text-lg font-semibold">{user?.name}</h2>
-				&nbsp;
-				<span class="text-xs">({user?.login})</span>
-			</div>
-		</div>
-	</section>
-
-	<section class="bg-dark-100 mt-12 rounded-lg p-5 md:p-7">
+<Main breadcrumbs={undefined}>
+	<section class="h-full p-5 md:p-7">
 		<h1 class="text-gradient mb-3 text-2xl font-semibold">Repositories</h1>
 
     <div class="">
@@ -135,7 +120,7 @@
 
     {:else if loading}
       <div
-        class="flex h-64 w-full flex-col items-center justify-center gap-3"
+        class="flex h-full min-h-[calc(100vh-420px)] w-full flex-col items-center justify-center gap-3"
       >
         <Spinner class="stroke-main" />
         <p>Fetching data...</p>
@@ -160,4 +145,4 @@
       </div>
     {/if}
   </section>
-</main>
+</Main>
