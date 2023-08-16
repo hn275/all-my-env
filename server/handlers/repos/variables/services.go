@@ -1,6 +1,7 @@
 package variables
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"sync"
@@ -23,9 +24,21 @@ type contributor struct {
 func (c *contributor) getRepoAccess() {
 	c.wg.Add(1)
 	defer c.wg.Done()
-
 	c.mut.Lock()
 	defer c.mut.Unlock()
+
+	if c.repoURL == "" {
+		c.err = errors.New("repository url not found.")
+		return
+	}
+	if c.userLogin == "" {
+		c.err = errors.New("user login not found")
+		return
+	}
+	if c.userTok == "" {
+		c.err = errors.New("user token not found")
+		return
+	}
 
 	r, err := gh.New(c.userTok).Get("/repos/%s/collaborators/%s", c.repoURL, c.userLogin)
 	if err != nil {

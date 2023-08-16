@@ -28,36 +28,22 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get repo info
-	type Repo struct {
-		database.Repository
-		Login string
-	}
-	var repo Repo
-	repo.ID, err = strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 64)
+	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 64)
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
-			Error("Invalid repository id: %s", err.Error())
+			Error("failed to parse repository id: %s", err.Error())
 		return
 	}
-	sel := []string{
-		"users.login",
-		"repositories.full_name",
-		"repositories.url",
-		"repositories.variable_count",
-	}
-	db := database.New()
-	err = db.Table(database.TableRepos).
-		Select(sel).
-		InnerJoins("JOIN users ON users.id = repositories.user_id").
-		Where("repositories.id = ? AND users.id = ?", repo.ID, user.ID).
-		First(&repo).Error
-	switch err {
+	repo := RepoInfo{&database.Repository{}, ""}
+	repo.ID = repoID
+	repo.UserID = user.ID
+	switch err := db.getRepoInfo(&repo); err {
 	case nil:
 		break
 
 	case gorm.ErrRecordNotFound:
-		api.NewResponse(w).Status(http.StatusNotFound).Error("Repository not found")
+		api.NewResponse(w).Status(http.StatusNotFound).Error("repository not found")
 		return
 
 	default:
@@ -71,16 +57,14 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		err:       nil,
 		mut:       sync.Mutex{},
 		wg:        sync.WaitGroup{},
-		userLogin: repo.Login,
+		userLogin: repo.UserLogin,
 		userTok:   user.Token,
 		repoURL:   repo.FullName,
 	}
 	go c.getRepoAccess()
 
-	var env []database.Variable
-	err = db.Table(database.TableVariables).
-		Where("repository_id = ?", repo.ID).
-		Find(&env).Error
+	env := make([]database.Variable, repo.VariableCount)
+	err = db.getVariables(env, repo.ID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
@@ -105,5 +89,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	api.NewResponse(w).Status(http.StatusOK).JSON(&env)
+	api.NewResponse(w).
+		Status(http.StatusOK).
+		JSON(&env)
 }
