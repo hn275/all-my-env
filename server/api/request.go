@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -34,4 +35,12 @@ func (r *RequestCtx) User() (*UserContext, error) {
 		return nil, errors.New("user context not found")
 	}
 	return u, nil
+}
+
+func (r *RequestCtx) Query(k string) (string, error) {
+	q := r.Request.URL.Query().Get(k)
+	if q == "" {
+		return "", fmt.Errorf("query %s not found", k)
+	}
+	return q, nil
 }

@@ -15,7 +15,7 @@
 			if (!code) return;
 			const user = await signIn(code);
 			AuthStore.login(user);
-      urlRedirect("/dash");
+      urlRedirect("/dashboard");
 		} catch (e) {
 			error = (e as Error).message;
 		} finally {
@@ -24,10 +24,10 @@
 	});
 </script>
 
-<main class="min-h-[100vh] flex justify-center items-center">
+<main class="flex min-h-[100vh] items-center justify-center">
 	{#if error}
 		<section class="flex flex-col items-center gap-5 p-9">
-			<h2 class="font-semibold text-3xl text-accent-fuchsia-100">
+			<h2 class="text-accent-fuchsia-100 text-3xl font-semibold">
 				Oops, something went wrong &#128532;
 			</h2>
 			<p>

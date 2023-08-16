@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/hn275/envhub/server/handlers/auth"
 	"github.com/hn275/envhub/server/handlers/repos"
+	"github.com/hn275/envhub/server/handlers/repos/variables"
 )
 
 func New() *chi.Mux {
@@ -56,16 +57,17 @@ func New() *chi.Mux {
 		r.Use(auth.TokenValidator)
 		r.Handle("/", http.HandlerFunc(repos.Index))
 		r.Handle("/link", http.HandlerFunc(repos.Link))
-		//
-		// r.Route("/{repoID}", func(r chi.Router) {
-		// 	r.Route("/variables", func(r chi.Router) {
-		// 		r.Handle("/", http.HandlerFunc(variables.Index))
-		// 		r.Group(func(r chi.Router) {
-		// 			r.Use(variables.WriteAccessChecker)
-		// 			r.Handle("/new", http.HandlerFunc(variables.NewVariable))
-		// 		})
-		// 	})
-		// })
+		r.Route("/{repoID}", func(r chi.Router) {
+			r.Handle("/", http.HandlerFunc(variables.Index))
+
+			// 	r.Route("/variables", func(r chi.Router) {
+			// 		r.Handle("/", http.HandlerFunc(variables.Index))
+			// 		r.Group(func(r chi.Router) {
+			// 			r.Use(variables.WriteAccessChecker)
+			// 			r.Handle("/new", http.HandlerFunc(variables.NewVariable))
+			// 		})
+			// 	})
+		})
 	})
 
 	return r
