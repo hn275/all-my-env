@@ -11,7 +11,7 @@ import (
 type jwtDecoderMock struct{}
 
 func MockDecoder(m JsonWebTokenDecoder) {
-	decoder = m
+	dec = m
 }
 
 func (j *jwtDecoderMock) Decode(_ string) (*jwt.Token, error) {

@@ -13,8 +13,8 @@ var (
 	secret string
 	Secret string
 	// Decoder JsonWebToken
-	decoder JsonWebTokenDecoder
-	encoder JsonWebTokenEncoder
+	dec JsonWebTokenDecoder
+	enc JsonWebTokenEncoder
 
 	ErrInvalidToken     error = errors.New("token expired")
 	ErrInvalidTokenAlgo error = errors.New("invalid signing algorithm")
@@ -27,22 +27,20 @@ type AuthClaim struct {
 
 func init() {
 	secret = lib.Getenv("JWT_SECRET")
-	Secret = lib.Getenv("JWT_SECRET")
-
-	decoder = &Decoder{}
-	encoder = &Encoder{}
+	dec = &decoder{}
+	enc = &encoder{}
 }
 
 type JsonWebTokenDecoder interface {
 	Decode(string) (*AuthClaim, error)
 }
-type Decoder struct{}
+type decoder struct{}
 
 func NewDecoder() JsonWebTokenDecoder {
-	return decoder
+	return dec
 }
 
-func (d *Decoder) Decode(token string) (*AuthClaim, error) {
+func (d *decoder) Decode(token string) (*AuthClaim, error) {
 	tok, err := jwt.ParseWithClaims(token, &AuthClaim{}, func(t *jwt.Token) (interface{}, error) {
 		if t.Method.Alg() != jwt.SigningMethodHS256.Name {
 			return nil, ErrInvalidTokenAlgo
@@ -69,13 +67,13 @@ func (d *Decoder) Decode(token string) (*AuthClaim, error) {
 type JsonWebTokenEncoder interface {
 	Encode(userID uint64, maskedToken, aud string) (string, error)
 }
-type Encoder struct{}
+type encoder struct{}
 
 func NewEncoder() JsonWebTokenEncoder {
-	return encoder
+	return enc
 }
 
-func (e *Encoder) Encode(userID uint64, maskedToken, aud string) (string, error) {
+func (e *encoder) Encode(userID uint64, maskedToken, aud string) (string, error) {
 	c := AuthClaim{
 		AccessToken: maskedToken,
 		RegisteredClaims: &jwt.RegisteredClaims{
