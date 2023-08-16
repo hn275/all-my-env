@@ -8,9 +8,19 @@ import (
 )
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	refTok, _ := r.Cookie(api.CookieRefTok)
+	refTok, err := r.Cookie(api.CookieRefTok)
+	if err != nil {
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		return
+	}
 	refTok.Expires = time.Now().UTC().Add(-100 * time.Hour)
-	accTok, _ := r.Cookie(api.CookieAccTok)
+
+	accTok, err := r.Cookie(api.CookieAccTok)
+	if err != nil {
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
+		return
+	}
+
 	accTok.Expires = time.Now().UTC().Add(-100 * time.Hour)
 	api.NewResponse(w).
 		SetCookie(refTok).

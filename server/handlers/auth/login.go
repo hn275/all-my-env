@@ -21,7 +21,7 @@ type authResponse struct {
 
 // Verify token send from body, then query for user data.
 // Save user in database if they don't exists
-func GitHub(w http.ResponseWriter, r *http.Request) {
+func LogIn(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
