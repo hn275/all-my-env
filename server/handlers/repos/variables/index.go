@@ -12,6 +12,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type IndexResponse struct {
+	Variables   []database.Variable `json:"variables"`
+	WriteAccess bool                `json:"write_access"`
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()
@@ -89,7 +94,20 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// query db for write access
+	var p database.Permission
+	err = db.getWriteAccess(repo.UserID, repo.ID, &p)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+
+	response := IndexResponse{
+		Variables:   env,
+		WriteAccess: !errors.Is(err, gorm.ErrRecordNotFound),
+	}
+
 	api.NewResponse(w).
 		Status(http.StatusOK).
-		JSON(&env)
+		JSON(&response)
 }

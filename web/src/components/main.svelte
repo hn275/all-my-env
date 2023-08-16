@@ -2,10 +2,10 @@
   import "../index.css";
   import cx from "classnames";
   import Logo from "@assets/logo.svg";
-	import { AuthStore, type User } from "@lib/auth";
-	import { onMount } from "svelte";
-	import { makeUrl } from "@lib/url";
-	import { apiFetch } from "@lib/requests";
+  import { AuthStore, type User } from "@lib/auth";
+  import { onMount } from "svelte";
+  import { makeUrl } from "@lib/url";
+  import { apiFetch } from "@lib/requests";
   import type { Breadcrumbs } from "@lib/types"
 
 

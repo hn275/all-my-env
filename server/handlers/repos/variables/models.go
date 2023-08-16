@@ -47,3 +47,10 @@ func (db *Model) getVariables(v []database.Variable, repoID uint64) error {
 		Where("repository_id = ?", repoID).
 		Find(&v).Error
 }
+
+func (db *Model) getWriteAccess(userID, repoID uint64, perm *database.Permission) error {
+	return db.
+		Where("user_id = ? AND repository_id = ?", userID, repoID).
+		First(&perm).
+		Error
+}

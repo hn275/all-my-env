@@ -1,30 +1,41 @@
 <script lang="ts">
-  import Main from "@components/main.svelte";
-  import type { Breadcrumbs } from "@lib/types";
-  import { onMount } from "svelte";
-  import { getVariables } from "./requests";
-  import { store, type Variable } from "./store"
-  import type { Route } from "./+page.server";
-  import cx from "classnames";
+	import Main from "@components/main.svelte";
+	import type { Breadcrumbs } from "@lib/types";
+	import { onMount } from "svelte";
+	import { getVariables, writeNewVariable } from "./requests";
+	import { store, type NewVariable } from "./store";
+	import type { Route } from "./+page.server";
+	import cx from "classnames";
+	import AddButton from "./addBtn.svelte";
 
-  export let data: Route;
+	export let data: Route;
+	let breadcrumbs: Array<Breadcrumbs> | undefined;
+	let rsp: Promise<void>;
+	let repoName: string;
+	onMount(async () => {
+		// breadcrumbs
+		const url: URL = new URL(window.location.href);
+		repoName = url.searchParams.get("name")!;
+		repoName = decodeURIComponent(repoName);
+		breadcrumbs = [{ text: repoName, href: url.toString() }];
 
-  let breadcrumbs: Array<Breadcrumbs> | undefined;
-  let rsp: Promise<void>;
-  let repoName: string;
-  onMount(async () => {
-    // breadcrumbs
-    const url: URL = new URL(window.location.href);
-    repoName = url.searchParams.get("name")!;
-    repoName = decodeURIComponent(repoName);
-    breadcrumbs = [{ text: repoName, href: url.toString() }];
+		// fetch variables
+		rsp = getVariables(data.id);
+	});
 
-    // fetch variables
-    rsp = getVariables(data.id);
-  })
+	let addLoader: boolean = false;
+	let addError: string | undefined;
+	async function handleNewVariable(v: NewVariable) {
+		try {
+			addLoader = true;
+			await writeNewVariable(data.id,v);
+		} catch (e) {
+			addError = (e as Error).message;
+		} finally {
+			addLoader = false;
+		}
+	}
 
-  let variables: Array<Variable> = [];
-  store.subscribe((v) => variables = v);
 </script>
 
 <Main {breadcrumbs}>
@@ -46,10 +57,12 @@
 				>
 					Git Repository
 				</a>
-				<button class="btn btn-primary text-xs">
-					<i class="fa-solid fa-plus" />
-					Add
-				</button>
+				<AddButton
+					loading={addLoader}
+					error={addError}
+					on:write={handleNewVariable}
+					writeAccess={$store.write_access}
+				/>
 			</div>
 		</div>
 	</section>
@@ -74,7 +87,7 @@
 				</thead>
 				{#await rsp then}
 					<tbody>
-						{#each variables as v, i (v.id)}
+						{#each $store.variables as v, i (v.id)}
 							<tr>
 								<td>{i + 1}</td>
 								<td>{v.key}</td>
@@ -94,15 +107,17 @@
 					<p>Getting variables...</p>
 				</div>
 			{:then}
-				{#if variables.length === 0}
+				{#if $store.variables.length === 0}
 					<div
 						class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-3"
 					>
 						<p class="text-light/50">No variables stored</p>
-						<button class="btn btn-primary">
-							<i class="fa-brands fa-add" />
-							Add
-						</button>
+				<AddButton
+					loading={addLoader}
+					error={addError}
+					on:write={handleNewVariable}
+					writeAccess={$store.write_access}
+				/>
 					</div>
 				{/if}
 			{:catch e}

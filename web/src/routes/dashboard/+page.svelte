@@ -17,12 +17,13 @@
 
   // page limit
   const Show: number = 30;
-
   let page: number = 1;
+
   let sort: Sort = SortDefault;
   async function handleSort(e: Event) {
     e.preventDefault();
     sort = (e.target as HTMLSelectElement)?.value as Sort;
+    page = 1;
     await getRepos();
   }
 
