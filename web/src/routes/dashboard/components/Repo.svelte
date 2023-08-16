@@ -6,9 +6,11 @@
 
 	export let repo: Repository;
 
-  function repoURL(): string {
-    return "/repo/" + String(repo.id);
-  }
+  const param = new URLSearchParams({
+    "id": repo.id.toString(),
+    "name": encodeURIComponent(repo.full_name),
+  });
+  const repoHref: string = `/repo?${param.toString()}`;
 
   const role: string = repo.is_owner ? "owner" : "collaborator";
   const githubHref: string = `https://www.github.com/${repo.full_name}`;
@@ -47,7 +49,9 @@
 		/>
 
     <div>
-      <h3 class="block w-[17ch] truncate text-ellipsis md:w-[25ch] lg:w-[45ch]">{repo.name}</h3>
+      <h3 class="block w-[17ch] truncate text-ellipsis md:w-[25ch] lg:w-[45ch]">
+        {repo.name}
+      </h3>
       <p class="text-light/70 inline text-sm">
         {role}
       </p>
@@ -79,7 +83,7 @@
 
     {#if repo.linked}
       <div class="flex items-center justify-between py-2">
-        <a href={repoURL()} class={cx([
+        <a href={repoHref} class={cx([
           "link link-primary text-xs", 
           "bg-transparent text-sm transition hover:bg-transparent"
         ])}>
