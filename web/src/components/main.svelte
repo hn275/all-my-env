@@ -6,11 +6,8 @@
 	import { onMount } from "svelte";
 	import { makeUrl } from "@lib/url";
 	import { apiFetch } from "@lib/requests";
+  import type { Breadcrumbs } from "@lib/types"
 
-  type Breadcrumbs = {
-    text: string,
-    link: string
-  };
 
   export let breadcrumbs: Array<Breadcrumbs> | undefined;
 
@@ -58,15 +55,15 @@
           />
           <a 
             class="link link-hover ml-1 text-sm"
-            href="/dash"
+            href="/dashboard"
           >{user?.login ?? ""}
           </a>
         </div>
       </li>
       {#if breadcrumbs}
-        {#each breadcrumbs as {text, link}}
+        {#each breadcrumbs as {text, href}}
           <li>
-            <a href={link}>
+            <a {href}>
               {text}
             </a>
           </li>

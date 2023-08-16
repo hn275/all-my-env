@@ -17,7 +17,7 @@
       const refreshed = AuthStore.sessionRefreshed()
 			if (refreshed || !user) return;
 			loading = true;
-			user = await refresh(user.access_token);
+			user = await refresh();
 			AuthStore.login(user);
 			AuthStore.refreshed();
 		} catch (e) {
@@ -59,14 +59,14 @@
 			</a>
 
 			{#if user}
-				<a href="/dash" class="btn btn-primary w-[14ch]">Dashboard</a>
+				<a href="/dashboard" class="btn btn-primary w-[14ch]">Dashboard</a>
 			{:else}
 				<LogInBtn {loading} />
 			{/if}
 		</div>
 	</section>
 
-	<section class="mx-auto w-full max-w-4xl mb-40" id="get-started">
+	<section class="mx-auto mb-40 w-full max-w-4xl" id="get-started">
 		<h2
 			class="font-accent hero-text-gradient text-center text-4xl font-bold md:ml-12 md:text-left"
 		>
@@ -77,8 +77,8 @@
 </main>
 <footer
 	class={cx([
-		"relative grid grid-cols-3 place-items-center max-w-screen-2xl mx-auto",
-		"text-sm text-light/40 py-5",
+		"relative mx-auto grid max-w-screen-2xl grid-cols-3 place-items-center",
+		"text-light/40 py-5 text-sm",
 	])}
 >
 	<div>

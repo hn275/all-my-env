@@ -69,11 +69,11 @@
 		</a>
 	{:else}
 		<div class="relative">
-			<button class="w-full hover:text-light transition" on:click={handleDropdown}>
+			<button class="hover:text-light w-full transition" on:click={handleDropdown}>
 				<img
 					src={user?.avatar_url}
 					alt={user?.name}
-					class="rounded-full w-7 mb-2 inline mr-2"
+					class="mb-2 mr-2 inline w-7 rounded-full"
 				/>
 				<span class="font-normal">
 					{user?.name}
@@ -89,7 +89,7 @@
 				])}
 			>
 				<li>
-					<a href="/dash">
+					<a href="/dashboard">
 						<img src={Files} alt="files" role="presentation" />
 						<span>.env</span>
 					</a>
