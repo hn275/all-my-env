@@ -7,6 +7,7 @@
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
 	import AddButton from "./addBtn.svelte";
+	import VariableModal from "./var-modal.svelte";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -25,15 +26,25 @@
 
 	let addLoader: boolean = false;
 	let addError: string | undefined;
-	async function handleNewVariable(v: NewVariable) {
+	async function handleNewVariable(e: any) {
 		try {
 			addLoader = true;
-			await writeNewVariable(data.id,v);
+			const v: NewVariable = e.detail;
+			await writeNewVariable(data.id, v);
+			onClose();
 		} catch (e) {
 			addError = (e as Error).message;
 		} finally {
 			addLoader = false;
 		}
+	}
+
+	let addOpen: boolean = false;
+	function onOpen() {
+		addOpen = true;
+	}
+	function onClose() {
+		addOpen = false;
 	}
 
 </script>
@@ -57,12 +68,7 @@
 				>
 					Git Repository
 				</a>
-				<AddButton
-					loading={addLoader}
-					error={addError}
-					on:write={handleNewVariable}
-					writeAccess={$store.write_access}
-				/>
+				<AddButton on:click={onOpen} writeAccess={$store.write_access} />
 			</div>
 		</div>
 	</section>
@@ -112,12 +118,7 @@
 						class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-3"
 					>
 						<p class="text-light/50">No variables stored</p>
-				<AddButton
-					loading={addLoader}
-					error={addError}
-					on:write={handleNewVariable}
-					writeAccess={$store.write_access}
-				/>
+						<AddButton on:click={onOpen} writeAccess={$store.write_access} />
 					</div>
 				{/if}
 			{:catch e}
@@ -127,6 +128,13 @@
 			{/await}
 		</div>
 	</section>
+
+	<VariableModal
+		on:write={handleNewVariable}
+		on:close={onClose}
+		open={addOpen}
+		loading={addLoader}
+	/>
 </Main>
 
 <style lang="postcss">
