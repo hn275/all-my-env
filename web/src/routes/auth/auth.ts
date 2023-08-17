@@ -3,7 +3,7 @@ import { AuthStore, type User } from "@lib/auth";
 import { apiFetch } from "@lib/requests";
 
 export async function signIn(code: string): Promise<User> {
-  const res = await fetch(makeUrl("/auth/github"), {
+  const res = await fetch(makeUrl("/auth"), {
     method: "POST",
     headers: {
       "content-type": "application/json",
