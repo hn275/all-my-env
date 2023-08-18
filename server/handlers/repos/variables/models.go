@@ -33,7 +33,3 @@ func (db *Model) getWriteAccess(userID, repoID uint64, perm *database.Permission
 	}
 	return err
 }
-
-func (db *Model) newVariable(v *database.Variable) error {
-	return db.Create(v).Error
-}
