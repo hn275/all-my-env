@@ -2,12 +2,11 @@
 	import Main from "@components/main.svelte";
 	import type { Breadcrumbs } from "@lib/types";
 	import { onMount } from "svelte";
-	import { getVariables, writeNewVariable } from "./requests";
-	import { store, type NewVariable } from "./store";
+	import { getVariables } from "./requests";
+	import { store } from "./store";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
 	import AddButton from "./addBtn.svelte";
-	import VariableModal from "./var-modal.svelte";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -23,30 +22,6 @@
 		// fetch variables
 		rsp = getVariables(data.id);
 	});
-
-	let addLoader: boolean = false;
-	let addError: string | undefined;
-	async function handleNewVariable(e: any) {
-		try {
-			addLoader = true;
-			const v: NewVariable = e.detail;
-			await writeNewVariable(data.id, v);
-			onClose();
-		} catch (e) {
-			addError = (e as Error).message;
-		} finally {
-			addLoader = false;
-		}
-	}
-
-	let addOpen: boolean = false;
-	function onOpen() {
-		addOpen = true;
-	}
-	function onClose() {
-		addOpen = false;
-	}
-
 </script>
 
 <Main {breadcrumbs}>
@@ -68,7 +43,7 @@
 				>
 					Git Repository
 				</a>
-				<AddButton on:click={onOpen} writeAccess={$store.write_access} />
+				<AddButton repoID={data.id} writeAccess={$store.write_access} />
 			</div>
 		</div>
 	</section>
@@ -98,8 +73,8 @@
 								<td>{i + 1}</td>
 								<td>{v.key}</td>
 								<td>{v.value}</td>
-								<td>{v.created_at.getDay()}</td>
-								<td>{v.updated_at.getDay()}</td>
+								<td>{v.created_at}</td>
+								<td>{v.updated_at}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -118,7 +93,7 @@
 						class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-3"
 					>
 						<p class="text-light/50">No variables stored</p>
-						<AddButton on:click={onOpen} writeAccess={$store.write_access} />
+						<AddButton repoID={data.id} writeAccess={$store.write_access} />
 					</div>
 				{/if}
 			{:catch e}
@@ -128,13 +103,6 @@
 			{/await}
 		</div>
 	</section>
-
-	<VariableModal
-		on:write={handleNewVariable}
-		on:close={onClose}
-		open={addOpen}
-		loading={addLoader}
-	/>
 </Main>
 
 <style lang="postcss">

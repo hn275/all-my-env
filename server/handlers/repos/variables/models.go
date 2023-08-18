@@ -54,3 +54,7 @@ func (db *Model) getWriteAccess(userID, repoID uint64, perm *database.Permission
 		First(&perm).
 		Error
 }
+
+func (db *Model) newVariable(v *database.Variable) error {
+	return db.Create(v).Error
+}

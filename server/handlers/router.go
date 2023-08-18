@@ -55,14 +55,13 @@ func New() *chi.Mux {
 		r.Handle("/link", http.HandlerFunc(repos.Link))
 		r.Route("/{repoID}", func(r chi.Router) {
 			r.Handle("/", http.HandlerFunc(variables.Index))
-
-			// 	r.Route("/variables", func(r chi.Router) {
-			// 		r.Handle("/", http.HandlerFunc(variables.Index))
-			// 		r.Group(func(r chi.Router) {
-			// 			r.Use(variables.WriteAccessChecker)
-			// 			r.Handle("/new", http.HandlerFunc(variables.NewVariable))
-			// 		})
-			// 	})
+			r.Route("/variables", func(r chi.Router) {
+				r.Handle("/new", http.HandlerFunc(variables.NewVariable))
+				// r.Group(func(r chi.Router) {
+				// 	r.Use(variables.WriteAccessChecker)
+				// 	r.Handle("/new", http.HandlerFunc(variables.NewVariable))
+				// })
+			})
 		})
 	})
 
