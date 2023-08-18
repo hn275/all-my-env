@@ -103,6 +103,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	api.NewResponse(w).
+			Header("Cache-Control", "max-age=10").
 		Status(http.StatusOK).
 		JSON(&response)
 }
