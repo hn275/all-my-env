@@ -2,7 +2,6 @@ package variables
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -12,11 +11,6 @@ import (
 	"github.com/hn275/envhub/server/database"
 	"gorm.io/gorm"
 )
-
-type IndexResponse struct {
-	Variables   []database.Variable `json:"variables"`
-	WriteAccess bool                `json:"write_access"`
-}
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -46,7 +40,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	err = db.Find(&repo).Error
 	switch err {
 	case nil:
-		log.Println(repo)
 		break
 
 	case gorm.ErrRecordNotFound:
@@ -71,12 +64,12 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	go c.getRepoAccess()
 
 	env := make([]database.Variable, repo.VariableCount)
-	err = db.getVariables(env, repo.ID)
+
+	err = db.getVariables(&env, repo.ID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-
 	for i := range env {
 		err = env[i].DecryptValue()
 		if err != nil {
@@ -99,14 +92,14 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	// query db for write access
 	var p database.Permission
 	err = db.getWriteAccess(repo.UserID, repo.ID, &p)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	response := IndexResponse{
-		Variables:   env,
-		WriteAccess: !errors.Is(err, gorm.ErrRecordNotFound),
+	response := map[string]any{
+		"variables":    env,
+		"write_access": !errors.Is(err, gorm.ErrRecordNotFound),
 	}
 
 	api.NewResponse(w).
