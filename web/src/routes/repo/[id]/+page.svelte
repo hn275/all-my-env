@@ -7,6 +7,7 @@
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
 	import NewVariable from "./new-var.svelte";
+	import VariableTable from "./var-table.svelte";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -48,7 +49,7 @@
 		</div>
 	</section>
 
-	<section class="m-4 mx-auto max-w-screen-2xl p-5 md:m-8">
+	<section class="m-4 mx-auto max-w-screen-2xl p-5">
 		<h2 class="text-xl font-bold">Environment Variables</h2>
 		<div
 			class={cx([
@@ -56,30 +57,6 @@
 				"w-full overflow-x-auto rounded-md p-5",
 			])}
 		>
-			<table class="table-xs md:table">
-				<thead class="text-xs md:text-sm">
-					<tr>
-						<th />
-						<th class="mr-8">Key</th>
-						<th>Value</th>
-						<th>Created By</th>
-						<th>Last Modified</th>
-					</tr>
-				</thead>
-				{#await rsp then}
-					<tbody>
-						{#each $store.variables as v, i (v.id)}
-							<tr>
-								<td>{i + 1}</td>
-								<td>{v.key}</td>
-								<td>{v.value}</td>
-								<td>{v.created_at}</td>
-								<td>{v.updated_at}</td>
-							</tr>
-						{/each}
-					</tbody>
-				{/await}
-			</table>
 			{#await rsp}
 				<div
 					class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-5"
@@ -88,14 +65,7 @@
 					<p>Getting variables...</p>
 				</div>
 			{:then}
-				{#if $store.variables.length === 0}
-					<div
-						class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-3"
-					>
-						<p class="text-light/50">No variables stored</p>
-						<NewVariable repoID={data.id} writeAccess={$store.write_access} />
-					</div>
-				{/if}
+				<VariableTable repoID={data.id} />
 			{:catch e}
 				<div class="flex h-52 w-full flex-col items-center justify-center">
 					<p class="text-error">{e.message}</p>
