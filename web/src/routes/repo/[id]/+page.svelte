@@ -44,6 +44,14 @@
 				>
 					Git Repository
 				</a>
+				<button
+					class={cx([
+						"btn btn-outline bg-main/0 hover:bg-main/20 border-main/10",
+						"text-main/80 hover:text-main text-xs",
+					])}
+				>
+					Download file
+				</button>
 				<NewVariable repoID={data.id} writeAccess={$store.write_access} />
 			</div>
 		</div>
@@ -59,7 +67,7 @@
 		>
 			{#await rsp}
 				<div
-					class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-5"
+					class={cx(["flex h-full min-h-[400px] w-full flex-col","items-center justify-center gap-5"])}
 				>
 					<span class="loading loading-lg text-main" />
 					<p>Getting variables...</p>
