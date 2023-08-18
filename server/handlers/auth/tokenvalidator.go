@@ -33,6 +33,10 @@ func TokenValidator(next http.Handler) http.Handler {
 			api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 			return
 		}
+		if len(token.Audience) != 1 {
+			api.NewResponse(w).Status(http.StatusForbidden).Error("invalid token")
+			return
+		}
 
 		// GETTING GITHUB TOKEN FROM REQUEST
 		userID, err := strconv.ParseUint(token.Subject, 10, 64)
@@ -45,9 +49,10 @@ func TokenValidator(next http.Handler) http.Handler {
 			api.NewResponse(w).Status(http.StatusUnauthorized).Error(err.Error())
 			return
 		}
+		userLogin := token.Audience[0]
 
 		// ATTACH TO REQUEST
-		ctx := api.NewContext(r).SetUser(userID, userToken)
+		ctx := api.NewContext(r).SetUser(userID, userToken, userLogin)
 		next.ServeHTTP(w, ctx.Request)
 	})
 }

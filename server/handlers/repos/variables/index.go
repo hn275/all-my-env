@@ -2,6 +2,7 @@ package variables
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"sync"
@@ -40,11 +41,12 @@ func Index(w http.ResponseWriter, r *http.Request) {
 			Error("failed to parse repository id: %s", err.Error())
 		return
 	}
-	repo := RepoInfo{&database.Repository{}, ""}
-	repo.ID = repoID
-	repo.UserID = user.ID
-	switch err := db.getRepoInfo(&repo); err {
+
+	repo := database.Repository{ID: repoID}
+	err = db.Find(&repo).Error
+	switch err {
 	case nil:
+		log.Println(repo)
 		break
 
 	case gorm.ErrRecordNotFound:
@@ -62,7 +64,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		err:       nil,
 		mut:       sync.Mutex{},
 		wg:        sync.WaitGroup{},
-		userLogin: repo.UserLogin,
+		userLogin: user.Login,
 		userTok:   user.Token,
 		repoURL:   repo.FullName,
 	}

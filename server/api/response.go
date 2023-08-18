@@ -69,7 +69,7 @@ func (r *Response) Error(m string, a ...any) {
 }
 
 func (r *Response) ServerError(m string, a ...any) {
-	fmt.Fprintf(os.Stderr, "[ERROR] - "+m, a...)
+	fmt.Fprintf(os.Stderr, m, a...)
 	r.WriteHeader(http.StatusInternalServerError)
 }
 
@@ -81,6 +81,5 @@ func (r *Response) ForwardBadRequest(res *http.Response) {
 		r.ServerError(err.Error())
 		return
 	}
-	buf.Message = "GitHub message: " + buf.Message
 	r.Status(res.StatusCode).JSON(buf)
 }
