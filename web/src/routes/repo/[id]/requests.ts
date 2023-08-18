@@ -29,12 +29,22 @@ export async function writeNewVariable(
 		Accept: "application/json",
 		"Content-type": "application/json",
 	});
+
 	const body: BodyInit = JSON.stringify(v);
 	const rsp = await apiFetch(url, { method: "POST", headers, body });
-	if (rsp.status !== 201) {
-		const payload: EnvHub.Error = await rsp.json();
-		throw new Error(payload.message);
+
+	switch (rsp.status) {
+		case 201:
+			const newVar: Variable = await rsp.json();
+			newVar.value = v.value;
+			store.update((s) => ({ ...s, variables: [newVar, ...s.variables] }));
+			return;
+
+		case 409:
+			throw new Error("Variable exists.");
+
+		default:
+			const payload: EnvHub.Error = await rsp.json();
+			throw new Error(payload.message);
 	}
-	const payload: Variable = await rsp.json();
-	store.update((v) => ({ ...v, variables: [payload, ...v.variables] }));
 }

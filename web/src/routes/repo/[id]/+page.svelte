@@ -6,7 +6,7 @@
 	import { store } from "./store";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
-	import AddButton from "./addBtn.svelte";
+	import NewVariable from "./new-var.svelte";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -43,7 +43,7 @@
 				>
 					Git Repository
 				</a>
-				<AddButton repoID={data.id} writeAccess={$store.write_access} />
+				<NewVariable repoID={data.id} writeAccess={$store.write_access} />
 			</div>
 		</div>
 	</section>
@@ -93,7 +93,7 @@
 						class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-3"
 					>
 						<p class="text-light/50">No variables stored</p>
-						<AddButton repoID={data.id} writeAccess={$store.write_access} />
+						<NewVariable repoID={data.id} writeAccess={$store.write_access} />
 					</div>
 				{/if}
 			{:catch e}

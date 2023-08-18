@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { afterUpdate, onMount } from "svelte";
 	import type { NewVariable } from "./store";
 	import classNames from "classnames";
 	import { writeNewVariable } from "./requests";
@@ -32,6 +32,13 @@
 			loading = false;
 		}
 	}
+
+	afterUpdate(() => {
+		if (!error) return;
+		setTimeout(() => {
+			error = undefined;
+		}, 3000);
+	});
 </script>
 
 <button
@@ -45,9 +52,9 @@
 
 <dialog id="new-var" class="modal">
 	<form method="dialog" class="modal-box bg-dark-200" on:submit={handleSubmit}>
-		<h3 class="text-main text-lg font-bold">New variable</h3>
-		<div class="">
-			<div>
+		<h3 class="text-main text-lg font-bold mb-3">New variable</h3>
+		<div>
+			<div class="form-control relative mb-5">
 				<label for="key" class="label">Key</label>
 				<input
 					id="key"
@@ -56,6 +63,11 @@
 					class="input input-bordered w-full"
 					bind:value={v.key}
 				/>
+				{#if error}
+					<p class="absolute -bottom-5 left-1 text-error text-xs">
+						{error}
+					</p>
+				{/if}
 			</div>
 
 			<div>
@@ -70,7 +82,7 @@
 			</div>
 		</div>
 
-		<div class="mt-5 flex items-center justify-center gap-4">
+		<div class="mt-8 flex items-center justify-center gap-4">
 			<button
 				class="btn btn-ghost w-28"
 				type="button"
