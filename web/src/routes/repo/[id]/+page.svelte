@@ -7,7 +7,7 @@
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
 	import NewVariable from "./new-var.svelte";
-	import VariableTable from "./var-table.svelte";
+	import VariableTable from "./table.svelte";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -61,13 +61,17 @@
 		<h2 class="text-xl font-bold">Environment Variables</h2>
 		<div
 			class={cx([
-				"bg-dark-200 mt-5 min-h-[400px]",
+				"bg-dark-200 mt-5 min-h-[400px] shadow shadow-black/20",
+				"border border-light/20",
 				"w-full overflow-x-auto rounded-md p-5",
 			])}
 		>
 			{#await rsp}
 				<div
-					class={cx(["flex h-full min-h-[400px] w-full flex-col","items-center justify-center gap-5"])}
+					class={cx([
+						"flex h-full min-h-[400px] w-full flex-col",
+						"items-center justify-center gap-5",
+					])}
 				>
 					<span class="loading loading-lg text-main" />
 					<p>Getting variables...</p>

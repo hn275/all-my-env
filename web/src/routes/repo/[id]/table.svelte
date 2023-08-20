@@ -1,27 +1,24 @@
 <script lang="ts">
 	import NewVariable from "./new-var.svelte";
-	import Row from "./table-row.svelte";
+	import Variable from "./variable.svelte";
 	import { store } from "./store";
+	import Row from "./row.svelte";
 
 	export let repoID: number;
 </script>
 
-<table class="table-xs md:table mx-auto">
-	<thead class="text-xs md:text-sm">
-		<tr>
-			<th />
-			<th class="w-7">Key</th>
-			<th>Value</th>
-			<th>Created At</th>
-			<th>Last Modified</th>
-		</tr>
-	</thead>
-	<tbody>
-		{#each $store.variables as v, i (v.id)}
-			<Row {i} {...v} />
-		{/each}
-	</tbody>
-</table>
+<Row>
+	<div />
+	<h3>Key</h3>
+	<h3>Value</h3>
+	<h3>Created At</h3>
+	<h3>Last Modified</h3>
+</Row>
+{#each $store.variables as variable, i (variable.id)}
+	<Row>
+		<Variable {i} {...variable} />
+	</Row>
+{/each}
 {#if $store.variables.length === 0}
 	<div
 		class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-3"
@@ -30,3 +27,10 @@
 		<NewVariable {repoID} writeAccess={$store.write_access} />
 	</div>
 {/if}
+
+<style lang="postcss">
+	h3 {
+		@apply font-semibold text-light/70;
+		@apply ml-2;
+	}
+</style>
