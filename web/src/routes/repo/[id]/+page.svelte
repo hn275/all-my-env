@@ -6,8 +6,7 @@
 	import { store } from "./store";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
-	import NewVariable from "./new-var.svelte";
-	import VariableTable from "./table.svelte";
+	import { DeleteModal, Table } from "./components";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -52,7 +51,7 @@
 				>
 					Download file
 				</button>
-				<NewVariable repoID={data.id} writeAccess={$store.write_access} />
+				<button>add</button>
 			</div>
 		</div>
 	</section>
@@ -77,14 +76,20 @@
 					<p>Getting variables...</p>
 				</div>
 			{:then}
-				<VariableTable repoID={data.id} />
+				<Table />
 			{:catch e}
-				<div class="flex h-52 w-full flex-col items-center justify-center">
+				<div
+					class="flex h-52 w-full flex-col items-center justify-center"
+				>
 					<p class="text-error">{e.message}</p>
 				</div>
 			{/await}
 		</div>
 	</section>
+
+	{#if $store.state.deleteVariable}
+		<DeleteModal />
+	{/if}
 </Main>
 
 <style lang="postcss">

@@ -1,10 +1,8 @@
 <script lang="ts">
-	import NewVariable from "./new-var.svelte";
 	import Variable from "./variable.svelte";
-	import { store } from "./store";
+	import { store } from "../store";
 	import Row from "./row.svelte";
 
-	export let repoID: number;
 </script>
 
 <Row>
@@ -15,14 +13,14 @@
 	<h3>Last Modified</h3>
 </Row>
 {#each $store.variables as variable, i (variable.id)}
-		<Variable {i} {...variable} />
+	<Variable {i} {...variable} />
 {/each}
 {#if $store.variables.length === 0}
 	<div
 		class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-3"
 	>
 		<p class="text-light/50">No variables stored</p>
-		<NewVariable {repoID} writeAccess={$store.write_access} />
+		<button>add new button</button>
 	</div>
 {/if}
 

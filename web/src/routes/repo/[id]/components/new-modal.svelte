@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { afterUpdate, onMount } from "svelte";
-	import type { NewVariable } from "./store";
+	import type { NewVariable } from "../store";
 	import classNames from "classnames";
-	import { writeNewVariable } from "./requests";
+	import { writeNewVariable } from "../requests";
 
 	export let repoID: number;
 	export let writeAccess: boolean;
@@ -52,7 +52,7 @@
 
 <dialog id="new-var" class="modal">
 	<form method="dialog" class="modal-box bg-dark-200" on:submit={handleSubmit}>
-		<h3 class="text-main text-lg font-bold mb-3">New variable</h3>
+		<h3 class="text-main mb-3 text-lg font-bold">New variable</h3>
 		<div>
 			<div class="form-control relative mb-5">
 				<label for="key" class="label">Key</label>
@@ -64,7 +64,7 @@
 					bind:value={v.key}
 				/>
 				{#if error}
-					<p class="absolute -bottom-5 left-1 text-error text-xs">
+					<p class="text-error absolute -bottom-5 left-1 text-xs">
 						{error}
 					</p>
 				{/if}
