@@ -8,7 +8,7 @@
 
 	onMount(() => {
 		confirmKey = "";
-       function sub(e: KeyboardEvent) {
+		function sub(e: KeyboardEvent) {
 			switch (e.key) {
 				case "Escape":
 					cancelDelete();
@@ -16,9 +16,9 @@
 				default:
 					break;
 			}
-      }
+		}
 		document.addEventListener("keydown", sub);
-      return () => document.removeEventListener("keydown", sub);
+		return () => document.removeEventListener("keydown", sub);
 	});
 
 	$: disabled = confirmKey !== state.deleteVariable?.key || loading;
@@ -79,9 +79,11 @@
 				<button
 					class="btn btn-ghost"
 					on:click={cancelDelete}
-					type="submit">Close</button
+					type="button"
 				>
-				<button class="btn btn-primary w-44" {disabled} type="button">
+					Close
+				</button>
+				<button class="btn btn-primary w-44" {disabled} type="submit">
 					{#if loading}
 						<span class="loading" />
 					{:else}
