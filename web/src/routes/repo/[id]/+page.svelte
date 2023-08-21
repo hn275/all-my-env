@@ -62,7 +62,7 @@
 		<div
 			class={cx([
 				"bg-dark-200 mt-5 min-h-[400px] shadow shadow-black/20",
-				"border border-light/20",
+				"border-light/20 border",
 				"w-full overflow-x-auto rounded-md p-5",
 			])}
 		>

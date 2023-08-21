@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { afterUpdate } from "svelte";
+	import cx from "classnames";
+	import Row from "./row.svelte";
 
 	export let created_at: string;
 	export let updated_at: string;
@@ -49,68 +51,78 @@
 	async function handleSubmit() {}
 </script>
 
-<div class="flex gap-3 justify-start items-center">
-	<div class="flex flex-row gap-1">
+<Row className="group">
+	<div class="group flex items-center justify-start gap-3">
+		<div
+			class={cx([
+				"transitio flex flex-row gap-1 transition-all",
+				{ "-ml-5 opacity-0": !editMode },
+				"group-hover:ml-0 group-hover:opacity-100",
+			])}
+		>
+			{#if !editMode}
+				<!-- edit button -->
+				<button on:click={() => (editMode = true)}>
+					<i class="fa-regular fa-pen-to-square fa-sm" />
+				</button>
+				<!-- copy button -->
+				<button on:click={copy} class="button">
+					<i class="fa-regular fa-copy fa-sm" />
+				</button>
+			{:else}
+				<!-- cancel button -->
+				<button on:click={reset}>
+					<i class="fa-solid fa-xmark fa-sm" />
+				</button>
+				<!-- save button -->
+				<button
+					on:click={handleSubmit}
+					disabled={editLoading || !saveAble}
+					class="save"
+				>
+					<i class="fa-solid fa-check fa-sm" />
+				</button>
+				<!-- delete button -->
+				<button class="delete">
+					<i class="fa-solid fa-trash fa-sm" />
+				</button>
+			{/if}
+		</div>
 		{#if !editMode}
-			<!-- edit button -->
-			<button on:click={() => (editMode = true)}>
-				<i class="fa-regular fa-pen-to-square fa-sm" />
-			</button>
-			<!-- copy button -->
-			<button on:click={copy} class="button">
-				<i class="fa-regular fa-copy fa-sm" />
-			</button>
-		{:else}
-			<!-- cancel button -->
-			<button on:click={reset}>
-				<i class="fa-solid fa-xmark fa-sm" />
-			</button>
-			<!-- save button -->
-			<button
-				on:click={handleSubmit}
-				disabled={editLoading || !saveAble}
-				class="save"
+			<p
+				class="text-light/40 group-text-light/70 relative bottom-[2px] flex-grow self-end text-sm"
 			>
-				<i class="fa-solid fa-check fa-sm" />
-			</button>
-			<!-- delete button -->
-			<button class="delete">
-				<i class="fa-solid fa-trash fa-sm" />
-			</button>
+				{i + 1}.
+			</p>
 		{/if}
 	</div>
-	{#if !editMode}
-		<p class="text-light/60">{i + 1}</p>
-	{/if}
-</div>
 
-<input class="bg-transparent" bind:value={varKey} disabled={!editMode} />
+	<input class="bg-transparent" bind:value={varKey} disabled={!editMode} />
 
-<div class="relative">
-	<input
-		class="bg-transparent text-main font-semibold"
-		bind:value={varValue}
-		disabled={!editMode}
-	/>
-</div>
+	<div class="relative">
+		<input
+			class="text-main w-full bg-transparent font-semibold"
+			bind:value={varValue}
+			disabled={!editMode}
+		/>
+	</div>
 
-<p>{createdAt}</p>
+	<p class="text-light/70 text-sm">{createdAt}</p>
 
-<p>{updatedAt}</p>
+	<p class="text-light/70 text-sm">{updatedAt}</p>
 
-{#if copyOK}
-	<div class="toast toast-start">
-		<div class="alert alert-success flex justify-center">
-			<p class="font-normal text-center">Copied to clipboard!</p>
+	{#if copyOK}
+		<div class="toast toast-start">
+			<div class="alert alert-success flex justify-center">
+				<p class="text-center font-normal">Copied to clipboard!</p>
+			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
 
-{#if confirmCancel}
-	<div>
-		confirm cancle
-	</div>
-{/if}
+	{#if confirmCancel}
+		<div>confirm cancle</div>
+	{/if}
+</Row>
 
 <style lang="postcss">
 	input,

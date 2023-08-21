@@ -15,9 +15,7 @@
 	<h3>Last Modified</h3>
 </Row>
 {#each $store.variables as variable, i (variable.id)}
-	<Row>
 		<Variable {i} {...variable} />
-	</Row>
 {/each}
 {#if $store.variables.length === 0}
 	<div
