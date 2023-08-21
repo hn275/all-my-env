@@ -17,7 +17,7 @@ export async function getVariables(repoID: number): Promise<void> {
 	if (rsp.status !== 200) {
 		throw new Error((payload as EnvHub.Error).message);
 	}
-	store.set(payload as RepositoryEnv);
+	store.set({ ...(payload as RepositoryEnv), state: {} });
 }
 
 export async function writeNewVariable(
@@ -37,7 +37,10 @@ export async function writeNewVariable(
 		case 201:
 			const newVar: Variable = await rsp.json();
 			newVar.value = v.value;
-			store.update((s) => ({ ...s, variables: [newVar, ...s.variables] }));
+			store.update((s) => ({
+				...s,
+				variables: [newVar, ...s.variables],
+			}));
 			return;
 
 		case 409:

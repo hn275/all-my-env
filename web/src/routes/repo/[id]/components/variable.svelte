@@ -2,11 +2,14 @@
 	import { afterUpdate } from "svelte";
 	import cx from "classnames";
 	import Row from "./row.svelte";
+	import { deleteVariable } from "../services";
+	import type { Variable } from "../store";
 
 	export let created_at: string;
 	export let updated_at: string;
 	export let key: string;
 	export let value: string;
+	export let id: string;
 	export let i: number;
 
 	function formatTime(d: Date): string {
@@ -49,6 +52,11 @@
 	$: saveAble = !(varKey === key) || !(varValue === value);
 	let editLoading: boolean = false;
 	async function handleSubmit() {}
+
+	function handleDelete() {
+		const v: Variable = { id, key, value, updated_at, created_at };
+		deleteVariable(v);
+	}
 </script>
 
 <Row className="group">
@@ -56,11 +64,15 @@
 		<div
 			class={cx([
 				"transitio flex flex-row gap-1 transition-all",
-				{ "-ml-5 opacity-0": !editMode },
+				{ "-ml-12 opacity-0": !editMode },
 				"group-hover:ml-0 group-hover:opacity-100",
 			])}
 		>
 			{#if !editMode}
+				<!-- delete button -->
+				<button class="delete" on:click={handleDelete}>
+					<i class="fa-solid fa-trash fa-sm" />
+				</button>
 				<!-- edit button -->
 				<button on:click={() => (editMode = true)}>
 					<i class="fa-regular fa-pen-to-square fa-sm" />
@@ -82,26 +94,22 @@
 				>
 					<i class="fa-solid fa-check fa-sm" />
 				</button>
-				<!-- delete button -->
-				<button class="delete">
-					<i class="fa-solid fa-trash fa-sm" />
-				</button>
 			{/if}
 		</div>
 		{#if !editMode}
 			<p
-				class="text-light/40 group-text-light/70 relative bottom-[2px] flex-grow self-end text-sm"
+				class="text-light/40 relative bottom-[2px] flex-grow self-end text-sm group-hover:opacity-0"
 			>
 				{i + 1}.
 			</p>
 		{/if}
 	</div>
 
-	<input class="bg-transparent" bind:value={varKey} disabled={!editMode} />
+	<input class="bg-transparent transition-all" bind:value={varKey} disabled={!editMode} />
 
 	<div class="relative">
 		<input
-			class="text-main w-full bg-transparent font-semibold"
+			class="text-main w-full bg-transparent font-semibold transition-all"
 			bind:value={varValue}
 			disabled={!editMode}
 		/>
@@ -154,8 +162,7 @@
 	}
 
 	button.delete {
-		@apply bg-error text-dark-200;
-		@apply hover:brightness-125;
+		@apply hover:bg-error hover:text-dark-200;
 	}
 
 	button:disabled {

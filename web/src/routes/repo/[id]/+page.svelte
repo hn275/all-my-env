@@ -87,9 +87,7 @@
 		</div>
 	</section>
 
-	{#if $store.state.deleteVariable}
 		<DeleteModal />
-	{/if}
 </Main>
 
 <style lang="postcss">

@@ -12,7 +12,7 @@ export interface Variable extends NewVariable {
 }
 
 type AppState = {
-	deleteVariable?: string;
+	deleteVariable?: Variable;
 };
 
 export type RepositoryEnv = {
