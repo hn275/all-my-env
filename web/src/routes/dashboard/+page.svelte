@@ -79,7 +79,9 @@
 <Main>
 	<div class="mx-auto max-w-screen-2xl">
 		<section class="h-full p-5 md:p-7">
-			<h1 class="text-gradient mb-3 text-2xl font-semibold">Repositories</h1>
+			<h1 class="text-gradient mb-3 text-2xl font-semibold">
+				Repositories
+			</h1>
 			<div class="mb-8">
 				<div class="flex gap-5">
 					<input
@@ -106,7 +108,7 @@
 				<div class="text-dark-200 rounded-lg bg-red-400 p-5">
 					<h2 class="inline text-lg font-bold">Whoops!</h2>
 					<span>An error has occured:</span>
-                      <p>{error}</p>
+					<p>{error}</p>
 				</div>
 			{:else if loading}
 				<div
@@ -118,7 +120,9 @@
 			{:else if repos.length === 0}
 				<p>You don't have any repository yet.</p>
 			{:else}
-				<ul class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+				<ul
+					class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
+				>
 					{#each repos.filter((r) =>
 						r.full_name.includes(search ?? ""),
 					) as repo (repo.id)}

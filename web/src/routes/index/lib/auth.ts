@@ -1,5 +1,5 @@
 import { makeUrl } from "@lib/url";
-import type { User } from "@lib/auth";
+import {  type User } from "@lib/auth";
 
 export async function signIn(code: string): Promise<User> {
 	const res = await fetch(makeUrl("/auth/github"), {
@@ -25,6 +25,8 @@ export async function refresh(token: string): Promise<User> {
 		},
 	});
 	const payload = await res.json();
-	if (res.status !== 200) throw new Error(payload["message"]);
+	if (res.status !== 200) {
+		throw new Error(payload["message"]);
+	}
 	return payload as User;
 }

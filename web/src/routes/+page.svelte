@@ -14,14 +14,16 @@
 	onMount(async () => {
 		try {
 			user = AuthStore.user();
-      const refreshed = AuthStore.sessionRefreshed()
-			if (refreshed || !user) return;
+			if (!user) return;
+			const refreshed = AuthStore.sessionRefreshed()
+			if (refreshed) return;
 			loading = true;
 			user = await refresh();
 			AuthStore.login(user);
 			AuthStore.refreshed();
 		} catch (e) {
 			err = (e as Error).message;
+			AuthStore.logout();
 		} finally {
 			loading = false;
 		}
@@ -59,7 +61,9 @@
 			</a>
 
 			{#if user}
-				<a href="/dashboard" class="btn btn-primary w-[14ch]">Dashboard</a>
+				<a href="/dashboard" class="btn btn-primary w-[14ch]"
+					>Dashboard</a
+				>
 			{:else}
 				<LogInBtn {loading} />
 			{/if}

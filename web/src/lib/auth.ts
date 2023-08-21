@@ -26,7 +26,7 @@ export class AuthStore {
 	}
 
 	public static logout(): AuthStore {
-		window.localStorage.removeItem(AuthStore.userEntry);
+		window.localStorage.clear();
 		return AuthStore;
 	}
 

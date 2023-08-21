@@ -24,26 +24,28 @@ export async function fetchRepos(
 	switch (rsp.status) {
 		case 200:
 			return payload as Array<Repository>;
+
 		case 401 | 403:
-			// AuthStore.refreshSession();
-			throw new Error(payload["message"]);
+			AuthStore.refreshSession();
+			return [];
+
 		default:
 			throw new Error(payload["message"]);
 	}
 }
 
 export async function linkRepo(repo: Repository): Promise<void> {
-  const url = makeUrl("/repos/link");
-  const body = JSON.stringify({
-    id: repo.id,
-    full_name: repo.full_name
-  });
-  
-  const rsp = await apiFetch(url, {
-    method: "POST",
-    body
-  });
-  if (rsp.status === 201) return;
-  const payload: EnvHub.Error = await rsp.json();
-  throw new Error(payload.message);
+	const url = makeUrl("/repos/link");
+	const body = JSON.stringify({
+		id: repo.id,
+		full_name: repo.full_name,
+	});
+
+	const rsp = await apiFetch(url, {
+		method: "POST",
+		body,
+	});
+	if (rsp.status === 201) return;
+	const payload: EnvHub.Error = await rsp.json();
+	throw new Error(payload.message);
 }

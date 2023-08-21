@@ -1,5 +1,5 @@
 import { AuthStore, type User } from "@lib/auth";
-import { makeUrl } from "@lib/url";
+import { makeUrl, urlRedirect } from "@lib/url";
 
 export async function refreshSession(): Promise<User> {
 	const url: string = makeUrl("/auth/refresh");
@@ -17,7 +17,9 @@ export async function refreshSession(): Promise<User> {
 			AuthStore.login(payload as User);
 			return payload as User;
 		case 401 | 403:
-			throw new Error((payload as EnvHub.Error).message);
+			AuthStore.logout();
+			urlRedirect("/");
+
 		default:
 			throw new Error((payload as EnvHub.Error).message);
 	}
