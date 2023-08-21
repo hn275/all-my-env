@@ -17,7 +17,7 @@ export async function getVariables(repoID: number): Promise<void> {
 	if (rsp.status !== 200) {
 		throw new Error((payload as EnvHub.Error).message);
 	}
-	store.set({ ...(payload as RepositoryEnv), state: {} });
+	store.set({ ...(payload as RepositoryEnv), state: {repoID} });
 }
 
 export async function writeNewVariable(

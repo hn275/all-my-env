@@ -1,37 +1,54 @@
 <script lang="ts">
-	import { store, type Variable } from "../store";
-	import { cancelDelete } from "../services";
-	import { onDestroy, onMount } from "svelte";
+	import { store } from "../store";
+	import { cancelDelete, handleDelete } from "../services";
+	import { onMount } from "svelte";
 
-	let variable: Variable | undefined;
-	$: variable = $store.state.deleteVariable;
-    let confirmKey: string = "";
+	$: state = $store;
+	let confirmKey: string = "";
 
-    onMount(() => {
-      document.addEventListener("keydown", (e) => {
-        if (e.key !== "Escape") return
-        cancelDelete();
-        confirmKey = "";
-      })
-    })
+	onMount(() => {
+		confirmKey = "";
+       function sub(e: KeyboardEvent) {
+			switch (e.key) {
+				case "Escape":
+					cancelDelete();
+					return;
+				default:
+					break;
+			}
+      }
+		document.addEventListener("keydown", sub);
+      return () => document.removeEventListener("keydown", sub);
+	});
 
-
-    onDestroy(() => {
-      confirmKey = "";
-    })
+	$: disabled = confirmKey !== state.deleteVariable?.key || loading;
+	let loading: boolean = false;
+	let error: string | undefined;
+	async function onSubmit() {
+		if (!state.deleteVariable || !state.repoID || disabled) return;
+		try {
+			loading = true;
+			await handleDelete(state.repoID, state.deleteVariable.id);
+		} catch (e) {
+			error = (e as Error).message;
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
-{#if variable}
+{#if state.deleteVariable}
 	<form
 		id="#delete-modal"
 		class="bg-dark-100/75 fixed bottom-0 left-0 right-0 top-0 grid place-items-center backdrop-blur transition-all"
+		on:submit|preventDefault={onSubmit}
 	>
 		<div class="bg-dark-200 modal-box">
 			<h3 class="mb-7 text-lg font-bold">Delete a variable</h3>
 			<p class="mb-4">
 				You're about to delete the variable
 				<span class="font-bold">
-					`{variable.key}`
+					`{state.deleteVariable.key}`
 				</span>.
 			</p>
 
@@ -42,26 +59,35 @@
 				</p>
 			</div>
 
-			<p>
+			<p class="mb-2">
 				Enter the variable key
-				<span class="font-bold">`{variable.key}`</span> to continue:
+				<span class="font-bold">`{state.deleteVariable.key}`</span> to continue:
 			</p>
 
-			<input
-				type="text"
-				bind:value={confirmKey}
-				class="input input-bordered w-full"
-				placeholder={variable.key}
-			/>
+			<div class="flex h-[70px] flex-col items-start justify-start">
+				<input
+					type="text"
+					bind:value={confirmKey}
+					class="input input-bordered w-full"
+					placeholder={state.deleteVariable.key}
+				/>
+				{#if error}
+					<p class="text-error text-xs">{error}</p>
+				{/if}
+			</div>
 			<div class="modal-action">
-				<button class="btn btn-ghost" on:click={cancelDelete}
-					>Close</button
-				>
 				<button
-					class="btn btn-primary"
-					disabled={confirmKey !== variable.key}
-					>Delete my variable</button
+					class="btn btn-ghost"
+					on:click={cancelDelete}
+					type="submit">Close</button
 				>
+				<button class="btn btn-primary w-44" {disabled} type="button">
+					{#if loading}
+						<span class="loading" />
+					{:else}
+						Delete my variable
+					{/if}
+				</button>
 			</div>
 		</div>
 	</form>

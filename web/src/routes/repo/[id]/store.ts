@@ -11,18 +11,14 @@ export interface Variable extends NewVariable {
 	updated_at: string;
 }
 
-type AppState = {
-	deleteVariable?: Variable;
-};
-
 export type RepositoryEnv = {
 	write_access: boolean;
 	variables: Array<Variable>;
-	state: AppState;
+	deleteVariable?: Variable;
+	repoID?: number;
 };
 
 export const store = writable<RepositoryEnv>({
 	write_access: false,
 	variables: [],
-	state: {},
 });

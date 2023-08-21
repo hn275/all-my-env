@@ -2,8 +2,7 @@
 	import Main from "@components/main.svelte";
 	import type { Breadcrumbs } from "@lib/types";
 	import { onMount } from "svelte";
-	import { getVariables } from "./requests";
-	import { store } from "./store";
+	import { getVariables } from "./services";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
 	import { DeleteModal, Table } from "./components";
@@ -87,7 +86,7 @@
 		</div>
 	</section>
 
-		<DeleteModal />
+	<DeleteModal />
 </Main>
 
 <style lang="postcss">

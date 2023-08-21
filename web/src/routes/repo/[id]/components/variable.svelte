@@ -2,7 +2,7 @@
 	import { afterUpdate } from "svelte";
 	import cx from "classnames";
 	import Row from "./row.svelte";
-	import { deleteVariable } from "../services";
+	import { confirmDelete } from "../services";
 	import type { Variable } from "../store";
 
 	export let created_at: string;
@@ -55,7 +55,7 @@
 
 	function handleDelete() {
 		const v: Variable = { id, key, value, updated_at, created_at };
-		deleteVariable(v);
+		confirmDelete(v);
 	}
 </script>
 
@@ -105,7 +105,11 @@
 		{/if}
 	</div>
 
-	<input class="bg-transparent transition-all" bind:value={varKey} disabled={!editMode} />
+	<input
+		class="bg-transparent transition-all"
+		bind:value={varKey}
+		disabled={!editMode}
+	/>
 
 	<div class="relative">
 		<input
