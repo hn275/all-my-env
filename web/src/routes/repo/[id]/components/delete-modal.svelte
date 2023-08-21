@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { store } from "../store";
 	import { cancelDelete, handleDelete } from "../services";
-	import { onMount } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 
 	$: state = $store;
 	let confirmKey: string = "";
@@ -35,6 +35,11 @@
 			loading = false;
 		}
 	}
+
+	onDestroy(() => {
+		error = undefined;
+      confirmKey = ""
+	});
 </script>
 
 {#if state.deleteVariable}
