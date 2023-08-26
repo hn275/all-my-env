@@ -3,6 +3,7 @@
 	import cx from "classnames";
 	import Row from "./row.svelte";
 	import DeleteVariable from "./delete-variable.svelte";
+	import ConfirmEdit from "./confirm-edit.svelte";
 	import type { RepositoryEnv } from "../../store";
 	import { store } from "../../store";
 
@@ -40,22 +41,20 @@
 		}, 2000);
 	});
 
-	let varKey: string = key;
-	let varValue: string = value;
+	let newKey: string = key;
+	let newValue: string = value;
 	let editMode: boolean = false;
 
 	let confirmCancel: boolean = false;
 	function reset() {
 		editMode = false;
 		confirmCancel = false;
-		varKey = key;
-		varValue = value;
+		newKey = key;
+		newValue = value;
 	}
 
 	let saveAble: boolean;
-	$: saveAble = !(varKey === key) || !(varValue === value);
-	let editLoading: boolean = false;
-	async function handleSubmit() {}
+	$: saveAble = !(newKey === key) || !(newValue === value);
 </script>
 
 <Row className="group">
@@ -91,13 +90,14 @@
 					<i class="fa-solid fa-xmark fa-sm" />
 				</button>
 				<!-- save button -->
-				<button
-					on:click={handleSubmit}
-					disabled={editLoading || !saveAble}
-					class="save"
-				>
-					<i class="fa-solid fa-check fa-sm" />
-				</button>
+				<ConfirmEdit
+					{id}
+					{saveAble}
+					{key}
+					{newKey}
+					{value}
+					{newValue}
+				/>
 			{/if}
 		</div>
 		{#if !editMode}
@@ -111,14 +111,14 @@
 
 	<input
 		class="bg-transparent transition-all"
-		bind:value={varKey}
+		bind:value={newKey}
 		disabled={!editMode}
 	/>
 
 	<div class="relative">
 		<input
 			class="text-main w-full bg-transparent font-semibold transition-all"
-			bind:value={varValue}
+			bind:value={newValue}
 			disabled={!editMode}
 		/>
 	</div>
@@ -162,11 +162,6 @@
 	button {
 		@apply w-6 h-6 rounded-md hover:bg-light/10;
 		@apply text-light/50 hover:text-light transition;
-	}
-
-	button.save {
-		@apply text-light bg-main;
-		@apply hover:brightness-110 hover:bg-main;
 	}
 
 	button:disabled {
