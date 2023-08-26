@@ -14,7 +14,6 @@ export interface Variable extends NewVariable {
 export type RepositoryEnv = {
 	write_access: boolean;
 	variables: Array<Variable>;
-	deleteVariable?: Variable;
 	repoID?: number;
 };
 

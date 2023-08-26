@@ -5,7 +5,7 @@
 	import { getVariables } from "./services";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
-	import { DeleteModal, Table, NewModal, UnlinkRepo } from "./components";
+	import { Table, NewModal, UnlinkRepo } from "./components";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -85,8 +85,6 @@
 			{/await}
 		</div>
 	</section>
-
-	<DeleteModal />
 </Main>
 
 <style lang="postcss">

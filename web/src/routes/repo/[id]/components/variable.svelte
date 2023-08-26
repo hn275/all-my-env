@@ -2,8 +2,10 @@
 	import { afterUpdate } from "svelte";
 	import cx from "classnames";
 	import Row from "./row.svelte";
+	import DeleteVariable from "./delete-variable.svelte";
 	import { confirmDelete } from "../services";
-	import type { Variable } from "../store";
+	import type {  RepositoryEnv, Variable } from "../store";
+	import {store} from "../store";
 
 	export let created_at: string;
 	export let updated_at: string;
@@ -11,6 +13,9 @@
 	export let value: string;
 	export let id: string;
 	export let i: number;
+
+    let state: RepositoryEnv;
+    $: state = $store;
 
 	function formatTime(d: Date): string {
 		let dt = d.toLocaleDateString() + " ";
@@ -70,15 +75,20 @@
 		>
 			{#if !editMode}
 				<!-- delete button -->
-				<button class="delete" on:click={handleDelete}>
-					<i class="fa-solid fa-trash fa-sm" />
-				</button>
+				<DeleteVariable
+                    repoID={state.repoID}
+                    variableID={id}
+                    variableKey={key}
+                />
 				<!-- edit button -->
 				<button on:click={() => (editMode = true)}>
 					<i class="fa-regular fa-pen-to-square fa-sm" />
 				</button>
 				<!-- copy button -->
-				<button on:click={copy} class="button">
+				<button
+					on:click={copy}
+					class="button"
+				>
 					<i class="fa-regular fa-copy fa-sm" />
 				</button>
 			{:else}
@@ -163,10 +173,6 @@
 	button.save {
 		@apply text-light bg-main;
 		@apply hover:brightness-110 hover:bg-main;
-	}
-
-	button.delete {
-		@apply hover:bg-error hover:text-dark-200;
 	}
 
 	button:disabled {
