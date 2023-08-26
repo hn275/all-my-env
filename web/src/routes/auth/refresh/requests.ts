@@ -1,4 +1,5 @@
-import { AuthStore, type User } from "@lib/auth";
+import { AuthStore } from "@lib/auth";
+import type { User } from "@lib/auth";
 import { makeUrl, urlRedirect } from "@lib/url";
 
 export async function refreshSession(): Promise<User> {

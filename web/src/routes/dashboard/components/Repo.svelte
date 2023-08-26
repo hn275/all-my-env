@@ -49,7 +49,9 @@
 		/>
 
 		<div>
-			<h3 class="block w-[17ch] truncate text-ellipsis md:w-[25ch] lg:w-[45ch]">
+			<h3
+				class="block w-[17ch] truncate text-ellipsis md:w-[25ch] lg:w-[45ch]"
+			>
 				{repo.name}
 			</h3>
 			<p class="text-light/70 inline text-sm">

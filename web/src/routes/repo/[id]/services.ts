@@ -1,5 +1,6 @@
 import { apiFetch } from "@lib/requests";
-import { store, type RepositoryEnv, type Variable } from "./store";
+import { store } from "./store";
+import type { RepositoryEnv, Variable } from "./store";
 import { makeUrl } from "@lib/url";
 
 // trigger the delete modal to be open

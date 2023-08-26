@@ -57,7 +57,7 @@
 									page !== activeTile,
 								"hover:border-fuchsia-400 hover:text-fuchsia-400/50":
 									page !== activeTile,
-                "border-fuchsia-400/50 bg-fuchsia-400/10 text-fuchsia-400":
+								"border-fuchsia-400/50 bg-fuchsia-400/10 text-fuchsia-400":
 									page === activeTile,
 							},
 						])}

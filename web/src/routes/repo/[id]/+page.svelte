@@ -5,7 +5,7 @@
 	import { getVariables } from "./services";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
-	import { DeleteModal, Table, NewModal } from "./components";
+	import { DeleteModal, Table, NewModal, UnlinkRepo } from "./components";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -33,7 +33,8 @@
 			<h1 class="text-gradient text-2xl font-semibold">
 				{repoName}
 			</h1>
-			<div class="flex gap-5">
+			<div class="flex gap-3">
+				<UnlinkRepo />
 				<a
 					href={`https://github.com/${repoName}`}
 					target="_blank"
@@ -49,7 +50,7 @@
 				>
 					Download file
 				</button>
-                <NewModal />
+				<NewModal />
 			</div>
 		</div>
 	</section>

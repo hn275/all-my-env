@@ -15,7 +15,7 @@
 			if (!code) return;
 			const user = await signIn(code);
 			AuthStore.login(user);
-      urlRedirect("/dashboard");
+			urlRedirect("/dashboard");
 		} catch (e) {
 			error = (e as Error).message;
 		} finally {

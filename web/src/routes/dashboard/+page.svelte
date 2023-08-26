@@ -1,79 +1,78 @@
 <script lang="ts">
-  import { type Sort, fetchRepos } from "./requests";
-  import Spinner from "@components/spinner.svelte";
-  import Repo from "./components/Repo.svelte";
-  import Main from "@components/main.svelte";
-  import { onMount } from "svelte";
-  import type { Repository } from "./types";
+	import { fetchRepos } from "./requests";
+	import type { Sort } from "./requests";
+	import Spinner from "@components/spinner.svelte";
+	import Repo from "./components/Repo.svelte";
+	import Main from "@components/main.svelte";
+	import { onMount } from "svelte";
+	import type { Repository } from "./types";
 
-  // sort
-  const SortDefault: Sort = "pushed";
-  const sortFunctions: Record<string, Sort> = {
-    Created: "created",
-    Pushed: "pushed",
-    Updated: "updated",
-    Name: "full_name",
-  };
+	// sort
+	const SortDefault: Sort = "pushed";
+	const sortFunctions: Record<string, Sort> = {
+		Created: "created",
+		Pushed: "pushed",
+		Updated: "updated",
+		Name: "full_name",
+	};
 
-  // page limit
-  const Show: number = 30;
-  let page: number = 1;
+	// page limit
+	const Show: number = 30;
+	let page: number = 1;
 
-  let sort: Sort = SortDefault;
-  async function handleSort(e: Event) {
-    e.preventDefault();
-    sort = (e.target as HTMLSelectElement)?.value as Sort;
-    page = 1;
-    await getRepos();
-  }
+	let sort: Sort = SortDefault;
+	async function handleSort(e: Event) {
+		e.preventDefault();
+		sort = (e.target as HTMLSelectElement)?.value as Sort;
+		page = 1;
+		await getRepos();
+	}
 
-  let repos: Array<Repository> = [];
-  let loading: boolean = true;
-  let error: string | undefined;
-  onMount(async () => {
-    page = 1;
-    await getRepos();
-  });
+	let repos: Array<Repository> = [];
+	let loading: boolean = true;
+	let error: string | undefined;
+	onMount(async () => {
+		page = 1;
+		await getRepos();
+	});
 
-  let hasMoreRepo: boolean = true;
-  async function getRepos() {
-    try {
-      loading = true;
-      repos = await fetchRepos(page, sort, Show.toString());
-    } catch (e) {
-      error = (e as Error).message;
-    } finally {
-      loading = false;
-    }
-  }
+	let hasMoreRepo: boolean = true;
+	async function getRepos() {
+		try {
+			loading = true;
+			repos = await fetchRepos(page, sort, Show.toString());
+		} catch (e) {
+			error = (e as Error).message;
+		} finally {
+			loading = false;
+		}
+	}
 
-  let loadMoreLoading: boolean = false;
-  onMount(() => {
-    window.onscroll = async function(_: Event) {
-      const bottom = window.innerHeight + Math.round(window.scrollY);
-      const isBottom: boolean = bottom >= document.body.offsetHeight
-      if (!isBottom || !hasMoreRepo || loadMoreLoading) return;
-      page++;
-      try {
-        loadMoreLoading = true;
-        const res = await fetchRepos(page, sort, Show.toString());
-        repos = [...repos, ...res];
-        hasMoreRepo = res.length === Show;
-        console.log(hasMoreRepo, page)
-      } catch (e) {
-        error = (e as Error).message;
-      } finally {
-        loadMoreLoading = false;
-      }
-    };
-  })
+	let loadMoreLoading: boolean = false;
+	onMount(() => {
+		window.onscroll = async function (_: Event) {
+			const bottom = window.innerHeight + Math.round(window.scrollY);
+			const isBottom: boolean = bottom >= document.body.offsetHeight;
+			if (!isBottom || !hasMoreRepo || loadMoreLoading) return;
+			page++;
+			try {
+				loadMoreLoading = true;
+				const res = await fetchRepos(page, sort, Show.toString());
+				repos = [...repos, ...res];
+				hasMoreRepo = res.length === Show;
+				console.log(hasMoreRepo, page);
+			} catch (e) {
+				error = (e as Error).message;
+			} finally {
+				loadMoreLoading = false;
+			}
+		};
+	});
 
-
-  let search: string = "";
-  function handleSearch(e: Event): void {
-    search = (e.target as HTMLInputElement)?.value ?? "";
-  }
-
+	let search: string = "";
+	function handleSearch(e: Event): void {
+		search = (e.target as HTMLInputElement)?.value ?? "";
+	}
 </script>
 
 <Main>

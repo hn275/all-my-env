@@ -1,36 +1,36 @@
 <script lang="ts">
-  import "../index.css";
-  import cx from "classnames";
-  import Logo from "@assets/logo.svg";
-  import { AuthStore, type User } from "@lib/auth";
-  import { onMount } from "svelte";
-  import { makeUrl } from "@lib/url";
-  import { apiFetch } from "@lib/requests";
-  import type { Breadcrumbs } from "@lib/types"
+	import "../index.css";
+	import cx from "classnames";
+	import Logo from "@assets/logo.svg";
+	import { AuthStore } from "@lib/auth";
+	import type { User } from "@lib/auth";
+	import { onMount } from "svelte";
+	import { makeUrl } from "@lib/url";
+	import { apiFetch } from "@lib/requests";
+	import type { Breadcrumbs } from "@lib/types";
 
+	export let breadcrumbs: Array<Breadcrumbs> = [];
 
-  export let breadcrumbs: Array<Breadcrumbs> = [];
+	let user: User | undefined;
+	onMount(() => {
+		user = AuthStore.user();
+		if (!user) {
+			AuthStore.refreshSession(window.location.href);
+		}
+	});
 
-  let user: User | undefined;
-  onMount(() => {
-    user = AuthStore.user();
-    if (!user) {
-      AuthStore.refreshSession(window.location.href);
-    }
-  })
-
-  async function logout() {
-    const url: string = makeUrl("/auth/logout");
-    const rsp = await apiFetch(url, { method: "GET" });
-    if (rsp.status === 200) {
-      AuthStore.logout();
-      window.location.replace("/");
-      return;
-    } else {
-      const payload: EnvHub.Error = await rsp.json();
-      console.error(payload.message);
-    }
-  }
+	async function logout() {
+		const url: string = makeUrl("/auth/logout");
+		const rsp = await apiFetch(url, { method: "GET" });
+		if (rsp.status === 200) {
+			AuthStore.logout();
+			window.location.replace("/");
+			return;
+		} else {
+			const payload: EnvHub.Error = await rsp.json();
+			console.error(payload.message);
+		}
+	}
 </script>
 
 <nav

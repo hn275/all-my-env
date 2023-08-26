@@ -1,5 +1,5 @@
 import { makeUrl } from "@lib/url";
-import {  type User } from "@lib/auth";
+import type { User } from "@lib/auth";
 
 export async function signIn(code: string): Promise<User> {
 	const res = await fetch(makeUrl("/auth/github"), {

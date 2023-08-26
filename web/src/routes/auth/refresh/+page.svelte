@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { AuthStore, type User } from "@lib/auth";
+	import { AuthStore } from "@lib/auth";
+	import type { User } from "@lib/auth";
 	import { onMount } from "svelte";
 	import { refreshSession } from "./requests";
 

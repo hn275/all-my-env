@@ -2,7 +2,8 @@
 	import { onMount } from "svelte";
 	import Nav from "./index/components/nav.svelte";
 	import { refresh } from "./auth";
-	import { AuthStore, type User } from "@lib/auth";
+	import { AuthStore } from "@lib/auth";
+	import type { User } from "@lib/auth";
 	import cx from "classnames";
 	import LogInBtn from "./index/components/login.svelte";
 	import StarUs from "./index/components/star.svelte";
@@ -15,7 +16,7 @@
 		try {
 			user = AuthStore.user();
 			if (!user) return;
-			const refreshed = AuthStore.sessionRefreshed()
+			const refreshed = AuthStore.sessionRefreshed();
 			if (refreshed) return;
 			loading = true;
 			user = await refresh();

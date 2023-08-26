@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Spinner from "@components/spinner.svelte";
-	import { AuthStore, type User } from "@lib/auth";
+	import { AuthStore } from "@lib/auth";
+	import type { User } from "@lib/auth";
 	import { onMount } from "svelte";
 	import {
 		PUBLIC_GITHUB_CLIENT_ID,
@@ -69,7 +70,10 @@
 		</a>
 	{:else}
 		<div class="relative">
-			<button class="hover:text-light w-full transition" on:click={handleDropdown}>
+			<button
+				class="hover:text-light w-full transition"
+				on:click={handleDropdown}
+			>
 				<img
 					src={user?.avatar_url}
 					alt={user?.name}

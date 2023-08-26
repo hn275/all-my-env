@@ -38,7 +38,7 @@
 
 	onDestroy(() => {
 		error = undefined;
-      confirmKey = ""
+		confirmKey = "";
 	});
 </script>
 

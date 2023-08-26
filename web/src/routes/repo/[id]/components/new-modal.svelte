@@ -3,14 +3,13 @@
 	import type { NewVariable, RepositoryEnv } from "../store";
 	import classNames from "classnames";
 	import { writeNewVariable } from "../requests";
-    import { store } from "../store";
+	import { store } from "../store";
 
-    let repo: RepositoryEnv;
-    onMount(() => {
-        const unsub = store.subscribe((s) => repo = s);
-        return unsub;
-    })
-
+	let repo: RepositoryEnv;
+	onMount(() => {
+		const unsub = store.subscribe((s) => (repo = s));
+		return unsub;
+	});
 
 	type DialogElement = HTMLDialogElement | null;
 	let modal: DialogElement | null;
@@ -26,7 +25,7 @@
 	let loading: boolean = false;
 	let error: string | undefined;
 	async function handleSubmit(e: Event) {
-        if (!repo.repoID) throw new Error("repository not found.");
+		if (!repo.repoID) throw new Error("repository not found.");
 		e.preventDefault();
 		try {
 			loading = true;
@@ -57,7 +56,11 @@
 </button>
 
 <dialog id="new-var" class="modal">
-	<form method="dialog" class="modal-box bg-dark-200" on:submit={handleSubmit}>
+	<form
+		method="dialog"
+		class="modal-box bg-dark-200"
+		on:submit={handleSubmit}
+	>
 		<h3 class="text-main mb-3 text-lg font-bold">New variable</h3>
 		<div>
 			<div class="form-control relative mb-5">

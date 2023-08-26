@@ -1,11 +1,7 @@
 import { apiFetch } from "@lib/requests";
 import { makeUrl } from "@lib/url";
-import {
-	store,
-	type RepositoryEnv,
-	type NewVariable,
-	type Variable,
-} from "./store";
+import { store } from "./store";
+import type { RepositoryEnv, NewVariable, Variable } from "./store";
 
 export async function getVariables(repoID: number): Promise<void> {
 	const url = makeUrl(`/repos/${repoID}`);
@@ -17,7 +13,7 @@ export async function getVariables(repoID: number): Promise<void> {
 	if (rsp.status !== 200) {
 		throw new Error((payload as EnvHub.Error).message);
 	}
-	store.set({ ...(payload as RepositoryEnv), state: {repoID} });
+	store.set({ ...(payload as RepositoryEnv) });
 }
 
 export async function writeNewVariable(
