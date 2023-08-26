@@ -34,7 +34,7 @@
 				{repoName}
 			</h1>
 			<div class="flex gap-3">
-				<UnlinkRepo />
+				<UnlinkRepo {repoName} />
 				<a
 					href={`https://github.com/${repoName}`}
 					target="_blank"
