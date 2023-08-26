@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Variable from "./variable.svelte";
+	import Variable from "./variable";
 	import { store } from "../store";
 	import Row from "./row.svelte";
 	import AddButton from "./new-modal.svelte";

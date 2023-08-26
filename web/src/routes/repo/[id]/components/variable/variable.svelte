@@ -3,9 +3,8 @@
 	import cx from "classnames";
 	import Row from "./row.svelte";
 	import DeleteVariable from "./delete-variable.svelte";
-	import { confirmDelete } from "../services";
-	import type {  RepositoryEnv, Variable } from "../store";
-	import {store} from "../store";
+	import type { RepositoryEnv } from "../../store";
+	import { store } from "../../store";
 
 	export let created_at: string;
 	export let updated_at: string;
@@ -14,8 +13,8 @@
 	export let id: string;
 	export let i: number;
 
-    let state: RepositoryEnv;
-    $: state = $store;
+	let state: RepositoryEnv;
+	$: state = $store;
 
 	function formatTime(d: Date): string {
 		let dt = d.toLocaleDateString() + " ";
@@ -57,11 +56,6 @@
 	$: saveAble = !(varKey === key) || !(varValue === value);
 	let editLoading: boolean = false;
 	async function handleSubmit() {}
-
-	function handleDelete() {
-		const v: Variable = { id, key, value, updated_at, created_at };
-		confirmDelete(v);
-	}
 </script>
 
 <Row className="group">
@@ -76,10 +70,10 @@
 			{#if !editMode}
 				<!-- delete button -->
 				<DeleteVariable
-                    repoID={state.repoID}
-                    variableID={id}
-                    variableKey={key}
-                />
+					repoID={state.repoID}
+					variableID={id}
+					variableKey={key}
+				/>
 				<!-- edit button -->
 				<button on:click={() => (editMode = true)}>
 					<i class="fa-regular fa-pen-to-square fa-sm" />

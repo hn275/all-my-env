@@ -1,36 +1,33 @@
 <script lang="ts">
-	import { store, type RepositoryEnv } from "../store";
-	import { handleDelete } from "../services";
+	import { handleDelete } from "../../services";
 	import { onMount } from "svelte";
 
 	export let variableKey: string;
-    export let variableID: string;
-    export let repoID: number | undefined;
+	export let variableID: string;
+	export let repoID: number | undefined;
 
 	let modal: HTMLDialogElement;
 	onMount(() => {
 		modal = document.getElementById("del-variable") as HTMLDialogElement;
 	});
 
-	let state: RepositoryEnv;
-	$: state = $store;
 	let confirmKey: string = "";
 
 	let error: string | undefined = undefined;
 	let loading: boolean = false;
 
 	async function handleSubmit() {
-        try {
-        if (!repoID) throw new Error("Repository ID not found");
-            loading = true;
-            await handleDelete(repoID, variableID);
-            modal?.close();
-        } catch (e) {
-            error = (e as Error).message;
-        } finally {
-            loading = false;
-        }
-    }
+		try {
+			if (!repoID) throw new Error("Repository ID not found");
+			loading = true;
+			await handleDelete(repoID, variableID);
+			modal?.close();
+		} catch (e) {
+			error = (e as Error).message;
+		} finally {
+			loading = false;
+		}
+	}
 </script>
 
 <button
