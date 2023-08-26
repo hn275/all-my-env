@@ -5,14 +5,13 @@
 	import { getVariables } from "./services";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
-	import { DeleteModal, Table } from "./components";
+	import { DeleteModal, Table, NewModal } from "./components";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
 	let rsp: Promise<void>;
 	let repoName: string;
 	onMount(async () => {
-		// breadcrumbs
 		const url: URL = new URL(window.location.href);
 		repoName = url.searchParams.get("name")!;
 		repoName = decodeURIComponent(repoName);
@@ -50,7 +49,7 @@
 				>
 					Download file
 				</button>
-				<button>add</button>
+                <NewModal />
 			</div>
 		</div>
 	</section>

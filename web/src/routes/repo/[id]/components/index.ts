@@ -5,3 +5,4 @@ import Table from "./table.svelte";
 import Variable from "./variable.svelte";
 
 export { DeleteModal, Row, NewModal, Table, Variable };
+

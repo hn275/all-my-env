@@ -1,11 +1,16 @@
 <script lang="ts">
 	import { afterUpdate, onMount } from "svelte";
-	import type { NewVariable } from "../store";
+	import type { NewVariable, RepositoryEnv } from "../store";
 	import classNames from "classnames";
 	import { writeNewVariable } from "../requests";
+    import { store } from "../store";
 
-	export let repoID: number;
-	export let writeAccess: boolean;
+    let repo: RepositoryEnv;
+    onMount(() => {
+        const unsub = store.subscribe((s) => repo = s);
+        return unsub;
+    })
+
 
 	type DialogElement = HTMLDialogElement | null;
 	let modal: DialogElement | null;
@@ -21,10 +26,11 @@
 	let loading: boolean = false;
 	let error: string | undefined;
 	async function handleSubmit(e: Event) {
+        if (!repo.repoID) throw new Error("repository not found.");
 		e.preventDefault();
 		try {
 			loading = true;
-			await writeNewVariable(repoID, v);
+			await writeNewVariable(repo.repoID, v);
 			modal?.close();
 		} catch (e) {
 			error = (e as Error).message;
@@ -43,7 +49,7 @@
 
 <button
 	class="btn btn-primary text-xs"
-	disabled={!writeAccess}
+	disabled={!$store.write_access}
 	on:click={() => modal?.showModal()}
 >
 	<i class="fa-solid fa-plus" />

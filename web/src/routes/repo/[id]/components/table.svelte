@@ -2,6 +2,7 @@
 	import Variable from "./variable.svelte";
 	import { store } from "../store";
 	import Row from "./row.svelte";
+    import AddButton from "./new-modal.svelte";
 
 </script>
 
@@ -20,7 +21,7 @@
 		class="flex h-full min-h-[400px] w-full flex-col items-center justify-center gap-3"
 	>
 		<p class="text-light/50">No variables stored</p>
-		<button>add new button</button>
+        <AddButton />
 	</div>
 {/if}
 
