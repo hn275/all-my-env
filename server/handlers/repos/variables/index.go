@@ -100,10 +100,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	response := map[string]any{
 		"variables":    env,
 		"write_access": !errors.Is(err, gorm.ErrRecordNotFound),
+		"is_owner":     repo.UserID != user.ID,
 	}
 
 	api.NewResponse(w).
-			Header("Cache-Control", "max-age=10").
+		Header("Cache-Control", "max-age=10").
 		Status(http.StatusOK).
 		JSON(&response)
 }

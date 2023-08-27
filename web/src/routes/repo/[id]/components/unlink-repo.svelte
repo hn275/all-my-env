@@ -55,7 +55,7 @@
 <button
 	class={cx([
 		"btn btn-outline border-error/20 text-error/50 hover:text-error",
-		"hover:border-error/80 hover:bg-dark-200 text-xs disabled:bg-dark-200 disabled:text-error/30",
+		"hover:border-error/80 hover:bg-dark-200 disabled:bg-dark-200 disabled:text-error/30 text-xs",
 	])}
 	disabled={!$store.write_access}
 	on:click={() => modal?.showModal()}
@@ -92,9 +92,9 @@
 			</div>
 
 			<p class="mb-2">
-				Enter
+				Type
 				<span class="font-bold">`{repoName}`</span>
-				to delete the repository:
+				to confirm:
 			</p>
 
 			<div class="flex h-[70px] flex-col items-start justify-start">
@@ -102,6 +102,8 @@
 					type="text"
 					class="input input-bordered w-full"
 					bind:value={confirmRepo}
+                    placeholder={repoName}
+                    required
 				/>
 				{#if error}
 					<p class="text-error text-xs">{error}</p>
@@ -113,12 +115,12 @@
 					type="button"
 					on:click={() => modal?.close()}
 				>
-					Close
+					Cancel
 				</button>
 				<button
 					class="btn btn-error w-44"
 					type="submit"
-					disabled={repoName === confirmRepo}
+					disabled={repoName !== confirmRepo}
 					on:click|preventDefault={handleSubmit}
 				>
 					{#if loading}
