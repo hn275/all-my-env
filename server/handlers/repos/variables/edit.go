@@ -62,7 +62,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	u := map[string]any{
 		"key":        variable.Key,
 		"value":      variable.Value,
-		"updated_at": variable.UpdatedAt,
+		"updated_at": database.TimeNow(),
 	}
 	result := db.Model(&variable).
 		Where("id = ? AND repository_id = ?", variable.ID, repoID).
@@ -90,5 +90,4 @@ func serializeVariable(wg *sync.WaitGroup, v *database.Variable, err error) {
 	if err != nil {
 		return
 	}
-	v.UpdatedAt = database.TimeNow()
 }

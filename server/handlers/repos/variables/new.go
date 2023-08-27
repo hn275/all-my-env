@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
@@ -18,6 +19,12 @@ import (
 func NewVariable(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		api.NewResponse(w).Status(http.StatusMethodNotAllowed).Done()
+		return
+	}
+
+	user, err := api.NewContext(r).User()
+	if err != nil {
+		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
 	}
 
@@ -36,21 +43,30 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// SERIALIZE VARIABLE
-	variable.RepositoryID = repoID
 	// gen id
 	if err := variable.GenID(); err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 	}
-	// cipher value
-	if err := variable.EncryptValue(); err != nil {
-		api.NewResponse(w).ServerError(err.Error())
+	variable.RepositoryID = repoID
+
+	var wg sync.WaitGroup
+	var serializeErr error
+	go serializeVariable(&wg, &variable, serializeErr)
+
+	// CHECK FOR WRITE ACCESS
+	wa, err := db.hasWriteAccess(user.ID, repoID)
+	if !wa {
+		api.NewResponse(w).
+			Status(http.StatusForbidden).
+			Error("you do not have write access, please contact the repository owner.")
 		return
 	}
-	// time
-	variable.CreatedAt = database.TimeNow()
-	variable.UpdatedAt = database.TimeNow()
 
 	// WRITE TO DB
+	// time
+	wg.Wait()
+	variable.CreatedAt = database.TimeNow()
+	variable.UpdatedAt = database.TimeNow()
 	err = newVariable(&variable)
 	if err == nil {
 		api.NewResponse(w).Status(http.StatusCreated).JSON(&variable)
