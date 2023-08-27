@@ -4,6 +4,7 @@
 	import Row from "./row.svelte";
 	import DeleteVariable from "./delete-variable.svelte";
 	import ConfirmEdit from "./confirm-edit.svelte";
+	import ConfirmCancel from "./confirm-cancel.svelte";
 	import type { RepositoryEnv } from "../../store";
 	import { store } from "../../store";
 	import { formatTime } from "../../services";
@@ -41,7 +42,7 @@
 	let newValue: string = value;
 	let editMode: boolean = false;
 
-	function reset() {
+	function handleReset() {
 		editMode = false;
 		newKey = key;
 		newValue = value;
@@ -50,7 +51,7 @@
 	let saveAble: boolean;
 	$: saveAble = !(newKey === key) || !(newValue === value);
 
-	function onEditSuccess() {
+	function handleEditOK() {
 		editMode = false;
 	}
 </script>
@@ -72,24 +73,31 @@
 					variableKey={key}
 				/>
 				<!-- edit button -->
-				<button on:click={() => (editMode = true)}>
+				<button
+					on:click={() => (editMode = true)}
+					class="btn-variable-utilities"
+				>
 					<i class="fa-regular fa-pen-to-square fa-sm" />
 				</button>
 				<!-- copy button -->
 				<button
 					on:click={copy}
-					class="button"
+					class="btn-variable-utilities"
 				>
 					<i class="fa-regular fa-copy fa-sm" />
 				</button>
 			{:else}
 				<!-- cancel button -->
-				<button on:click={reset}>
-					<i class="fa-solid fa-xmark fa-sm" />
-				</button>
+				<ConfirmCancel
+					{key}
+					{newKey}
+					{value}
+					{newValue}
+					on:undo={handleReset}
+				/>
 				<!-- save button -->
 				<ConfirmEdit
-					on:success={onEditSuccess}
+					on:success={handleEditOK}
 					{id}
 					{saveAble}
 					{key}
@@ -133,10 +141,6 @@
 			</div>
 		</div>
 	{/if}
-
-	{#if confirmCancel}
-		<div>confirm cancle</div>
-	{/if}
 </Row>
 
 <style lang="postcss">
@@ -156,11 +160,6 @@
 
 	input:focus {
 		@apply border border-light/60;
-	}
-
-	button {
-		@apply w-6 h-6 rounded-md hover:bg-light/10;
-		@apply text-light/50 hover:text-light transition;
 	}
 
 	button:disabled {
