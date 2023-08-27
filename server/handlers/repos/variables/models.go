@@ -7,23 +7,24 @@ import (
 	"gorm.io/gorm"
 )
 
-type Model struct {
+type model struct {
 	*gorm.DB
 }
 
-var db *Model
+var db *model
 
 func init() {
-	db = &Model{database.New()}
+	db = &model{database.New()}
 }
 
-func (db *Model) getVariables(v *[]database.Variable, repoID uint64) error {
+func (db *model) getVariables(v *[]database.Variable, repoID uint64) error {
 	return db.Table(database.TableVariables).
 		Where("repository_id = ?", repoID).
 		Find(&v).Error
 }
 
-func (db *Model) getWriteAccess(userID, repoID uint64, perm *database.Permission) error {
+// deprecated: no need to pass in the additional `perm` param, use `hasWriteAccess` instead
+func (db *model) getWriteAccess(userID, repoID uint64, perm *database.Permission) error {
 	err := db.
 		Where("user_id = ? AND repository_id = ?", userID, repoID).
 		First(&perm).
@@ -32,4 +33,22 @@ func (db *Model) getWriteAccess(userID, repoID uint64, perm *database.Permission
 		return nil
 	}
 	return err
+}
+
+func (db *model) hasWriteAccess(userID, repoID uint64) (bool, error) {
+	err := db.
+		Where("user_id = ? AND repository_id = ?", userID, repoID).
+		First(&database.Permission{}).
+		Error
+
+	switch err {
+	case nil:
+		return true, nil
+
+	case gorm.ErrRecordNotFound:
+		return false, nil
+
+	default:
+		return false, err
+	}
 }

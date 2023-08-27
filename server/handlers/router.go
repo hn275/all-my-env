@@ -58,10 +58,7 @@ func New() *chi.Mux {
 			r.Route("/variables", func(r chi.Router) {
 				r.Handle("/new", http.HandlerFunc(variables.NewVariable))
 				r.Handle("/delete", http.HandlerFunc(variables.Delete))
-				// r.Group(func(r chi.Router) {
-				// 	r.Use(variables.WriteAccessChecker)
-				// 	r.Handle("/new", http.HandlerFunc(variables.NewVariable))
-				// })
+				r.Handle("/edit", http.HandlerFunc(variables.Edit))
 			})
 		})
 	})
