@@ -58,11 +58,7 @@
 	<section class="m-4 mx-auto max-w-screen-2xl p-5">
 		<h2 class="text-xl font-bold">Environment Variables</h2>
 		<div
-			class={cx([
-				"bg-dark-200 mt-5 min-h-[400px] shadow shadow-black/20",
-				"border-light/20 border",
-				"w-full overflow-x-auto rounded-md p-5",
-			])}
+			class="bg-dark-200 card mt-5 min-h-[400px] w-full overflow-x-auto p-5 shadow-xl"
 		>
 			{#await rsp}
 				<div

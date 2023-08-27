@@ -58,7 +58,7 @@ type Repository struct {
 	FullName string `gorm:"not null" json:"full_name"`
 	// ie: https://github.com/hn275/envhub
 	Url           string `gorm:"not null" json:"url"`
-	VariableCount uint16 `gorm:"default:0"`
+	VariableCount uint8  `gorm:"default:0"`
 
 	// relation
 	User   User   `json:"-"`
@@ -76,8 +76,8 @@ type Variable struct {
 	ID        HexEncodedID `gorm:"primaryKey" json:"id,omitempty"`
 	CreatedAt TimeStamp    `gorm:"not null" json:"created_at,omitempty"`
 	UpdatedAt TimeStamp    `gorm:"not null" json:"updated_at,omitempty"`
-	Key       string       `gorm:"not null;uniqueIndex:unique_key_repo" json:"key,omitempty"`
-	Value     string       `gorm:"not null" json:"value,omitempty"`
+	Key       string       `gorm:"not null;uniqueIndex:unique_key_repo" json:"key,omitempty" validate:"required"`
+	Value     string       `gorm:"not null" json:"value,omitempty" validate:"required"`
 
 	// relation
 	Repository   Repository `json:"-"`

@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator/v10"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
 	"github.com/jackc/pgerrcode"
@@ -34,6 +35,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// marshal and validate request body
 	var variable database.Variable
 	if err := json.NewDecoder(r.Body).Decode(&variable); err != nil {
 		api.NewResponse(w).
@@ -41,14 +43,20 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 			Error(err.Error())
 		return
 	}
+	v := validator.New()
+	if err := v.Struct(&variable); err != nil {
+		api.NewResponse(w).
+			Status(http.StatusBadRequest).
+			Error("unable to serialize variable: missing key or value.")
+		return
+	}
 	variable.RepositoryID = repoID
 	if err := variable.GenID(); err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-	// SERIALIZE VARIABLE
-	// gen id
 
+	// SERIALIZE VARIABLE
 	var wg sync.WaitGroup
 	var serializeErr error
 	go serializeVariable(&wg, &variable, serializeErr)

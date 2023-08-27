@@ -38,6 +38,12 @@
 		}
 	}
 
+	function handleOpen() {
+		v.key = "";
+		v.value = "";
+		modal?.showModal();
+	}
+
 	afterUpdate(() => {
 		if (!error) return;
 		setTimeout(() => {
@@ -49,13 +55,16 @@
 <button
 	class="btn btn-primary text-xs"
 	disabled={!$store.write_access}
-	on:click={() => modal?.showModal()}
+	on:click={handleOpen}
 >
 	<i class="fa-solid fa-plus" />
 	Add
 </button>
 
-<dialog id="new-var" class="modal">
+<dialog
+	id="new-var"
+	class="modal"
+>
 	<form
 		method="dialog"
 		class="modal-box bg-dark-200"
@@ -64,8 +73,14 @@
 		<h3 class="text-main mb-3 text-lg font-bold">New variable</h3>
 		<div>
 			<div class="form-control relative mb-5">
-				<label for="key" class="label">Key</label>
+				<label
+					for="key"
+					class="label"
+				>
+					Key*
+				</label>
 				<input
+					required
 					id="key"
 					type="text"
 					placeholder="foo"
@@ -80,8 +95,14 @@
 			</div>
 
 			<div>
-				<label class="label" for="value">Value</label>
+				<label
+					class="label"
+					for="value"
+				>
+					Value*
+				</label>
 				<input
+					required
 					id="value"
 					type="text"
 					placeholder="bar"
@@ -102,7 +123,7 @@
 			<button
 				class={classNames(["btn btn-primary w-28"])}
 				type="submit"
-				disabled={loading}
+				disabled={loading || (v.key === "" || v.value === "")}
 			>
 				{#if loading}
 					<span class="loading loading-sm" />
@@ -112,7 +133,11 @@
 			</button>
 		</div>
 	</form>
-	<form id="new-var-close" method="dialog" class="modal-backdrop">
+	<form
+		id="new-var-close"
+		method="dialog"
+		class="modal-backdrop"
+	>
 		<button id="new-var-close" />
 	</form>
 </dialog>
