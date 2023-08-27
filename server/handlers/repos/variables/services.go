@@ -68,12 +68,6 @@ func (c *contributor) getRepoAccess() {
 func serializeVariable(wg *sync.WaitGroup, v *database.Variable, err error) {
 	wg.Add(1)
 	defer wg.Done()
-	if v.ID == "" {
-		err = v.GenID()
-		if err != nil {
-			return
-		}
-	}
 	err = v.EncryptValue()
 	if err != nil {
 		return

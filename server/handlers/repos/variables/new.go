@@ -42,7 +42,10 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	variable.RepositoryID = repoID
-
+	if err := variable.GenID(); err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
 	// SERIALIZE VARIABLE
 	// gen id
 

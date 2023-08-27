@@ -33,9 +33,15 @@ a:hover {
 	@apply bg-main/20 border-main text-main;
 }
 
+.btn-variable-utilities {
+    @apply w-6 h-6 rounded-md hover:bg-light/10;
+    @apply text-light/50 hover:text-light transition;
+}
+
 .text-gradient {
 	@apply bg-gradient-to-tr from-light to-main;
 	background-clip: text;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
+
