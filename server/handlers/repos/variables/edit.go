@@ -82,12 +82,3 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	delete(u, "key")
 	api.NewResponse(w).Status(http.StatusOK).JSON(u)
 }
-
-func serializeVariable(wg *sync.WaitGroup, v *database.Variable, err error) {
-	wg.Add(1)
-	defer wg.Done()
-	err = v.EncryptValue()
-	if err != nil {
-		return
-	}
-}

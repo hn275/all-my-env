@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 )
 
@@ -60,6 +61,21 @@ func (c *contributor) getRepoAccess() {
 	default:
 		c.err = fmt.Errorf("GitHub API responded with %d\n", r.StatusCode)
 		c.access = false
+		return
+	}
+}
+
+func serializeVariable(wg *sync.WaitGroup, v *database.Variable, err error) {
+	wg.Add(1)
+	defer wg.Done()
+	if v.ID == "" {
+		err = v.GenID()
+		if err != nil {
+			return
+		}
+	}
+	err = v.EncryptValue()
+	if err != nil {
 		return
 	}
 }

@@ -41,13 +41,10 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 			Error(err.Error())
 		return
 	}
+	variable.RepositoryID = repoID
 
 	// SERIALIZE VARIABLE
 	// gen id
-	if err := variable.GenID(); err != nil {
-		api.NewResponse(w).ServerError(err.Error())
-	}
-	variable.RepositoryID = repoID
 
 	var wg sync.WaitGroup
 	var serializeErr error
@@ -63,8 +60,14 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// WRITE TO DB
-	// time
 	wg.Wait()
+
+	if serializeErr != nil {
+		api.NewResponse(w).ServerError(serializeErr.Error())
+		return
+	}
+
+	// time
 	variable.CreatedAt = database.TimeNow()
 	variable.UpdatedAt = database.TimeNow()
 	err = newVariable(&variable)
@@ -79,6 +82,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println(pgErr)
 	if pgErr.Code == pgerrcode.UniqueViolation {
 		api.NewResponse(w).
 			Status(http.StatusConflict).
