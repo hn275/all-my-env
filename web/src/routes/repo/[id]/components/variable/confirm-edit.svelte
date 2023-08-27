@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { createEventDispatcher, onMount } from "svelte";
 	import { handleEdit } from "../../services";
 	import { store } from "../../store";
 	import cx from "classnames";
@@ -21,6 +21,8 @@
 		modal = document.getElementById("edit-variable") as HTMLDialogElement;
 	});
 
+	const dispatch = createEventDispatcher<{ success: void }>();
+
 	let err: string | undefined;
 	let loading: boolean = false;
 	async function handleSubmit() {
@@ -29,6 +31,7 @@
 			loading = true;
 			await handleEdit(state.repoID, id, newKey, newValue);
 			modal?.close();
+			dispatch("success");
 		} catch (e) {
 			err = (e as Error).message;
 		} finally {

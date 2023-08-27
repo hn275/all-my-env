@@ -9,16 +9,24 @@ export async function handleEdit(
 	newKey: string,
 	newValue: string,
 ): Promise<void> {
-	let url: string = `/repos/${repoID}/variables/edit`;
-	url = makeUrl(url, { id: variableID });
-	const body: BodyInit = JSON.stringify({ key: newKey, value: newValue });
+	const url = makeUrl(`/repos/${repoID}/variables/edit`);
+	const body: BodyInit = JSON.stringify({
+		id: variableID,
+		key: newKey,
+		value: newValue,
+	});
 	const headers: Headers = new Headers({
 		"Content-Type": "application/json",
 		Accept: "application/json",
 	});
 
 	const rsp = await apiFetch(url, { method: "PUT", body, headers });
-	const payload: EnvHub.Response<Variable> = await rsp.json();
+
+	type UpdateResult = {
+		updated_at: string;
+	};
+	const payload: EnvHub.Response<UpdateResult> = await rsp.json();
+
 	if (rsp.status !== 200) {
 		throw new Error((payload as EnvHub.Error).message);
 	}
@@ -26,7 +34,11 @@ export async function handleEdit(
 	store.update((state) => {
 		const variables: Array<Variable> = state.variables.map((v) => {
 			if (v.id === variableID) {
-				return payload as Variable;
+				v.key = newKey;
+				v.value = newValue;
+
+				const { updated_at } = payload as UpdateResult;
+				v.updated_at = formatTime(new Date(updated_at));
 			}
 			return v;
 		});
@@ -61,4 +73,11 @@ export async function getVariables(repoID: number): Promise<void> {
 		throw new Error((payload as EnvHub.Error).message);
 	}
 	store.set({ ...(payload as RepositoryEnv), repoID });
+}
+
+export function formatTime(d: Date): string {
+	let dt = d.toLocaleDateString() + " ";
+	dt += d.getHours().toString() + ":";
+	dt += d.getMinutes().toString().padStart(2, "0");
+	return dt;
 }

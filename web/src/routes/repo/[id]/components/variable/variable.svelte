@@ -6,6 +6,7 @@
 	import ConfirmEdit from "./confirm-edit.svelte";
 	import type { RepositoryEnv } from "../../store";
 	import { store } from "../../store";
+	import { formatTime } from "../../services";
 
 	export let created_at: string;
 	export let updated_at: string;
@@ -16,13 +17,6 @@
 
 	let state: RepositoryEnv;
 	$: state = $store;
-
-	function formatTime(d: Date): string {
-		let dt = d.toLocaleDateString() + " ";
-		dt += d.getHours().toString() + ":";
-		dt += d.getMinutes().toString().padStart(2, "0");
-		return dt;
-	}
 
 	const createdAt = formatTime(new Date(created_at));
 	const updatedAt = formatTime(new Date(updated_at));
@@ -55,6 +49,10 @@
 
 	let saveAble: boolean;
 	$: saveAble = !(newKey === key) || !(newValue === value);
+
+	function onEditSuccess() {
+		editMode = false;
+	}
 </script>
 
 <Row className="group">
@@ -91,6 +89,7 @@
 				</button>
 				<!-- save button -->
 				<ConfirmEdit
+					on:success={onEditSuccess}
 					{id}
 					{saveAble}
 					{key}
