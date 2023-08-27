@@ -18,8 +18,10 @@
 	let state: RepositoryEnv;
 	$: state = $store;
 
-	const createdAt = formatTime(new Date(created_at));
-	const updatedAt = formatTime(new Date(updated_at));
+	let createdAt: string;
+	$: createdAt = formatTime(new Date(created_at));
+
+	const updatedAt: string = formatTime(new Date(updated_at));
 
 	let copyOK: boolean = false;
 	function copy() {
@@ -39,10 +41,8 @@
 	let newValue: string = value;
 	let editMode: boolean = false;
 
-	let confirmCancel: boolean = false;
 	function reset() {
 		editMode = false;
-		confirmCancel = false;
 		newKey = key;
 		newValue = value;
 	}

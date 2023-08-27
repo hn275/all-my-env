@@ -62,16 +62,22 @@
 			</a>
 
 			{#if user}
-				<a href="/dashboard" class="btn btn-primary w-[14ch]"
-					>Dashboard</a
+				<a
+					href="/dashboard"
+					class="btn btn-primary w-[14ch]"
 				>
+					Dashboard
+				</a>
 			{:else}
 				<LogInBtn {loading} />
 			{/if}
 		</div>
 	</section>
 
-	<section class="mx-auto mb-40 w-full max-w-4xl" id="get-started">
+	<section
+		class="mx-auto mb-40 w-full max-w-4xl"
+		id="get-started"
+	>
 		<h2
 			class="font-accent hero-text-gradient text-center text-4xl font-bold md:ml-12 md:text-left"
 		>
@@ -93,8 +99,14 @@
 	<StarUs />
 
 	<div class="flex gap-5">
-		<a href="/terms" class="hover:text-light">Terms & Conditions</a>
-		<a href="/privacy" class="hover:text-light">Privacy Agreement</a>
+		<a
+			href="/terms"
+			class="hover:text-light">Terms & Conditions</a
+		>
+		<a
+			href="/privacy"
+			class="hover:text-light">Privacy Agreement</a
+		>
 	</div>
 </footer>
 <div class="hero-graphic-blur main" />
