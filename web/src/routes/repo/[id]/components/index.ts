@@ -3,6 +3,6 @@ import NewModal from "./new-modal.svelte";
 import Table from "./table.svelte";
 import Variable from "./variable";
 import UnlinkRepo from "./unlink-repo.svelte";
-import AccessControl from "./access-control.svelte";
+import Contributors from "./contributors.svelte";
 
-export { Row, NewModal, Table, Variable, UnlinkRepo, AccessControl };
+export { Row, NewModal, Table, Variable, UnlinkRepo, Contributors };

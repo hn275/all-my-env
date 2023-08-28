@@ -5,9 +5,9 @@
 	import { getVariables } from "./services";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
-	import { Table, NewModal, UnlinkRepo, AccessControl } from "./components";
-	import type{  RepositoryEnv } from "./store";
-	import {store} from "./store";
+	import { Table, NewModal, UnlinkRepo, Contributors } from "./components";
+	import type { RepositoryEnv } from "./store";
+	import { store } from "./store";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
@@ -23,8 +23,8 @@
 		rsp = getVariables(data.id);
 	});
 
-    let state: RepositoryEnv;
-    $: state = $store;
+	let state: RepositoryEnv;
+	$: state = $store;
 </script>
 
 <Main {breadcrumbs}>
@@ -39,6 +39,7 @@
 				{repoName}
 			</h1>
 			<div class="flex gap-3">
+				<Contributors />
 				<a
 					href={`https://github.com/${repoName}`}
 					target="_blank"
@@ -54,13 +55,12 @@
 				>
 					Download file
 				</button>
-                {#if state.is_owner}
-                    <UnlinkRepo {repoName} />
-                    <AccessControl />
-                {/if}
-                {#if state.write_access}
-                    <NewModal />
-                {/if}
+				{#if state.is_owner}
+					<UnlinkRepo {repoName} />
+				{/if}
+				{#if state.write_access}
+					<NewModal />
+				{/if}
 			</div>
 		</div>
 	</section>

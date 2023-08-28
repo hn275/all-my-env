@@ -117,7 +117,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	response := map[string]any{
 		"variables":    env,
 		"write_access": !errors.Is(err, gorm.ErrRecordNotFound),
-		"is_owner":     repo.UserID != user.ID,
+		"owner_id":     repo.UserID,
+		"is_owner":     repo.UserID == user.ID,
 		"contributors": contributors,
 	}
 
