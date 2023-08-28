@@ -177,7 +177,7 @@ func RefreshVariableCounter() {
 // This table only holds records for write access.
 // If gorm query returns a `gorm.ErrRecordNotFound`, user doesn't have read access.
 type Permission struct {
-	ID uint `gorm:"primaryKey"`
+	ID uint64 `gorm:"primaryKey"`
 
 	// relation
 	Repository   Repository
