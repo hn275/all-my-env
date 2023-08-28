@@ -5,7 +5,13 @@
 	import { getVariables } from "./services";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
-	import { Table, NewModal, UnlinkRepo, Contributors } from "./components";
+	import {
+		DeleteRepo,
+		Table,
+		NewModal,
+		Contributors,
+		Dropdown,
+	} from "./components";
 	import type { RepositoryEnv } from "./store";
 	import { store } from "./store";
 
@@ -40,23 +46,9 @@
 			</h1>
 			<div class="flex gap-3">
 				<Contributors />
-				<a
-					href={`https://github.com/${repoName}`}
-					target="_blank"
-					class="btn btn-outline border-dark-100 text-xs"
-				>
-					Git Repository
-				</a>
-				<button
-					class={cx([
-						"btn btn-outline bg-main/0 hover:bg-main/20 border-main/10",
-						"text-main/80 hover:text-main text-xs",
-					])}
-				>
-					Download file
-				</button>
+				<Dropdown {repoName} />
 				{#if state.is_owner}
-					<UnlinkRepo {repoName} />
+					<DeleteRepo {repoName} />
 				{/if}
 				{#if state.write_access}
 					<NewModal />

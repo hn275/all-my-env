@@ -1,5 +1,4 @@
 <script lang="ts">
-	import cx from "classnames";
 	import { afterUpdate, onMount } from "svelte";
 	import type { RepositoryEnv } from "../store";
 	import { store } from "../store";
@@ -50,18 +49,17 @@
 	});
 
 	let confirmRepo: string = "";
+	function handleOpen() {
+		modal?.showModal();
+	}
 </script>
 
 <button
-	class={cx([
-		"btn btn-outline border-error/20 text-error/50 hover:text-error",
-		"hover:border-error/80 hover:bg-dark-200 disabled:bg-dark-200 disabled:text-error/30 text-xs",
-	])}
-	disabled={!$store.write_access}
-	on:click={() => modal?.showModal()}
+	class="btn btn-outline"
+	type="button"
+	on:click={handleOpen}
 >
-	<i class="fa-solid fa-link-slash" />
-	Delete repository
+	<i class="fa-solid fa-link-slash w-5"></i>
 </button>
 
 <dialog
@@ -102,8 +100,8 @@
 					type="text"
 					class="input input-bordered w-full"
 					bind:value={confirmRepo}
-                    placeholder={repoName}
-                    required
+					placeholder={repoName}
+					required
 				/>
 				{#if error}
 					<p class="text-error text-xs">{error}</p>
