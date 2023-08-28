@@ -53,18 +53,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check for user access
-	c := contributor{
-		access:    false,
-		err:       nil,
-		mut:       sync.Mutex{},
-		wg:        sync.WaitGroup{},
-		userLogin: user.Login,
-		userTok:   user.Token,
-		repoURL:   repo.FullName,
-	}
-	go c.getRepoAccess()
-
 	env := make([]database.Variable, repo.VariableCount)
 
 	err = db.getVariables(&env, repo.ID)
@@ -80,21 +68,18 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.wg.Wait()
-	if c.err != nil {
-		api.NewResponse(w).Status(http.StatusBadGateway).Error(c.err.Error())
-		return
-	}
+	// GET CONTRIBUTOR LIST
+	var contributors []contributor
+	var wg sync.WaitGroup
+	var apiError error
+	go getContributors(&wg, user.Token, repo.FullName, &contributors, apiError)
 
-	if !c.access {
-		api.NewResponse(w).Status(http.StatusForbidden).Error("not a contributor.")
-		return
-	}
-
-	// query db for write access
+	// get all contributors
 	var u []struct {
 		UserID int64
 	}
+
+	// get contributors with write access
 	err = db.Table(database.TablePermissions).
 		Select("user_id").
 		Joins("JOIN users ON users.id = user_id").
@@ -109,36 +94,23 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		accessMap[user.UserID] = struct{}{}
 	}
 
-	// var p database.Permission
-	// err = db.getWriteAccess(repo.UserID, repo.ID, &p)
-	// if err != nil {
-	// 	api.NewResponse(w).ServerError(err.Error())
-	// 	return
-	// }
-
-	// GET CONTRIBUTOR LIST
-	// get all contributors
-	var contributors []struct {
-		Login       string `json:"login"`
-		ID          uint64 `json:"id"`
-		AvatarUrl   string `json:"avatar_url"`
-		WriteAccess bool   `json:"write_access"`
+	wg.Wait()
+	// check for repo access
+	hasAccess := false
+	for _, u := range u {
+		if u.UserID == int64(user.ID) {
+			hasAccess = true
+			break
+		}
 	}
-
-	res, err := gh.New(user.Token).Get("/repos/%s/collaborators", repo.FullName)
-	if err != nil {
-		api.NewResponse(w).ServerError(err.Error())
-		return
-	}
-	defer res.Body.Close()
-
-	if err := json.NewDecoder(res.Body).Decode(&contributors); err != nil {
-		api.NewResponse(w).ServerError(err.Error())
+	if !hasAccess {
+		api.NewResponse(w).Status(http.StatusForbidden).Error("not a contributor.")
 		return
 	}
 
-	for i, c := range contributors {
-		_, ok := accessMap[int64(c.ID)]
+	// combine data from gh api and database
+	for i, u := range contributors {
+		_, ok := accessMap[int64(u.ID)]
 		contributors[i].WriteAccess = ok
 	}
 
@@ -149,10 +121,31 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		"contributors": contributors,
 	}
 
-	// get contributors with write access
-
 	api.NewResponse(w).
 		Header("Cache-Control", "max-age=10").
 		Status(http.StatusOK).
 		JSON(&response)
+}
+
+type contributor struct {
+	Login       string `json:"login"`
+	ID          uint64 `json:"id"`
+	AvatarUrl   string `json:"avatar_url"`
+	WriteAccess bool   `json:"write_access"`
+}
+
+func getContributors(wg *sync.WaitGroup, token, repoFullName string, c *[]contributor, err error) {
+	wg.Add(1)
+	defer wg.Done()
+
+	var res *http.Response
+	res, err = gh.New(token).Get("/repos/%s/collaborators", repoFullName)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+
+	if err = json.NewDecoder(res.Body).Decode(c); err != nil {
+		return
+	}
 }
