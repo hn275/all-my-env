@@ -54,6 +54,7 @@ func New() *chi.Mux {
 		r.Use(auth.TokenValidator)
 		r.Handle("/", http.HandlerFunc(repos.Index))
 		r.Handle("/link", http.HandlerFunc(repos.Link))
+		r.Handle("/unlink", http.HandlerFunc(repos.Unlink))
 		r.Route("/{repoID}", func(r chi.Router) {
 			r.Handle("/", http.HandlerFunc(variables.Index))
 			r.Route("/variables", func(r chi.Router) {

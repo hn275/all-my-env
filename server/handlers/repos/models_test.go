@@ -24,3 +24,7 @@ func (db *mockRepoDb) findRepo(userID uint64, ids []uint64) ([]uint64, error) {
 	repoIDs := []uint64{1}
 	return repoIDs, nil
 }
+
+func (db *mockRepoDb) deleteRepo(id uint64) error {
+	return nil
+}

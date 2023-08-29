@@ -8,6 +8,7 @@ import (
 type repoModels interface {
 	newRepo(repoBuf *database.Repository) error
 	findRepo(userID uint64, ids []uint64) ([]database.Repository, error)
+	deleteRepo(id uint64) error
 }
 
 type repoDatabase struct{ *gorm.DB }
@@ -43,4 +44,16 @@ func (db *repoDatabase) findRepo(userID uint64, ids []uint64) ([]database.Reposi
 		Where("user_id = ? AND id IN ?", userID, ids).
 		Find(&repos).Error
 	return repos, err
+}
+
+func (db *repoDatabase) deleteRepo(id uint64) error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(&database.Repository{ID: id}).Error; err != nil {
+			return err
+		}
+		if err := tx.Delete(&database.Permission{RepositoryID: id}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }
