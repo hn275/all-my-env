@@ -13,7 +13,9 @@
 	$: ownerID = $store.owner_id;
 </script>
 
-<ul class="avatar-group -space-x-5 transition-all hover:-space-x-2">
+<ul
+	class="hidden md:flex avatar-group -space-x-5 transition-all hover:-space-x-2"
+>
 	{#each contributors.slice(0, SHOW) as { id, login, avatar_url: src } (id)}
 		<li class="avatar border-dark-200 transition-all duration-300">
 			<a

@@ -15,6 +15,7 @@ export type Contributor = {
     id: number;
     login: string;
     avatar_url: string;
+    write_access: boolean;
 }
 
 export type RepositoryEnv = {
