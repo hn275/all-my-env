@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/hn275/envhub/server/handlers/auth"
 	"github.com/hn275/envhub/server/handlers/repos"
+	"github.com/hn275/envhub/server/handlers/repos/permission"
 	"github.com/hn275/envhub/server/handlers/repos/variables"
 )
 
@@ -59,6 +60,9 @@ func New() *chi.Mux {
 				r.Handle("/new", http.HandlerFunc(variables.NewVariable))
 				r.Handle("/delete", http.HandlerFunc(variables.Delete))
 				r.Handle("/edit", http.HandlerFunc(variables.Edit))
+			})
+			r.Route("/permissions", func(r chi.Router) {
+				r.Handle("/", http.HandlerFunc(permission.NewPermission))
 			})
 		})
 	})

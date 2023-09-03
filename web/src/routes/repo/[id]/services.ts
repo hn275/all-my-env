@@ -3,6 +3,28 @@ import { store } from "./store";
 import type { RepositoryEnv, Variable } from "./store";
 import { makeUrl } from "@lib/url";
 
+export async function handlePermission(
+	repoID: number,
+	userIDs: number[],
+): Promise<void> {
+	const url: string = makeUrl(`/repos/${repoID}/permissions`);
+	const headers: Headers = new Headers({
+		"Content-Type": "application/json",
+	});
+	const body: BodyInit = JSON.stringify({ userIDs });
+	const rsp = await apiFetch(url, {
+		method: "POST",
+		headers,
+		body,
+	});
+	if (rsp.status === 200) {
+		return;
+	}
+
+	const err = (await rsp.json()) as EnvHub.Error;
+	throw new Error(err.message);
+}
+
 export async function handleEdit(
 	repoID: number,
 	variableID: string,

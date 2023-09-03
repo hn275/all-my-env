@@ -3,6 +3,7 @@
 	import { store, type Contributor } from "../../store";
 	import { afterUpdate, onMount } from "svelte";
 	import cn from "classnames";
+	import { handlePermission } from "../../services";
 
 	export let repoName: string;
 	export let modalID: string;
@@ -53,11 +54,26 @@
 		};
 	}
 
-	function handleSubmit() {
+	async function handleSubmit() {
 		loading = true;
-		console.log(contributors); // TODO: do something with this
-		document.querySelector("body")?.classList.remove("overflow-y-hidden");
-		modal?.close();
+		const userIDs: number[] = [];
+		for (let i = 0; i < contributors.length; i++) {
+			if (contributors[i].write_access) userIDs.push(contributors[i].id);
+		}
+
+		try {
+			document
+				.querySelector("body")
+				?.classList.remove("overflow-y-hidden");
+
+			await handlePermission($store.repoID!, userIDs);
+
+			modal?.close();
+		} catch (e) {
+			console.error(e);
+		} finally {
+			loading = false;
+		}
 	}
 
 	function handleClose() {
