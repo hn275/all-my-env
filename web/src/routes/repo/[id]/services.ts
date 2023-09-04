@@ -18,6 +18,15 @@ export async function handlePermission(
 		body,
 	});
 	if (rsp.status === 200) {
+		store.update((s) => {
+			const { contributors } = s;
+			for (let i = 0; i < contributors.length; i++) {
+				contributors[i].write_access = userIDs.includes(
+					contributors[i].id,
+				);
+			}
+			return { ...s, contributors };
+		});
 		return;
 	}
 

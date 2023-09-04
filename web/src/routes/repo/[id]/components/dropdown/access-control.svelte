@@ -24,7 +24,7 @@
 		modal = document.getElementById(modalID) as HTMLDialogElement;
 	});
 
-	let diff: boolean = false;
+	let hasDiff: boolean = false;
 	afterUpdate(() => {
 		for (let i = 0; i < contributors.length; i++) {
 			if (
@@ -33,12 +33,21 @@
 			) {
 				continue;
 			} else {
-				diff = true;
+				hasDiff = true;
 				return;
 			}
 		}
-		diff = false;
+		hasDiff = false;
 	});
+
+	let diffIndex: boolean[] = new Array(contributors.length).fill(false);
+	$: {
+		const c = $store.contributors;
+		for (let i = 0; i < c.length; i++) {
+			diffIndex[i] = contributors[i].write_access !== c[i].write_access;
+			diffIndex = diffIndex;
+		}
+	}
 
 	// button handler
 	function handleToggleWriteAccess(id: number) {
@@ -62,12 +71,9 @@
 		}
 
 		try {
-			document
-				.querySelector("body")
-				?.classList.remove("overflow-y-hidden");
-
 			await handlePermission($store.repoID!, userIDs);
-
+			const html = document.querySelector("body");
+			html?.classList.remove("overflow-y-hidden");
 			modal?.close();
 		} catch (e) {
 			console.error(e);
@@ -124,7 +130,7 @@
 						<p>
 							{login}
 						</p>
-						{#if $store.is_owner}
+						{#if $store.is_owner && $store.owner_id !== id}
 							<input
 								type="checkbox"
 								class="toggle toggle-xs toggle-accent tooltip tooltip-right"
@@ -144,6 +150,9 @@
 						{:else}
 							<p class="text-light/50 text-xs">read-only</p>
 						{/if}
+						{#if diffIndex[i]}
+							<span class="text-light/50 ml-2 text-xs">[+]</span>
+						{/if}
 					</div>
 				</div>
 			</li>
@@ -156,7 +165,7 @@
 			on:click|preventDefault={handleClose}>Cancel</button
 		>
 		<button
-			disabled={!diff}
+			disabled={!hasDiff}
 			type="button"
 			on:click|preventDefault={handleSubmit}
 			class={cn([

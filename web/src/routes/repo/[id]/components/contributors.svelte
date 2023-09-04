@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { store, type Contributor } from "../store";
 
-	const SHOW: number = 5;
+	const SHOW: number = 4;
 
 	let contributors: Array<Contributor>;
 	$: contributors = $store.contributors;

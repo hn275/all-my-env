@@ -2,7 +2,6 @@ package permission
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -126,13 +125,10 @@ func getPermssionDiff(ownerID uint64, dbPerm, reqPerm []uint64) *permDiff {
 		}
 		i++
 	}
-	log.Println(i)
 	if i < len(reqPerm)-1 && i > 0 {
 		reqPerm = append(reqPerm[:i], reqPerm[i+1:]...)
 	}
 
-	log.Println(dbPerm)
-	log.Println(reqPerm)
 	// sort
 	sort.SliceStable(dbPerm, func(i, j int) bool {
 		return dbPerm[i] < dbPerm[j]
@@ -198,7 +194,7 @@ func (wa *permDiff) updatePermissions(repoID uint64) error {
 			}
 		}
 
-		err := tx.Delete(&p).Error
+		err := tx.Where("repository_id = ?", repoID).Delete(&p).Error
 		if err != nil {
 			return err
 		}
@@ -211,11 +207,6 @@ func (wa *permDiff) updatePermissions(repoID uint64) error {
 			}
 		}
 
-		err = tx.Create(&p).Error
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return tx.Create(&p).Error
 	})
 }

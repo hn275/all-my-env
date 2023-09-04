@@ -82,7 +82,6 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	// get contributors with write access
 	err = db.Table(database.TablePermissions).
 		Select("user_id").
-		Joins("JOIN users ON users.id = user_id").
 		Where("repository_id = ?", repoID).Find(&u).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		api.NewResponse(w).ServerError(err.Error())

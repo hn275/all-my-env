@@ -47,7 +47,6 @@ type User struct {
 
 	// relation
 	Repositories []Repository `gorm:"constraint:OnDelete:CASCADE"`
-	Permission   []Permission `gorm:"constraint:OnDelete:CASCADE"`
 }
 
 type Repository struct {
@@ -181,8 +180,9 @@ type Permission struct {
 
 	// relation
 	Repository   Repository
-	RepositoryID uint64 `gorm:"foreignKey;uniqueIndex:unique_user_repo"`
+	RepositoryID uint64 `gorm:"foreignKey;unique_user_repo"`
 
-	User   User
-	UserID uint64 `gorm:"foreignKey;uniqueIndex:unique_user_repo"`
+	// this does not have to be a foreign key since
+	// since I don't care if the user has an account with envhub or not.
+	UserID uint64
 }
