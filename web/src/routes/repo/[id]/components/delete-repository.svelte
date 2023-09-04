@@ -20,24 +20,62 @@
 
 	let loading: boolean = false;
 	let error: string | undefined;
+	// async function handleSubmit(e: Event) {
+	// 	if (!repo.repoID) throw new Error("repository not found.");
+	// 	e.preventDefault();
+	// 	try {
+	// 		loading = true;
+			
+	// 		const url: string = makeUrl(`/repos/unlink`, {});
+			
+	// 		// const r: RequestInit = { method: "DELETE" };
+	// 		// const res = await apiFetch(url, r);
+	// 		const res = await apiFetch(url, { method: "DELETE" });
+	// 		if (res.status === 204) {
+	// 			window.location.replace("/dashboard");
+	// 			return;
+	// 		}
+	// 		const payload: EnvHub.Error = await res.json();
+	// 		error = payload.message;
+	// 	} catch (e) {
+	// 		error = (e as Error).message;
+	// 	} finally {
+	// 		loading = false;
+	// 	}
+	// }
+
 	async function handleSubmit(e: Event) {
-		if (!repo.repoID) throw new Error("repository not found.");
 		e.preventDefault();
-		try {
-			loading = true;
-			const url: string = makeUrl(`/repos/${repo.repoID}/delete`);
-			const r: RequestInit = { method: "DELETE" };
-			const res = await apiFetch(url, r);
-			if (res.status === 204) {
-				window.location.replace("/dashboard");
-				return;
+		
+		if (repo.repoID && confirmRepo === repoName) {
+			try {
+				loading = true;
+				console.log({ repoID: repo.repoID, repoName: repoName })
+				const url: string = makeUrl(`/repos/${repo.repoID}/unlink`, {});
+				const payload = { repoID: repo.repoID, repoName: repoName };
+				
+				const res = await apiFetch(url, {
+					method: "DELETE",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(payload)
+				});
+
+				if (res.status === 204) {
+					window.location.replace("/dashboard");
+				} else {
+					const responseBody = await res.json();
+					error = responseBody.message;
+				}
+				console.log("4");
+			} catch (e) {
+				error = (e as Error).message;
+			} finally {
+				loading = false;
 			}
-			const payload: EnvHub.Error = await res.json();
-			error = payload.message;
-		} catch (e) {
-			error = (e as Error).message;
-		} finally {
-			loading = false;
+		} else {
+			error = "Please confirm the repository name.";
 		}
 	}
 
@@ -124,7 +162,7 @@
 					{#if loading}
 						<span class="loading" />
 					{:else}
-						Delete my variable
+						Delete My Repo
 					{/if}
 				</button>
 			</div>

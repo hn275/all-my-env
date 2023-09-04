@@ -1,6 +1,8 @@
 package repos
 
 import (
+	"log"
+
 	"github.com/hn275/envhub/server/database"
 	"gorm.io/gorm"
 )
@@ -8,7 +10,7 @@ import (
 type repoModels interface {
 	newRepo(repoBuf *database.Repository) error
 	findRepo(userID uint64, ids []uint64) ([]database.Repository, error)
-	deleteRepo(id uint64) error
+	deleteRepo(repoID uint64, userID uint64) error
 }
 
 type repoDatabase struct{ *gorm.DB }
@@ -46,14 +48,24 @@ func (db *repoDatabase) findRepo(userID uint64, ids []uint64) ([]database.Reposi
 	return repos, err
 }
 
-func (db *repoDatabase) deleteRepo(id uint64) error {
+func (db *repoDatabase) deleteRepo(repoID uint64, userID uint64) error {
 	return db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Delete(&database.Repository{ID: id}).Error; err != nil {
+		// Delete the repository
+		log.Println("Deleting repository with repoID:", repoID)
+		result := tx.Where("id = ? AND user_id = ?", repoID, userID).Delete(&database.Repository{})
+		if err := result.Error; err != nil {
 			return err
 		}
-		if err := tx.Delete(&database.Permission{RepositoryID: id}).Error; err != nil {
+		if result.RowsAffected == 0 {
+			return gorm.ErrRecordNotFound
+		}
+
+		// Delete the associated variables
+		result = tx.Where("repository_id = ?", repoID).Delete(&database.Variable{})
+		if err := result.Error; err != nil {
 			return err
 		}
+
 		return nil
 	})
 }
