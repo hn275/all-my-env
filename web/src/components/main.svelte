@@ -35,8 +35,7 @@
 
 <nav
 	class={cx([
-		"bg-dark-200 border-dark-100 h-16",
-		"flex items-center justify-between border-b-2 p-2 px-4",
+		"flex items-center justify-between p-2 px-4 sticky top-0 h16 bg-base-100 z-[9999]",
 	])}
 >
 	<div class="breadcrumbs flex items-center gap-9">
@@ -103,6 +102,5 @@
 <style lang="postcss">
 	main {
 		min-height: calc(100vh - 48px - 64px);
-		@apply bg-dark-100;
 	}
 </style>
