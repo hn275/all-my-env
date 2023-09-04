@@ -86,11 +86,11 @@
 					<input
 						type="text"
 						placeholder="Search repositories"
-						class="input input-bordered bg-dark-200 w-full flex-grow"
+						class="input input-bordered bg-neutral w-full flex-grow"
 						on:input={handleSearch}
 					/>
 					<select
-						class="select bg-dark-200 text-light/70 font-normal"
+						class="select select-bordered bg-neutral text-light/70 font-normal"
 						name="sort"
 						on:change={handleSort}
 					>

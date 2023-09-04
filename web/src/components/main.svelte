@@ -34,9 +34,7 @@
 </script>
 
 <nav
-	class={cx([
-		"flex items-center justify-between p-2 px-4 sticky top-0 h16 bg-base-100 z-[9999]",
-	])}
+	class="flex items-center justify-between p-2 px-4 sticky top-0 h16 bg-base-100/90 backdrop-blur z-[9999]"
 >
 	<div class="breadcrumbs flex items-center gap-9">
 		<ul class="text-sm">

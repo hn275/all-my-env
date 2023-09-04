@@ -36,7 +36,7 @@
 
 <li
 	class={cx([
-		"bg-dark-200  border-light/10 relative rounded-lg border p-5 shadow-lg",
+		"bg-neutral  border-light/10 relative rounded-lg border p-5 shadow-lg",
 		"flex flex-col justify-between",
 	])}
 >
@@ -85,10 +85,7 @@
 			<div class="flex items-center justify-between py-2">
 				<a
 					href={repoHref}
-					class={cx([
-						"link link-primary text-xs",
-						"bg-transparent text-sm transition hover:bg-transparent",
-					])}
+					class="btn btn-xs btn-primary"
 				>
 					see {repo.variable_counter} variable(s)
 				</a>
@@ -97,7 +94,7 @@
 			<button
 				on:click={handleLinkRepo}
 				class={cx([
-					"text-main border-main bg-main/5 hover:bg-main/10 rounded-lg border p-2 text-sm transition",
+					"btn btn-xs btn-outline btn-primary",
 					{ "loading loading-dots": loading },
 				])}
 			>
@@ -106,7 +103,7 @@
 				{/if}
 			</button>
 		{:else}
-			<p class="text-light/50 text-xs">not connected</p>
+			<p class="text-neutral-content/40 text-xs">not connected</p>
 		{/if}
 	</div>
 </li>
