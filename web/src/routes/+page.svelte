@@ -39,7 +39,7 @@
 		class="flex h-[calc(100vh-65px)] flex-col items-center justify-center gap-6"
 	>
 		<h1
-			class="hero-text-gradient font-accent text-center text-3xl font-bold uppercase md:text-4xl"
+			class="text-gradient font-accent text-center text-3xl font-bold uppercase md:text-4xl"
 		>
 			effortless secrets management
 		</h1>
@@ -56,7 +56,7 @@
 		>
 			<a
 				href="#get-started"
-				class="btn btn-outline border-main text-main w-[14ch]"
+				class="btn btn-outline btn-accent w-[14ch]"
 			>
 				Get started
 			</a>
@@ -133,9 +133,8 @@
 		width: 100%;
 		height: 6px;
 		border-radius: 4px;
-		background: red;
 		z-index: -1;
-		@apply bg-accent-fuchsia-100/80;
+		@apply bg-accent;
 	}
 
 	.hero-graphic-blur {
@@ -149,7 +148,7 @@
 	.hero-graphic-blur.main {
 		height: 325px;
 		width: 500px;
-		@apply bg-main/30;
+		@apply bg-primary/30;
 		z-index: -20;
 		transform: scale(0.5) translate(250px, 200px);
 	}
@@ -157,7 +156,7 @@
 	.hero-graphic-blur.accent {
 		height: 400px;
 		width: 470px;
-		@apply bg-accent-fuchsia-100/30;
+		@apply bg-accent/30;
 		z-index: -30;
 		transform: scale(0.5) translate(calc(40% + 200px), -30px);
 	}

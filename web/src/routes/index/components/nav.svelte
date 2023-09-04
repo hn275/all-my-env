@@ -24,11 +24,14 @@
 <nav
 	class={cx([
 		"sticky left-0 top-0 z-[49] translate-y-0 transition-all",
-		"bg-dark bg-dark-200/60 justify-between backdrop-blur md:flex",
+		"bg-dark justify-between backdrop-blur md:flex",
 	])}
 >
 	<div class="flex h-16 items-center justify-between px-5">
-		<img src={Logo} alt="logo" />
+		<img
+			src={Logo}
+			alt="logo"
+		/>
 		<button
 			on:click={toggleOpen}
 			class="rounded-md bg-inherit p-2 transition-all hover:bg-[#3a3a3a] md:hidden"
@@ -54,7 +57,10 @@
 			</li>
 			{#each navMap as { href, text } (text)}
 				<li>
-					<a class="transition hover:text-light" {href}>
+					<a
+						class="transition hover:text-light"
+						{href}
+					>
 						{text}
 					</a>
 				</li>

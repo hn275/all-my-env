@@ -9,7 +9,8 @@ html {
 }
 
 body {
-	@apply bg-dark-200 font-regular text-light;
+	/* @apply bg-dark-200 font-regular text-light; */
+	@apply font-regular text-light;
 	overflow-x: hidden;
 }
 
@@ -21,16 +22,12 @@ a:hover {
 	cursor: pointer;
 }
 
-.btn:disabled {
-	@apply bg-gray-600 opacity-50;
-}
+/* .btn:disabled { */
+/* 	@apply bg-gray-600 opacity-50; */
+/* } */
 
 .btn {
 	@apply normal-case;
-}
-
-.btn-outline:hover {
-	@apply bg-main/20 border-main text-main;
 }
 
 .btn-variable-utilities {
@@ -39,7 +36,7 @@ a:hover {
 }
 
 .text-gradient {
-	@apply bg-gradient-to-tr from-light to-main;
+	@apply bg-gradient-to-tr from-light to-primary;
 	background-clip: text;
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
