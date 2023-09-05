@@ -62,21 +62,37 @@
 
 	<div class="flex items-center justify-between">
 		<div class="text-light/70 flex items-center gap-2">
-			<Icon show={true} tooltip={repo.full_name}>
-				<a href={githubHref} target="_blank" class="mr-2">
+			<Icon
+				show={true}
+				tooltip={repo.full_name}
+			>
+				<a
+					href={githubHref}
+					target="_blank"
+					class="mr-2"
+				>
 					<i class="fa-brands fa-github fa-sm" />
 				</a>
 			</Icon>
 
-			<Icon show={repo.fork} tooltip="forked repo">
+			<Icon
+				show={repo.fork}
+				tooltip="forked repo"
+			>
 				<i class="fa-solid fa-code-fork fa-xs" />
 			</Icon>
 
-			<Icon show={repo.linked} tooltip="repo connected">
+			<Icon
+				show={repo.linked}
+				tooltip="repo connected"
+			>
 				<i class="fa-solid fa-link fa-xs" />
 			</Icon>
 
-			<Icon show={repo.private} tooltip="private">
+			<Icon
+				show={repo.private}
+				tooltip="private"
+			>
 				<i class="fa-solid fa-lock fa-xs" />
 			</Icon>
 		</div>
@@ -87,23 +103,27 @@
 					href={repoHref}
 					class="btn btn-xs btn-primary"
 				>
-					see {repo.variable_counter} variable(s)
+					View variables
 				</a>
 			</div>
-		{:else if repo.is_owner}
-			<button
-				on:click={handleLinkRepo}
-				class={cx([
-					"btn btn-xs btn-outline btn-primary",
-					{ "loading loading-dots": loading },
-				])}
-			>
-				{#if !loading}
-					Connect repo
-				{/if}
-			</button>
 		{:else}
-			<p class="text-neutral-content/40 text-xs">not connected</p>
+			<div
+				class={cx({ "tooltip tooltip-error": !repo.is_owner })}
+				data-tip="only the repository's owner perform this action."
+			>
+				<button
+					on:click={handleLinkRepo}
+					class={cx([
+						"btn btn-xs btn-outline btn-primary",
+						{ "loading loading-dots": loading },
+					])}
+					disabled={!repo.is_owner}
+				>
+					{#if !loading}
+						Link repository
+					{/if}
+				</button>
+			</div>
 		{/if}
 	</div>
 </li>
