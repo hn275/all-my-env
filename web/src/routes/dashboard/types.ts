@@ -2,7 +2,6 @@ export interface Repository {
 	// added props
 	linked: boolean;
 	is_owner: boolean;
-	variable_counter: number;
 
 	id: number;
 	node_id: string;
