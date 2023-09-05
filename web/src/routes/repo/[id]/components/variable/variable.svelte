@@ -19,10 +19,10 @@
 	let state: RepositoryEnv;
 	$: state = $store;
 
-	let createdAt: string;
-	$: createdAt = formatTime(new Date(created_at));
+	let createdAt: string = formatTime(new Date(created_at));
 
-	const updatedAt: string = formatTime(new Date(updated_at));
+	let updatedAt: string;
+	$: updatedAt = formatTime(new Date(updated_at));
 
 	let copyOK: boolean = false;
 	function copy() {
@@ -124,15 +124,15 @@
 
 	<div class="relative">
 		<input
-			class="text-main w-full bg-transparent font-semibold transition-all"
+			class="text-primary w-full bg-transparent font-semibold transition-all"
 			bind:value={newValue}
 			disabled={!editMode}
 		/>
 	</div>
 
-	<p class="text-light/70 text-sm">{createdAt}</p>
+	<p class="text-base-content/70 text-sm">{createdAt}</p>
 
-	<p class="text-light/70 text-sm">{updatedAt}</p>
+	<p class="text-base-content/70 text-sm">{updatedAt}</p>
 
 	{#if copyOK}
 		<div class="toast toast-start">
