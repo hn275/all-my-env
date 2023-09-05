@@ -9,8 +9,7 @@ html {
 }
 
 body {
-	/* @apply bg-dark-200 font-regular text-light; */
-	@apply font-regular text-light;
+	@apply bg-base-100 font-regular text-base-content;
 	overflow-x: hidden;
 }
 

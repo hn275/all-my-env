@@ -1,11 +1,8 @@
 <script lang="ts">
 	import cx from "classnames";
 	import Logo from "@assets/logo.svg";
-	import StarUs from "./star.svelte";
-	import LogInBtn from "./login.svelte";
 	import Hamburger from "../assets/hamburger.svelte";
-
-	export let loading: boolean;
+	import Dashboard from "./dashboard.svelte";
 
 	let show: boolean = false;
 	const toggleOpen: () => void = () => (show = !show);
@@ -15,19 +12,20 @@
 		text: string;
 	};
 	const navMap: Array<NavMap> = [
-		{ href: "/pricing", text: "Pricing" },
-		{ href: "/docs", text: "Docs" },
-		{ href: "/faq", text: "FAQ" },
+		{ href: "/#faqs", text: "FAQs" },
+		{ href: "/#support", text: "Support The Maintainers" },
 	];
 </script>
 
 <nav
 	class={cx([
 		"sticky left-0 top-0 z-[49] translate-y-0 transition-all",
-		"bg-dark justify-between backdrop-blur md:flex",
+		"bg-base-100/80 backdrop-blur md:flex md:items-center md:py-5",
 	])}
 >
-	<div class="flex h-16 items-center justify-between px-5">
+	<div
+		class="flex h-16 items-center justify-between px-5 md:inline md:h-full md:justify-start"
+	>
 		<img
 			src={Logo}
 			alt="logo"
@@ -40,34 +38,36 @@
 		</button>
 	</div>
 
-	<div class="absolute left-0 top-16 w-full pr-4 md:static md:w-max">
+	<div
+		class="absolute left-0 top-16 w-full pr-4 md:static md:ml-5 md:mt-1 md:w-max"
+	>
 		<ul
 			class={cx([
-				"h-0 w-full py-0",
+				"bg-base-100/80 h-0 w-full py-0 backdrop-blur",
 				{ "h-[350px] py-5": show },
-				"text-light md:text-light/60 bg-[#1e1e1e]",
 				"flex flex-col items-center justify-between",
 				"transition-all",
 				"relative overflow-clip",
 				"z-50 gap-10 md:h-full md:flex-row md:bg-inherit",
 			])}
 		>
-			<li>
-				<StarUs />
+			<li class="md:hidden">
+				<Dashboard />
 			</li>
 			{#each navMap as { href, text } (text)}
 				<li>
 					<a
-						class="transition hover:text-light"
+						class="text-neutral-content font-bold hover:underline"
 						{href}
 					>
 						{text}
 					</a>
 				</li>
 			{/each}
-			<li>
-				<LogInBtn {loading} />
-			</li>
 		</ul>
+	</div>
+
+	<div class="ml-auto hidden gap-5 px-5 md:flex">
+		<Dashboard />
 	</div>
 </nav>
