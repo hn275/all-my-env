@@ -1,15 +1,12 @@
 <script lang="ts">
 	import { afterUpdate, onMount } from "svelte";
 	import type { NewVariable, RepositoryEnv } from "../store";
-	import classNames from "classnames";
+	import cn from "classnames";
 	import { writeNewVariable } from "../requests";
 	import { store } from "../store";
 
 	let repo: RepositoryEnv;
-	onMount(() => {
-		const unsub = store.subscribe((s) => (repo = s));
-		return unsub;
-	});
+	$: repo = $store;
 
 	type DialogElement = HTMLDialogElement | null;
 	let modal: DialogElement | null;
@@ -67,10 +64,10 @@
 >
 	<form
 		method="dialog"
-		class="modal-box bg-dark-200"
+		class="modal-box"
 		on:submit={handleSubmit}
 	>
-		<h3 class="text-main mb-3 text-lg font-bold">New variable</h3>
+		<h3 class="text-gradient mb-3 text-lg font-bold">New variable</h3>
 		<div>
 			<div class="form-control relative mb-5">
 				<label
@@ -121,9 +118,9 @@
 				Cancel
 			</button>
 			<button
-				class={classNames(["btn btn-primary w-28"])}
+				class={cn(["btn btn-primary w-28"])}
 				type="submit"
-				disabled={loading || (v.key === "" || v.value === "")}
+				disabled={loading || v.key === "" || v.value === ""}
 			>
 				{#if loading}
 					<span class="loading loading-sm" />

@@ -2,7 +2,6 @@
 	import Main from "@components/main.svelte";
 	import type { Breadcrumbs } from "@lib/types";
 	import { onMount } from "svelte";
-	import { getVariables } from "./services";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
 	import {
@@ -12,25 +11,17 @@
 		Contributors,
 		Dropdown,
 	} from "./components";
-	import type { RepositoryEnv } from "./store";
 	import { store } from "./store";
 
 	export let data: Route;
 	let breadcrumbs: Array<Breadcrumbs> | undefined;
-	let rsp: Promise<void>;
 	let repoName: string;
-	onMount(async () => {
+	onMount(() => {
 		const url: URL = new URL(window.location.href);
 		repoName = url.searchParams.get("name")!;
 		repoName = decodeURIComponent(repoName);
 		breadcrumbs = [{ text: repoName, href: url.toString() }];
-
-		// fetch variables
-		rsp = getVariables(data.id);
 	});
-
-	let state: RepositoryEnv;
-	$: state = $store;
 </script>
 
 <Main {breadcrumbs}>
@@ -47,10 +38,10 @@
 			<div class="flex gap-3">
 				<Contributors />
 				<Dropdown {repoName} />
-				{#if state.is_owner}
+				{#if $store.is_owner}
 					<DeleteRepo {repoName} />
 				{/if}
-				{#if state.write_access}
+				{#if $store.write_access}
 					<NewModal />
 				{/if}
 			</div>
@@ -61,25 +52,7 @@
 		<div
 			class="bg-neutral card mt-5 min-h-[400px] w-full overflow-x-auto p-5 shadow-xl"
 		>
-			{#await rsp}
-				<div
-					class={cx([
-						"flex h-full min-h-[400px] w-full flex-col",
-						"items-center justify-center gap-5",
-					])}
-				>
-					<span class="loading loading-lg text-main" />
-					<p>Getting variables...</p>
-				</div>
-			{:then}
-				<Table />
-			{:catch e}
-				<div
-					class="flex h-52 w-full flex-col items-center justify-center"
-				>
-					<p class="text-error">{e.message}</p>
-				</div>
-			{/await}
+			<Table repoID={data.id} />
 		</div>
 	</section>
 </Main>

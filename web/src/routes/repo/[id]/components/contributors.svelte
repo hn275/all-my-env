@@ -17,7 +17,7 @@
 	class="hidden md:flex avatar-group -space-x-5 transition-all hover:-space-x-2"
 >
 	{#each contributors.slice(0, SHOW) as { id, login, avatar_url: src } (id)}
-		<li class="avatar border-dark-200 transition-all duration-300">
+		<li class="avatar transition-all duration-300">
 			<a
 				href={`https://github.com/${login}`}
 				target="_blank"
@@ -32,9 +32,9 @@
 	{/each}
 	{#if contributors.length > SHOW}
 		<li
-			class="avatar placeholder bg-dark-100 border-dark-200 group-hover:border-primary transition-all"
+			class="avatar placeholder bg-neutral group-hover:border-primary transition-all"
 		>
-			<div class="h10 w-10 text-xs font-bold">
+			<div class="h10 w-10 text-neutral-content text-xs font-bold">
 				{contributorCounter}
 			</div>
 		</li>

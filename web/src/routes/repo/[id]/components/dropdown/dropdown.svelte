@@ -22,11 +22,11 @@
 </script>
 
 <div class="dropdown dropdown-hover dropdown-end">
-	<div class="btn btn-ghost bg-dark-100 hover:cursor-auto">
+	<div class="btn btn-ghost bg-neutral hover:cursor-auto">
 		<i class="fa-solid fa-gear"></i>
 	</div>
 	<ul
-		class="dropdown-content menu bg-dark-100 rounded-box z-[1] w-52 p-2 shadow"
+		class="dropdown-content menu bg-neutral rounded-box z-[1] w-52 p-2 shadow"
 	>
 		<li>
 			<button on:click={handleOpen}>
