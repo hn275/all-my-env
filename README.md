@@ -1,7 +1,3 @@
-Certainly! Here's a draft for a README for the "envhub" project:
-
----
-
 # ENVhub
 
 ENVhub is a comprehensive solution designed to manage environment variables seamlessly. With both server-side and web-based components, the project offers a robust platform for developers to handle environment configurations efficiently.
