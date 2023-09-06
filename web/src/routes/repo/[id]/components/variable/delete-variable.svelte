@@ -5,6 +5,7 @@
 	export let variableKey: string;
 	export let variableID: string;
 	export let repoID: number | undefined;
+	export let _class: string;
 
 	let modal: HTMLDialogElement;
 	onMount(() => {
@@ -31,7 +32,7 @@
 </script>
 
 <button
-	class="text-light/50 hover:bg-error hover:text-dark-200 h-6 w-6 rounded-md transition"
+	class={_class}
 	on:click={() => modal?.showModal()}
 >
 	<i class="fa-solid fa-trash fa-sm" />
@@ -43,9 +44,9 @@
 >
 	<form
 		method="dialog"
-		class="modal-box bg-dark-200"
+		class="modal-box"
 	>
-		<div class="bg-dark-200">
+		<div>
 			<h3 class="mb-7 text-lg font-bold">Delete repository</h3>
 			<p class="mb-4">
 				You're about to delete the environment variable

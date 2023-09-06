@@ -1,6 +1,5 @@
 <script lang="ts">
 	import "../index.css";
-	import cx from "classnames";
 	import Logo from "@assets/logo.svg";
 	import { AuthStore } from "@lib/auth";
 	import type { User } from "@lib/auth";
@@ -40,7 +39,11 @@
 		<ul class="text-sm">
 			<li>
 				<a href="/">
-					<img src={Logo} alt="EnvHub" class="w-14" />
+					<img
+						src={Logo}
+						alt="EnvHub"
+						class="w-14"
+					/>
 				</a>
 			</li>
 			<li>
@@ -51,7 +54,9 @@
 						role="presentation"
 						class="inline w-5 rounded-full"
 					/>
-					<a class="link link-hover ml-1 text-sm" href="/dashboard"
+					<a
+						class="link link-hover ml-1 text-sm"
+						href="/dashboard"
 						>{user?.login ?? ""}
 					</a>
 				</div>
@@ -71,7 +76,7 @@
 	<div>
 		<button
 			on:click={logout}
-			class="btn hover:bg-dark-100 border-none bg-transparent text-sm font-normal normal-case"
+			class="btn btn-ghost"
 		>
 			<i class="fa-solid fa-arrow-right-from-bracket fa-sm mr-2" />
 			Log out
@@ -88,7 +93,7 @@
 		<a
 			href="https://github.com/hn275/envhub"
 			target="_blank"
-			class="text-light/60 hover:text-main transition"
+			class="text-base-content/50 hover:text-accent transition-colors"
 		>
 			<span>
 				<i class="fa-regular fa-star" />
