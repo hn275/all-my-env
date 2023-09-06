@@ -133,7 +133,7 @@
 						{#if $store.is_owner && $store.owner_id !== id}
 							<input
 								type="checkbox"
-								class="toggle toggle-xs toggle-accent tooltip tooltip-right"
+								class="toggle toggle-xs toggle-primary tooltip tooltip-right"
 								data-tip="toggle write acccess"
 								checked={contributors[i].write_access}
 								on:click={handleToggleWriteAccess(id)}

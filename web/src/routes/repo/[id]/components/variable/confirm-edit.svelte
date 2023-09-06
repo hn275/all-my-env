@@ -2,7 +2,6 @@
 	import { createEventDispatcher, onMount } from "svelte";
 	import { handleEdit } from "../../services";
 	import { store } from "../../store";
-	import cx from "classnames";
 
 	export let saveAble: boolean;
 	export let key: string;
@@ -10,6 +9,7 @@
 	export let newKey: string;
 	export let newValue: string;
 	export let id: string;
+	export let _class: string;
 
 	let disabled: boolean;
 	$: disabled = !saveAble;
@@ -41,12 +41,9 @@
 </script>
 
 <button
-	{disabled}
-	class={cx([
-		"bg-primary disabled:bg-dark-100 disabled:text-light/70 h-6 w-6 rounded-md",
-		"transition-all hover:brightness-125 disabled:hover:brightness-100",
-	])}
+	class={_class}
 	on:click={() => modal?.showModal()}
+	{disabled}
 >
 	<i class="fa-solid fa-check fa-sm" />
 </button>
@@ -57,7 +54,7 @@
 >
 	<form
 		method="dialog"
-		class="modal-box bg-dark-200"
+		class="modal-box"
 	>
 		<h3 class="mb-5 text-lg font-bold">Edit variable</h3>
 		<div class="h-44">
@@ -65,7 +62,7 @@
 
 			<div class="mb-3 flex items-center gap-3">
 				<h6 class="w-[4ch] font-semibold">Key</h6>
-				<p class="bg-dark-100 flex items-center gap-3 rounded-md p-3">
+				<p class="bg-neutral flex items-center gap-3 rounded-md p-3">
 					{#if key !== newKey}
 						<span>{key}</span>
 						<i class="fa-solid fa-arrow-right" />
@@ -78,7 +75,7 @@
 
 			<div class="flex items-center gap-3">
 				<h6 class="w-[4ch] font-semibold">Value</h6>
-				<p class="bg-dark-100 flex items-center gap-3 rounded-md p-3">
+				<p class="bg-neutral flex items-center gap-3 rounded-md p-3">
 					{#if value !== newValue}
 						<span>{value}</span>
 						<i class="fa-solid fa-arrow-right" />

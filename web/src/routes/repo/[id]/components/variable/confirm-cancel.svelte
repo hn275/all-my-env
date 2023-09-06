@@ -5,6 +5,7 @@
 	export let newKey: string;
 	export let value: string;
 	export let newValue: string;
+	export let _class: string;
 
 	let modal: HTMLDialogElement;
 	onMount(() => {
@@ -30,7 +31,7 @@
 
 <button
 	on:click={handleOpen}
-	class="btn-variable-utilities"
+	class={_class}
 >
 	<i class="fa-solid fa-xmark fa-sm" />
 </button>
@@ -41,7 +42,7 @@
 >
 	<form
 		method="dialog"
-		class="modal-box bg-dark-200"
+		class="modal-box"
 	>
 		<h3 class="mb-6 font-bold">Undo changes?</h3>
 
@@ -49,7 +50,9 @@
 
 		<div class="mb-3 flex items-center gap-3">
 			<h6 class="w-[4ch] font-semibold">Key</h6>
-			<p class="bg-dark-100 flex items-center gap-3 rounded-md p-3">
+			<p
+				class="bg-neutral text-neutral-content flex items-center gap-3 rounded-md p-3"
+			>
 				{#if key !== newKey}
 					<span>{key}</span>
 					<i class="fa-solid fa-arrow-right" />
@@ -62,7 +65,9 @@
 
 		<div class="flex items-center gap-3">
 			<h6 class="w-[4ch] font-semibold">Value</h6>
-			<p class="bg-dark-100 flex items-center gap-3 rounded-md p-3">
+			<p
+				class="bg-neutral text-neutral-content flex items-center gap-3 rounded-md p-3"
+			>
 				{#if value !== newValue}
 					<span>{value}</span>
 					<i class="fa-solid fa-arrow-right" />

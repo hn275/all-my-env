@@ -21,17 +21,8 @@ a:hover {
 	cursor: pointer;
 }
 
-/* .btn:disabled { */
-/* 	@apply bg-gray-600 opacity-50; */
-/* } */
-
 .btn {
 	@apply normal-case;
-}
-
-.btn-variable-utilities {
-    @apply w-6 h-6 rounded-md hover:bg-light/10;
-    @apply text-light/50 hover:text-light transition;
 }
 
 .text-gradient {

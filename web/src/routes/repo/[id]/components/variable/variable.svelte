@@ -66,45 +66,52 @@
 			])}
 		>
 			{#if !editMode}
-				<!-- delete button -->
-				<DeleteVariable
-					repoID={state.repoID}
-					variableID={id}
-					variableKey={key}
-				/>
-				<!-- edit button -->
-				<button
-					on:click={() => (editMode = true)}
-					class="btn-variable-utilities"
-				>
-					<i class="fa-regular fa-pen-to-square fa-sm" />
-				</button>
-				<!-- copy button -->
-				<button
-					on:click={copy}
-					class="btn-variable-utilities"
-				>
-					<i class="fa-regular fa-copy fa-sm" />
-				</button>
+				<div class="join -translate-x-1">
+					<!-- delete button -->
+					<DeleteVariable
+						_class="btn btn-xs btn-ghost join-item text-error hover:bg-error hover:text-error-content"
+						repoID={state.repoID}
+						variableID={id}
+						variableKey={key}
+					/>
+					<!-- edit button -->
+					<button
+						on:click={() => (editMode = true)}
+						class="btn btn-xs btn-ghost join-item"
+					>
+						<i class="fa-regular fa-pen-to-square fa-sm" />
+					</button>
+					<!-- copy button -->
+					<button
+						on:click={copy}
+						class="btn btn-xs btn-ghost join-item"
+					>
+						<i class="fa-regular fa-copy fa-sm" />
+					</button>
+				</div>
 			{:else}
-				<!-- cancel button -->
-				<ConfirmCancel
-					{key}
-					{newKey}
-					{value}
-					{newValue}
-					on:undo={handleReset}
-				/>
-				<!-- save button -->
-				<ConfirmEdit
-					on:success={handleEditOK}
-					{id}
-					{saveAble}
-					{key}
-					{newKey}
-					{value}
-					{newValue}
-				/>
+				<div>
+					<!-- cancel button -->
+					<ConfirmCancel
+						_class="btn btn-xs btn-ghost hover:bg-warning hover:text-warning-content"
+						{key}
+						{newKey}
+						{value}
+						{newValue}
+						on:undo={handleReset}
+					/>
+					<!-- save button -->
+					<ConfirmEdit
+						_class="btn btn-xs btn-ghost hover:bg-primary hover:text-primary-content"
+						on:success={handleEditOK}
+						{id}
+						{saveAble}
+						{key}
+						{newKey}
+						{value}
+						{newValue}
+					/>
+				</div>
 			{/if}
 		</div>
 		{#if !editMode}
@@ -155,7 +162,7 @@
 	}
 
 	input {
-		@apply bg-dark-100 rounded-md;
+		@apply bg-base-100 text-base-content rounded-md;
 	}
 
 	input:focus {
