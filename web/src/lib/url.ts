@@ -17,7 +17,3 @@ export function urlParam(k: string): string | null {
 	const url = new URL(window.location.href);
 	return url.searchParams.get(k);
 }
-
-export function urlRedirect(k: string = "/"): void {
-	window.location.replace(k);
-}

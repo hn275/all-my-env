@@ -1,5 +1,6 @@
 import { makeUrl } from "@lib/url";
 import type { User } from "@lib/auth";
+import { apiFetch } from "@lib/requests";
 
 export async function signIn(code: string): Promise<User> {
 	const res = await fetch(makeUrl("/auth/github"), {
@@ -15,8 +16,8 @@ export async function signIn(code: string): Promise<User> {
 	return payload as User;
 }
 
-export async function refresh(token: string): Promise<User> {
-	const res = await fetch(makeUrl("/auth/refresh"), {
+export async function refresh(token: string): Promise<User | undefined> {
+	const res = await apiFetch(makeUrl("/auth/refresh"), {
 		method: "GET",
 		credentials: "include",
 		headers: {
@@ -26,7 +27,7 @@ export async function refresh(token: string): Promise<User> {
 	});
 	const payload = await res.json();
 	if (res.status !== 200) {
-		throw new Error(payload["message"]);
+		return;
 	}
 	return payload as User;
 }

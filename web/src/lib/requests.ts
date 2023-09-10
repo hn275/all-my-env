@@ -1,9 +1,9 @@
-import { AuthStore } from "./auth";
+import { Auth } from "./auth";
 
 export function apiFetch(path: string, r: RequestInit): Promise<Response> {
-	const user = AuthStore.user();
+	const user = Auth.user();
 	if (!user) {
-		AuthStore.logout();
+		Auth.logout();
 		throw new Error("user not found");
 	}
 

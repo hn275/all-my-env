@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { AuthStore, oauth, type User } from "@lib/auth";
+	import { Auth, oauth, type User } from "@lib/auth";
 	import { onMount } from "svelte";
 
 	let user: User | undefined;
 	onMount(() => {
-		user = AuthStore.user();
+		user = Auth.user();
 	});
 
 	let isLoggedIn: boolean | undefined = undefined;

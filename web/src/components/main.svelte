@@ -1,7 +1,7 @@
 <script lang="ts">
 	import "../index.css";
 	import Logo from "@assets/logo.svg";
-	import { AuthStore } from "@lib/auth";
+	import { Auth } from "@lib/auth";
 	import type { User } from "@lib/auth";
 	import { onMount } from "svelte";
 	import { makeUrl } from "@lib/url";
@@ -12,17 +12,14 @@
 
 	let user: User | undefined;
 	onMount(() => {
-		user = AuthStore.user();
-		if (!user) {
-			AuthStore.refreshSession(window.location.href);
-		}
+		user = Auth.user();
 	});
 
 	async function logout() {
 		const url: string = makeUrl("/auth/logout");
 		const rsp = await apiFetch(url, { method: "GET" });
 		if (rsp.status === 200) {
-			AuthStore.logout();
+			Auth.logout();
 			window.location.replace("/");
 			return;
 		} else {

@@ -5,8 +5,6 @@
 	import Main from "@components/main.svelte";
 	import { onMount } from "svelte";
 	import type { Repository } from "./types";
-	import { Auth, oauth } from "@lib/auth";
-	import { refresh } from "../index/lib/auth";
 
 	// sort
 	const SortDefault: Sort = "pushed";
@@ -29,33 +27,12 @@
 		await getRepos();
 	}
 
-	let rsp: Promise<void>;
 	let repos: Array<Repository> = [];
 	let loading: boolean = true;
 	let error: string | undefined;
 	onMount(async () => {
-		try {
-			let user = Auth.user();
-			if (!user) {
-				oauth();
-				return;
-			}
-
-			if (!Auth.isRefreshed()) {
-				user = await refresh(user.access_token);
-				if (!user) {
-					oauth();
-					return;
-				}
-
-				Auth.login(user);
-				Auth.refresh();
-			}
-			page = 1;
-			rsp = getRepos();
-		} catch (e) {
-			error = (e as Error).message;
-		}
+		page = 1;
+		await getRepos();
 	});
 
 	let hasMoreRepo: boolean = true;
@@ -128,15 +105,21 @@
 				</div>
 			</div>
 
-			{#await rsp}
+			{#if error}
+				<div class="text-dark-200 rounded-lg bg-red-400 p-5">
+					<h2 class="inline text-lg font-bold">Whoops!</h2>
+					<span>An error has occured:</span>
+					<p>{error}</p>
+				</div>
+			{:else if loading}
 				<div
 					class="flex h-full min-h-[calc(100vh-420px)] w-full flex-col items-center justify-center gap-3"
 				>
-					<span class="loading loading-lg loading-ring text-primary"
-					></span>
-					<p class="text-primary">Fetching repositories...</p>
+					<p>Fetching data...</p>
 				</div>
-			{:then}
+			{:else if repos.length === 0}
+				<p>You don't have any repository yet.</p>
+			{:else}
 				<ul
 					class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
 				>
@@ -144,17 +127,11 @@
 						<Repo {repo} />
 					{/each}
 				</ul>
-			{:catch e}
-				<div class="text-dark-200 rounded-lg bg-red-400 p-5">
-					<h2 class="inline text-lg font-bold">Whoops!</h2>
-					<span>An error has occured:</span>
-					<p>{e}</p>
-				</div>
-			{/await}
+			{/if}
 
 			{#if hasMoreRepo && loadMoreLoading && !loading}
 				<div class="mb-4 mt-12 flex w-full justify-center">
-					<div class="loading loading-ring text-primary" />
+					<div class="loading bg-main" />
 				</div>
 			{/if}
 		</section>
