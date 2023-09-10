@@ -15,7 +15,7 @@
 	{#if isLoggedIn}
 		<a
 			href="/dashboard"
-			class="font-bold"
+			class="font-bold btn btn-primary btn-outline"
 		>
 			Dashboard
 		</a>
