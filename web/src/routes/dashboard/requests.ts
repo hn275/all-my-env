@@ -1,6 +1,5 @@
 import { makeUrl } from "@lib/url";
 import type { Repository } from "./types";
-import { Auth } from "@lib/auth";
 import { apiFetch } from "@lib/requests";
 
 export type Sort = "created" | "updated" | "pushed" | "full_name";

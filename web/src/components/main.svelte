@@ -30,7 +30,7 @@
 </script>
 
 <nav
-	class="flex items-center justify-between p-2 px-4 sticky top-0 h16 bg-base-100/90 backdrop-blur z-[9999]"
+	class="h16 bg-base-100/90 sticky top-0 z-[9999] flex items-center justify-between p-2 px-4 backdrop-blur"
 >
 	<div class="breadcrumbs flex items-center gap-9">
 		<ul class="text-sm">
@@ -73,7 +73,7 @@
 	<div>
 		<button
 			on:click={logout}
-			class="btn btn-ghost"
+			class="btn btn-outline btn-primary hover:btn-error"
 		>
 			<i class="fa-solid fa-arrow-right-from-bracket fa-sm mr-2" />
 			Log out

@@ -40,7 +40,7 @@ export class Auth {
 
 export function oauth(redirect?: string): void {
 	const client_id = PUBLIC_GITHUB_CLIENT_ID;
-	const scope = "read:repo read:user read:org";
+	const scope = "repo read:user read:org";
 	const redirect_uri = HTTP + window.location.host + "/auth";
 
 	let to: string;
