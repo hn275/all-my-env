@@ -1,6 +1,6 @@
-import { AuthStore } from "@lib/auth";
+import { Auth } from "@lib/auth";
 import type { User } from "@lib/auth";
-import { makeUrl, urlRedirect } from "@lib/url";
+import { makeUrl } from "@lib/url";
 
 export async function refreshSession(): Promise<User> {
 	const url: string = makeUrl("/auth/refresh");
@@ -15,11 +15,11 @@ export async function refreshSession(): Promise<User> {
 	const payload: EnvHub.Response<User> = await rsp.json();
 	switch (rsp.status) {
 		case 200:
-			AuthStore.login(payload as User);
+			Auth.login(payload as User);
 			return payload as User;
 		case 401 | 403:
-			AuthStore.logout();
-			urlRedirect("/");
+			Auth.logout();
+			window.location.replace("/");
 
 		default:
 			throw new Error((payload as EnvHub.Error).message);

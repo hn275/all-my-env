@@ -1,32 +1,14 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import Nav from "./index/components/nav.svelte";
-	import { refresh } from "./auth";
-	import { AuthStore, oauth } from "@lib/auth";
+	import { Auth } from "@lib/auth";
 	import type { User } from "@lib/auth";
 	import Faq from "./index/components/faq.svelte";
 	import Login from "./index/components/login.svelte";
 
-	let loading: boolean = false;
-	let err: string | undefined;
 	let user: User | undefined;
-	onMount(async () => {
-		try {
-			user = AuthStore.user();
-			if (!user) return;
-			const refreshed = AuthStore.sessionRefreshed();
-			if (refreshed) return;
-			loading = true;
-			user = await refresh();
-			AuthStore.login(user);
-			AuthStore.refreshed();
-		} catch (e) {
-			err = (e as Error).message;
-			AuthStore.logout();
-		} finally {
-			loading = false;
-			user = AuthStore.user();
-		}
+	onMount(() => {
+		user = Auth.user();
 	});
 </script>
 
@@ -38,7 +20,7 @@
 		<h1
 			class="text-gradient font-accent text-center text-3xl font-bold uppercase md:text-4xl"
 		>
-			effortless secrets management
+			EFFORTLESS SECRETS MANAGEMENT
 		</h1>
 
 		<p class="w-[25ch] text-center font-semibold md:w-max md:text-lg">
@@ -57,7 +39,7 @@
 					Get started
 				</a>
 			{:else}
-                <Login/>
+				<Login />
 			{/if}
 		</div>
 		<div>

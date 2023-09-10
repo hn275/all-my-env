@@ -1,6 +1,6 @@
 import { makeUrl } from "@lib/url";
 import type { Repository } from "./types";
-import { AuthStore } from "@lib/auth";
+import { Auth } from "@lib/auth";
 import { apiFetch } from "@lib/requests";
 
 export type Sort = "created" | "updated" | "pushed" | "full_name";
@@ -26,7 +26,6 @@ export async function fetchRepos(
 			return payload as Array<Repository>;
 
 		case 401 | 403:
-			AuthStore.refreshSession();
 			return [];
 
 		default:

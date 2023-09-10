@@ -1,21 +1,23 @@
 <script lang="ts">
-	import { urlParam, urlRedirect } from "@lib/url";
+	import { urlParam } from "@lib/url";
 	import { signIn } from "./auth";
 	import { onMount } from "svelte";
-	import { AuthStore } from "@lib/auth";
-	import Spinner from "@components/spinner.svelte";
+	import { Auth } from "@lib/auth";
 
 	let error: string | null;
 	let code: string | null;
 	let loading: boolean = true;
 	onMount(async () => {
-		error = urlParam("error");
+		error = decodeURIComponent(urlParam("error") ?? "");
 		code = urlParam("code");
 		try {
-			if (!code) return;
+			if (!code) {
+				return;
+			}
 			const user = await signIn(code);
-			AuthStore.login(user);
-			urlRedirect("/dashboard");
+			Auth.login(user);
+			Auth.refresh();
+			window.location.replace("/dashboard");
 		} catch (e) {
 			error = (e as Error).message;
 		} finally {
@@ -33,10 +35,17 @@
 			<p>
 				{error}
 			</p>
-			<a href="/" class="btn btn-outline">Back to home page</a>
+			<a
+				href="/"
+				class="btn btn-outline btn-primary">Back to home page</a
+			>
 		</section>
 	{:else if loading}
-		<Spinner class="stroke-dark-200" />
-		<p>Authenticating...</p>
+		<div class="text-primary text-center">
+			<span class="loading loading-lg loading-ring"></span>
+			<p class="text-info text-lg font-semibold">
+				Authenticating with GitHub
+			</p>
+		</div>
 	{/if}
 </main>
