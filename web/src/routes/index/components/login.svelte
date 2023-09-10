@@ -11,7 +11,7 @@
 		const http = isProd ? "https://" : "http://";
 		const redirect_uri = http + window.location.host + "/auth";
 		const client_id = PUBLIC_GITHUB_CLIENT_ID;
-		const scope = "read:repo read:user read:org";
+		const scope = "repo read:user read:org";
 		const p = new URLSearchParams({ client_id, redirect_uri, scope });
 		oauth = "https://github.com/login/oauth/authorize?" + p.toString();
 	});

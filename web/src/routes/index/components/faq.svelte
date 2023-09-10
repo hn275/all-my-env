@@ -93,6 +93,27 @@
 			</p>
 		</div>
 	</div>
+
+	<div class="faq">
+		<input type="checkbox" />
+		<h5 class="collapse-title">
+			Why do I need to authenticate with push access?
+		</h5>
+		<div class="collapse-content">
+			<p>
+				EnvHub <span class="font-bold">does not</span> initiate
+				modifications to your GitHub account or repositories.
+				Nevertheless, certain APIs we utilize necessitate push access,
+				primarily for the purpose of verifying
+				<a
+					class="link link-info"
+					target="_blank"
+					href="https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#list-repository-collaborators"
+					>collaborators' status</a
+				>.
+			</p>
+		</div>
+	</div>
 </section>
 
 <style lang="postcss">
