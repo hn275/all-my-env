@@ -60,12 +60,14 @@
 			</a>
 		</li>
 
-		<li>
-			<button on:click={handleOpenUnlink}>
-				<i class="fa-solid fa-unlink w-5" />
-				Unlink Repository
-			</button>
-		</li>
+		{#if $store.is_owner}
+			<li>
+				<button on:click={handleOpenUnlink}>
+					<i class="fa-solid fa-unlink w-5" />
+					Unlink Repository
+				</button>
+			</li>
+		{/if}
 	</ul>
 </div>
 

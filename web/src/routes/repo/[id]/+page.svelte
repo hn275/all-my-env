@@ -4,13 +4,7 @@
 	import { onMount } from "svelte";
 	import type { Route } from "./+page.server";
 	import cx from "classnames";
-	import {
-		DeleteRepo,
-		Table,
-		NewModal,
-		Contributors,
-		Dropdown,
-	} from "./components";
+	import { Table, NewModal, Contributors, Dropdown } from "./components";
 	import { store } from "./store";
 
 	export let data: Route;
@@ -38,9 +32,6 @@
 			<div class="flex gap-3">
 				<Contributors />
 				<Dropdown {repoName} />
-				{#if $store.is_owner}
-					<DeleteRepo {repoName} />
-				{/if}
 				{#if $store.write_access}
 					<NewModal />
 				{/if}

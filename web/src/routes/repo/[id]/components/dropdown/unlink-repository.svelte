@@ -31,14 +31,8 @@
 		try {
 			loading = true;
 			const url: string = makeUrl(`/repos/${repo.repoID}/unlink`, {});
-			const payload = { repoID: repo.repoID, repoName: repoName };
-
 			const res = await apiFetch(url, {
 				method: "DELETE",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(payload),
 			});
 
 			if (res.status === 204) {
