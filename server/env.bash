@@ -4,17 +4,9 @@
 [[ -z ${USER_TOKEN_KEY} ]] && export USER_TOKEN_KEY="asdflkjasldkfjasldkjfasldkjfasas"
 [[ -z ${USER_ID_KEY} ]] && export USER_ID_KEY="asdflkjasldkfjasldkjfasldkjfasas"
 [[ -z ${JWT_SECRET} ]] && export JWT_SECRET="asdflkjasldkfjasldkjfasldkjfasas"
-[[ -z ${POSTGRES_PASSWORD} ]] && export POSTGRES_PASSWORD="password"
-[[ -z ${POSTGRES_USER} ]] && export POSTGRES_USER="username"
-[[ -z ${POSTGRES_DB} ]] && export POSTGRES_DB="envhub"
-[[ -z ${POSTGRES_PORT} ]] && export POSTGRES_PORT="5432"
-[[ -z ${POSTGRES_HOST} ]] && export POSTGRES_HOST="localhost"
-[[ -z ${POSTGRES_SSLMODE} ]] && export POSTGRES_SSLMODE="disable"
 export ENVHUB_PATH="${PWD}"
 
-export POSTGRES_DSN="postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=${POSTGRES_SSLMODE}"
 
-MIGRATION_DIR="./db/migrations"
 function gotest() {
     if [ -z "${1}" ];then
         shift 1
@@ -30,6 +22,10 @@ function gotest() {
     [[ -f cover.out ]] && rm cover.out
 }
 
+# db related functions
+export MYSQL="envhubuser:envhubpassword@tcp(127.0.0.1:3306)/envhub?tls=true&interpolateParams=true"
+MIGRATION_DIR="${ENVHUB_PATH}/database/migrations"
+
 function db() {
     case $1 in
         view)
@@ -41,8 +37,29 @@ function db() {
         mock)
             go run $ENVHUB_PATH/scripts/main.go mock
             ;;
+        migrate)
+            case $2 in
+                 force)
+                     migrate -verbose -path ${MIGRATION_DIR} -database ${MYSQL} force $3
+                     ;;
+                 new)
+                     migrate -verbose create -ext sql -dir ${MIGRATION_DIR} -seq $3
+                     ;;
+                 up)
+                     migrate -verbose -database ${MYSQL} -path ${MIGRATION_DIR} up 1
+                     ;;
+                 down)
+                     migrate -verbose -database ${MYSQL} -path ${MIGRATION_DIR} down 1
+                     ;;
+                 *)
+                     echo "usage: [force|new|up|down]"
+                     ;;
+             esac
+             ;;
         *)
             echo "usage: [view|dbml|seed]"
             ;;
     esac
 }
+
+
