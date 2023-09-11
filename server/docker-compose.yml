@@ -11,31 +11,26 @@ services:
     volumes:
       - .:/app
     environment:
+      MYSQL_DSN: "envhubuser:envhubpassword@tcp(db)/envhub?interpolateParams=true"
       GITHUB_CLIENT_ID:
       GITHUB_CLIENT_SECRET:
       JWT_SECRET:
       VARIABLE_KEY:
       USER_TOKEN_KEY:
       USER_ID_KEY:
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: username
-      POSTGRES_DB: envhub
-      POSTGRES_PORT: 5432
-      POSTGRES_HOST: db
-      POSTGRES_SSLMODE: "disable"
     links:
       - db
 
   db:
     container_name: envhub-db
-    image: postgres:14-alpine3.17
+    image: mysql:8.1
     restart: always
     environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: username
-      POSTGRES_DB: envhub
-      POSTGRES_HOST: localhost
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: envhub
+      MYSQL_USER: envhubuser
+      MYSQL_PASSWORD: envhubpassword
     ports:
       - 5432:5432
     volumes:
-      - ../tmp/data:/var/lib/postgresql/data
+      - ../tmp/data:/var/lib/mysql

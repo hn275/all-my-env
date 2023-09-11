@@ -15,7 +15,7 @@ type repoDatabase struct{ *gorm.DB }
 var db repoModels
 
 func init() {
-	db = &repoDatabase{database.New()}
+	db = &repoDatabase{database.NewGorm()}
 }
 
 func (repoDB *repoDatabase) newRepo(r *database.Repository) error {

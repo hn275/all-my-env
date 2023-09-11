@@ -103,7 +103,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		RefreshToken: refreshToken,
 	}
 
-	db := database.New()
+	db := database.NewGorm()
 	err = db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&user).Error
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())

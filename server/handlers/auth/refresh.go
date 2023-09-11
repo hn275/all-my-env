@@ -74,7 +74,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		var ref struct {
 			RefreshToken string
 		}
-		dbErr.err = database.New().
+		dbErr.err = database.NewGorm().
 			Table(database.TableUsers).
 			Select("refresh_token").
 			Where("id = ? AND refresh_token = ?", userID, tok.Value).

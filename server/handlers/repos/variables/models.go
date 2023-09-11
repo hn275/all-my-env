@@ -14,7 +14,7 @@ type model struct {
 var db *model
 
 func init() {
-	db = &model{database.New()}
+	db = &model{database.NewGorm()}
 }
 
 func (db *model) getVariables(v *[]database.Variable, repoID uint64) error {
