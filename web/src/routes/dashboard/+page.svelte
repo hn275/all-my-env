@@ -17,19 +17,20 @@
 		Name: "full_name",
 	};
 
+	let rsp: Promise<void>;
+
 	// page limit
 	const Show: number = 30;
 	let page: number = 1;
 
 	let sort: Sort = SortDefault;
-	async function handleSort(e: Event) {
+	function handleSort(e: Event) {
 		e.preventDefault();
 		sort = (e.target as HTMLSelectElement)?.value as Sort;
 		page = 1;
-		await getRepos();
+		rsp = getRepos();
 	}
 
-	let rsp: Promise<void>;
 	let repos: Array<Repository> = [];
 	let loading: boolean = true;
 	let error: string | undefined;
@@ -61,12 +62,9 @@
 	let hasMoreRepo: boolean = true;
 	async function getRepos() {
 		try {
-			loading = true;
 			repos = await fetchRepos(page, sort, Show.toString());
 		} catch (e) {
 			error = (e as Error).message;
-		} finally {
-			loading = false;
 		}
 	}
 
@@ -132,9 +130,9 @@
 				<div
 					class="flex h-full min-h-[calc(100vh-420px)] w-full flex-col items-center justify-center gap-3"
 				>
-					<span class="loading loading-lg loading-ring text-primary"
-					></span>
-					<p class="text-primary">Fetching repositories...</p>
+					<span
+						class="loading loading-lg loading-ring text-primary"
+					/>
 				</div>
 			{:then}
 				<ul
@@ -145,14 +143,14 @@
 					{/each}
 				</ul>
 			{:catch e}
-				<div class="text-dark-200 rounded-lg bg-red-400 p-5">
+				<div class="text-error-content bg-error rounded-lg p-5">
 					<h2 class="inline text-lg font-bold">Whoops!</h2>
 					<span>An error has occured:</span>
 					<p>{e}</p>
 				</div>
 			{/await}
 
-			{#if hasMoreRepo && loadMoreLoading && !loading}
+			{#if hasMoreRepo && loadMoreLoading}
 				<div class="mb-4 mt-12 flex w-full justify-center">
 					<div class="loading loading-ring text-primary" />
 				</div>

@@ -12,8 +12,8 @@
 		text: string;
 	};
 	const navMap: Array<NavMap> = [
-		{ href: "/#faqs", text: "FAQs" },
-		{ href: "/#support", text: "Support The Maintainers" },
+		// { href: "/#faqs", text: "FAQs" },
+		// { href: "/#support", text: "Support The Maintainers" },
 	];
 </script>
 

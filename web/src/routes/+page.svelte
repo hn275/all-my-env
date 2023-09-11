@@ -105,11 +105,134 @@
 				Frequently Asked Questions
 			</h2>
 
-			<Faq />
+			<section class="join join-vertical px-5">
+				<Faq header="What is the purpose of EnvHub?">
+					<p>
+						EnvHub offers an innovative solution for the efficient
+						management of your critical environment variables. Our
+						platform seamlessly integrates with GitHub, simplifying
+						the task of sharing variables among collaborators.
+					</p>
+				</Faq>
+
+				<Faq header="How does it work?">
+					<p>
+						EnvHub functionalities can be summarized in <span
+							class="font-bold">3 steps</span
+						>:
+					</p>
+					<ol class="ml-8 mt-2 list-decimal">
+						<li>Authentication with GitHub.</li>
+						<li>Create projects and their associated variables.</li>
+						<li>Share it with your collaborators!</li>
+					</ol>
+				</Faq>
+
+				<Faq header="Are my secrets safe with EnvHub?">
+					<p>
+						We exercise meticulouse care when handling your
+						environment variables. Our server is hosted with <a
+							href="https://www.cloudflare.com/learning/ssl/what-is-ssl/"
+							target="_blank"
+							class="link link-info font-semibold"
+							>SSL Certificates</a
+						>
+						and your variables undergo encryption and decryption using
+						the robust
+						<a
+							href="https://ieeexplore.ieee.org/document/7927078"
+							target="_blank"
+							class="link link-info font-semibold"
+							>ChaCha20-Poly1305</a
+						>. This choice reflects our commitment to maintaining a
+						high-security standard while optimizing performance.
+					</p>
+				</Faq>
+
+				<Faq header="Who built this app?">
+					<p>
+						EnvHub was initiated by computer science students from
+						the
+						<a
+							href="https://uvic.ca"
+							target="_blank"
+							class="link link-info font-semibold"
+							>University of Victoria</a
+						>. Led by
+						<a
+							href="https://github.com/hn275"
+							target="_blank"
+							class="link link-info font-semibold">Hal</a
+						>, a proactive student balancing academics with
+						professional engagements, the project was born from the
+						need for simplified variable sharing within teams, both
+						in professional and collaborative settings.
+					</p>
+				</Faq>
+
+				<Faq header="Why do I need to authenticate with push access?">
+					<p>
+						EnvHub <span class="font-bold">does not</span> initiate
+						modifications to your GitHub account or repositories.
+						Nevertheless, certain APIs we utilize necessitate push
+						access, primarily for the purpose of verifying
+						<a
+							class="link link-info font-semibold"
+							target="_blank"
+							href="https://docs.github.com/en/rest/collaborators/collaborators?apiVersion=2022-11-28#list-repository-collaborators"
+							>collaborators' status</a
+						>.
+					</p>
+				</Faq>
+
+				<Faq header="What's the tech stack?">
+					<p>
+						We prioritize performance excellence in our approach.
+						For our front-end development, we employ
+						<a
+							href="https://kit.svelte.dev/"
+							target="_blank"
+							class="link link-info font-semibold">SvelteKit</a
+						>
+						combined with
+						<span class="font-semibold">TypeScript</span>,
+						delivering not only high efficiency but also robust type
+						safety. Our UI components and color themes are
+						meticulously crafted with
+						<a
+							href="https://daisyui.com/"
+							class="link link-info font-semibold"
+							target="_blank">DaisyUI</a
+						>
+
+						, ensuring a visually appealing and cohesive user
+						experience.
+					</p>
+					<p class="mt-4">
+						Behind the scenes, our application is powered by a
+						<span class="font-semibold">Golang</span> server, a testament
+						to our commitment to performance and reliability. Additionally,
+						we place a strong emphasis on providing an exceptional development
+						experience for our maintainers, recognizing the value of
+						a smooth and efficient workflow.
+					</p>
+				</Faq>
+
+				<Faq header="Why &quot;EnvHub&quot;?">
+					<p>
+						This question is best answered by the talented <a
+							href="https://github.com/jaspreetks"
+							target="_blank"
+							class="link link-info font-semibold">Jaspreet</a
+						> (who also designed this UI!)
+					</p>
+				</Faq>
+			</section>
 		</div>
 	</section>
 
 	<!-- Support -->
+	<!--
 	<section
 		id="support"
 		class="my-24"
@@ -133,6 +256,7 @@
 			>
 		</div>
 	</section>
+-->
 
 	<section class="my-24 flex flex-col items-center gap-2">
 		<p class="text-center font-bold">
@@ -151,6 +275,7 @@
 	</section>
 </main>
 
+<!--
 <footer class="text-base-content/50 flex justify-center gap-5 py-5 text-sm">
 	<a
 		href="/terms"
@@ -161,16 +286,11 @@
 		class="link hover:link-primary transition-all">Privacy Agreement</a
 	>
 </footer>
+-->
 
 <style lang="postcss">
 	* {
 		scroll-margin: 80px;
-	}
-	.hero-text-gradient {
-		@apply bg-gradient-to-tr from-light to-main;
-		background-clip: text;
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
 	}
 
 	span.hero-text-underline {
