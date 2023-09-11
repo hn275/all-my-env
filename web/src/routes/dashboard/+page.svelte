@@ -32,40 +32,30 @@
 	}
 
 	let repos: Array<Repository> = [];
-	let loading: boolean = true;
-	let error: string | undefined;
 	onMount(async () => {
-		try {
-			let user = Auth.user();
+		let user = Auth.user();
+		if (!user) {
+			oauth();
+			return;
+		}
+
+		if (!Auth.isRefreshed()) {
+			user = await refresh(user.access_token);
 			if (!user) {
 				oauth();
 				return;
 			}
 
-			if (!Auth.isRefreshed()) {
-				user = await refresh(user.access_token);
-				if (!user) {
-					oauth();
-					return;
-				}
-
-				Auth.login(user);
-				Auth.refresh();
-			}
-			page = 1;
-			rsp = getRepos();
-		} catch (e) {
-			error = (e as Error).message;
+			Auth.login(user);
+			Auth.refresh();
 		}
+		page = 1;
+		rsp = getRepos();
 	});
 
 	let hasMoreRepo: boolean = true;
 	async function getRepos() {
-		try {
-			repos = await fetchRepos(page, sort, Show.toString());
-		} catch (e) {
-			error = (e as Error).message;
-		}
+		repos = await fetchRepos(page, sort, Show.toString());
 	}
 
 	let loadMoreLoading: boolean = false;
@@ -80,9 +70,8 @@
 				const res = await fetchRepos(page, sort, Show.toString());
 				repos = [...repos, ...res];
 				hasMoreRepo = res.length === Show;
-				console.log(hasMoreRepo, page);
 			} catch (e) {
-				error = (e as Error).message;
+				console.error(e);
 			} finally {
 				loadMoreLoading = false;
 			}
