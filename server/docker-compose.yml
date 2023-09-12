@@ -31,6 +31,6 @@ services:
       MYSQL_USER: envhubuser
       MYSQL_PASSWORD: envhubpassword
     ports:
-      - 5432:5432
+      - 3306:3306
     volumes:
       - ../tmp/data:/var/lib/mysql

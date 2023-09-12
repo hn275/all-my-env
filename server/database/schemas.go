@@ -14,13 +14,6 @@ import (
 )
 
 var (
-	TableUsers       = "users"
-	TableRepos       = "repositories"
-	TablePermissions = "permissions"
-	TableVariables   = "variables"
-
-	VendorGithub = "github"
-
 	idCounterMap map[uint64]uint16
 	m            sync.Mutex
 
@@ -40,13 +33,12 @@ type HexEncodedID = string
 
 type User struct {
 	ID           uint64 `gorm:"primaryKey"`
-	LastLogin    TimeStamp
 	Login        string `gorm:"not null,unique"`
 	RefreshToken string
 	Email        string
 
 	// relation
-	Repositories []Repository `gorm:"constraint:OnDelete:CASCADE"`
+	Repositories []Repository
 }
 
 type Repository struct {

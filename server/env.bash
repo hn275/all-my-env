@@ -23,19 +23,28 @@ function gotest() {
 }
 
 # db related functions
-export MYSQL="envhubuser:envhubpassword@tcp(127.0.0.1:3306)/envhub?tls=true&interpolateParams=true"
+[[ -z $MYSQL ]] && export MYSQL="mysql://envhubuser:envhubpassword@tcp(127.0.0.1:3306)/envhub?interpolateParams=true"
 MIGRATION_DIR="${ENVHUB_PATH}/database/migrations"
 
 function db() {
     case $1 in
         view)
-            docker exec -it envhub-db psql -U username envhub
+            docker exec -it envhub-db mysql -u envhubuser -penvhubpassword -h localhost envhub
             ;;
         dbml)
             pg-to-dbml -c=${POSTGRES_DSN}
             ;;
         mock)
             go run $ENVHUB_PATH/scripts/main.go mock
+            ;;
+        dump)
+            docker exec -it envhub-db mysqldump \
+                -u envhubuser \
+                -penvhubpassword \
+                -h localhost \
+                --no-data \
+                envhub > schema.sql \
+                && echo "Generated schema.sql"
             ;;
         migrate)
             case $2 in

@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS permissions;
+DROP TABLE IF EXISTS variables;
+DROP TABLE IF EXISTS repositories;
+DROP TABLE IF EXISTS users;
