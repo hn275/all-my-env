@@ -25,7 +25,7 @@ CREATE TABLE variables (
 );
 
 CREATE TABLE permissions (
-    id INT NOT NULL PRIMARY KEY,
+    id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     repository_id INT NOT NULL,
     user_id INT NOT NULL,
     CONSTRAINT fk_repo_perm FOREIGN KEY (repository_id) REFERENCES repositories(id) ON DELETE CASCADE,

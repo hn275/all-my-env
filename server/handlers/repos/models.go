@@ -6,7 +6,6 @@ import (
 )
 
 type repoModels interface {
-	newRepo(repoBuf *database.Repository) error
 	findRepo(userID uint64, ids []uint64) ([]database.Repository, error)
 }
 

@@ -1,14 +1,18 @@
 package repos
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
+	"log"
 	"net/http"
+	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jmoiron/sqlx"
 )
 
 // returns 201 on success, no body
@@ -43,6 +47,7 @@ func Link(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if res.StatusCode != http.StatusOK {
+		log.Println(res.Status)
 		api.NewResponse(w).ForwardBadRequest(res)
 		return
 	}
@@ -62,40 +67,61 @@ func Link(w http.ResponseWriter, r *http.Request) {
 	// SAVE TO DB
 	repo.UserID = user.ID
 	repo.ID = repoInfo.ID
-	// repo.Url = repoInfo.HTMLURL
-	// repo.VariableCount = 0
+	repo.CreatedAt = time.Now().UTC()
 
-	err = db.newRepo(&repo)
-	if err == nil {
-		api.NewResponse(w).Status(http.StatusCreated).Done()
+	db := database.New()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := db.BeginTxx(ctx, &sql.TxOptions{Isolation: 0, ReadOnly: false})
+	if err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+	err = createRepo(tx, &repo)
+	if err != nil {
+		e, ok := err.(*mysql.MySQLError)
+		duplicateKeyCode := uint16(1062)
+		if !ok || e.Number != duplicateKeyCode {
+			api.NewResponse(w).ServerError(err.Error())
+			return
+		}
+
+		api.NewResponse(w).Status(http.StatusBadRequest).Error("Repository is already linked.")
 		return
 	}
 
-	pgErr, ok := err.(*pgconn.PgError)
-	if !ok {
+	err = adminWriteAccess(tx, repo.ID, repo.UserID)
+	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	switch pgErr.Code {
-	case pgerrcode.ForeignKeyViolation:
-		api.NewResponse(w).
-			Status(http.StatusBadRequest).
-			Error("User not found")
-		return
-
-	case pgerrcode.UniqueViolation:
-		api.NewResponse(w).
-			Status(http.StatusBadRequest).
-			Error("Repository exists in database: %s", repoInfo.FullName)
-		return
-
-	default:
-		api.NewResponse(w).ServerError(pgErr.Message)
+	err = tx.Commit()
+	if err != nil {
+		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-	/*
-	 */
+
+	api.NewResponse(w).Status(http.StatusCreated).Done()
+}
+
+func createRepo(tx *sqlx.Tx, repo *database.Repository) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	q := `INSERT INTO repositories (id,full_name,user_id) VALUES (:id,:full_name,:user_id);`
+	_, err := tx.NamedExecContext(ctx, q, repo)
+	return err
+}
+
+func adminWriteAccess(tx *sqlx.Tx, repoID, userID uint32) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	q := `INSERT INTO permissions (repository_id,user_id) VALUES (?,?);`
+	_, err := tx.ExecContext(ctx, q, repoID, userID)
+	return err
 }
 
 func (cx *githubClient) getRepo(repoName, userToken string, repo *Repository) (int, error) {

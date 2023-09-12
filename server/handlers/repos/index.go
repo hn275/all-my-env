@@ -72,24 +72,27 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		ids[i] = fmt.Sprintf("%d", repo.ID)
 	}
 
-	q := `SELECT id FROM repositories WHERE user_id = ? AND id IN (?)`
-	arr := fmt.Sprintf("[%s]", strings.Join(ids, ","))
+	arr := fmt.Sprintf("%s", strings.Join(ids, ","))
+	q := `SELECT id FROM repositories WHERE id IN (` + arr + `);`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	db := database.New()
-	var savedReposIDs []uint32
-
-	err = db.GetContext(ctx, &savedReposIDs, q, user.ID, arr)
+	rows, err := db.QueryContext(ctx, q)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
 	repoMap := make(map[uint32]interface{})
-	for i := range savedReposIDs {
-		repoMap[repos[i].ID] = struct{}{}
+	for rows.Next() {
+		var i uint32
+		if err := rows.Scan(&i); err != nil {
+			api.NewResponse(w).ServerError(err.Error())
+			return
+		}
+		repoMap[i] = struct{}{}
 	}
 
 	for i, repo := range repos {

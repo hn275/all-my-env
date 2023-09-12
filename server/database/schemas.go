@@ -34,10 +34,10 @@ type User struct {
 }
 
 type Repository struct {
-	ID        uint32 `db:"id"`
-	CreatedAt string `db:"created_at"`
-	FullName  string `db:"full_name"` // ie: hn275/envhub
-	UserID    uint32 `db:"user_id"`
+	ID        uint32    `db:"id" json:"id"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	FullName  string    `db:"full_name" json:"full_name"` // ie: hn275/envhub
+	UserID    uint32    `db:"user_id" json:"user_id"`
 }
 
 // This table contains all the environment variables.
