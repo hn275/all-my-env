@@ -70,7 +70,7 @@ func (r *Response) Error(m string, a ...any) {
 
 func (r *Response) ServerError(m string, a ...any) {
 	fmt.Fprintf(os.Stderr, m, a...)
-	r.WriteHeader(http.StatusInternalServerError)
+	r.Status(http.StatusInternalServerError).Error("Something went wrong.")
 }
 
 func (r *Response) ForwardBadRequest(res *http.Response) {

@@ -85,13 +85,6 @@ func deleteVariable(varID string, repoID uint64) error {
 			return err
 		}
 
-		err = tx.Where("id = ?", repoID).
-			Model(&database.Repository{}).
-			Update("variable_count", repo.VariableCount-1).
-			Error
-		if err != nil {
-			return err
-		}
 		if result.RowsAffected == 0 {
 			return gorm.ErrRecordNotFound
 		}

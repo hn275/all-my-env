@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -9,15 +10,7 @@ import (
 	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
-	"gorm.io/gorm/clause"
 )
-
-type authResponse struct {
-	AccessToken string `json:"access_token"`
-	Name        string `json:"name"`
-	AvatarUrl   string `json:"avatar_url"`
-	Login       string `json:"login"`
-}
 
 // Verify token send from body, then query for user data.
 // Save user in database if they don't exists
@@ -97,14 +90,23 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	// SAVE TO DB
 	user := database.User{
 		ID:           u.ID,
-		LastLogin:    database.TimeNow(),
 		Login:        u.Login,
 		Email:        u.Email,
 		RefreshToken: refreshToken,
 	}
 
-	db := database.NewGorm()
-	err = db.Clauses(clause.OnConflict{UpdateAll: true}).Create(&user).Error
+	db := database.New()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	q := `
+	INSERT INTO users (id,login,email,refresh_token) 
+	VALUES (:id,:login,:email,:refresh_token)
+	ON DUPLICATE KEY UPDATE 
+		login = :login, 
+		email = :email,
+		refresh_token = :refresh_token;`
+	_, err = db.NamedExecContext(ctx, q, user)
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
@@ -124,12 +126,19 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// SET RESPONSES
-	userInfo := authResponse{
+	// TODO: move this type to auth.go or something
+	userInfo := struct {
+		AccessToken string `json:"access_token"`
+		Name        string `json:"name"`
+		AvatarUrl   string `json:"avatar_url"`
+		Login       string `json:"login"`
+	}{
 		AccessToken: accessJWT,
 		Name:        u.Name,
 		AvatarUrl:   u.AvatarURL,
 		Login:       u.Login,
 	}
+
 	refreshCookie := http.Cookie{
 		Name:     api.CookieRefTok,
 		Value:    refreshToken,

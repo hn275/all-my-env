@@ -79,8 +79,6 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// time
-	variable.CreatedAt = database.TimeNow()
-	variable.UpdatedAt = database.TimeNow()
 	err = newVariable(&variable)
 	if err == nil {
 		api.NewResponse(w).Status(http.StatusCreated).JSON(&variable)
@@ -127,7 +125,6 @@ func newVariable(v *database.Variable) error {
 			return err
 		}
 
-		repo.VariableCount++
 		return tx.Table(database.TableRepos).
 			Where("id = ?", repo.ID).
 			Updates(&repo).

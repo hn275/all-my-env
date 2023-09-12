@@ -53,7 +53,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	env := make([]database.Variable, repo.VariableCount)
+	env := make([]database.Variable, 0)
 
 	err = db.getVariables(&env, repo.ID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {

@@ -11,6 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	TableRepos = ""
+	TablePermissions = ""
+	TableUsers = ""
+	TableVariables = ""
+)
+
 var (
 	db  *gorm.DB
 	dbx *sqlx.DB
@@ -36,6 +43,8 @@ func autoMigrate(db *gorm.DB, d interface{}) {
 		log.Fatal(err)
 	}
 }
+
+type TimeStamp = time.Time
 
 // returns UTC time, ie: 2023-07-06T07:25:26Z
 func TimeNow() TimeStamp {

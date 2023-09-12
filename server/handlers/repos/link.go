@@ -62,8 +62,8 @@ func Link(w http.ResponseWriter, r *http.Request) {
 	// SAVE TO DB
 	repo.UserID = user.ID
 	repo.ID = repoInfo.ID
-	repo.Url = repoInfo.HTMLURL
-	repo.VariableCount = 0
+	// repo.Url = repoInfo.HTMLURL
+	// repo.VariableCount = 0
 
 	err = db.newRepo(&repo)
 	if err == nil {

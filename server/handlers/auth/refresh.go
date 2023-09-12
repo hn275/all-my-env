@@ -111,7 +111,12 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userInfo := authResponse{
+	userInfo := struct {
+		AccessToken string
+		Name        string
+		AvatarUrl   string
+		Login       string
+	}{
 		AccessToken: jwtToken,
 		Name:        u.Name,
 		AvatarUrl:   u.AvatarURL,
