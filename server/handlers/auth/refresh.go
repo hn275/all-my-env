@@ -1,7 +1,11 @@
 package auth
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,7 +17,6 @@ import (
 	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
 	"github.com/hn275/envhub/server/jsonwebtoken"
-	"gorm.io/gorm"
 )
 
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
@@ -62,44 +65,41 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// query db to get refresh token
-	type dberr struct {
-		err error
-	}
-	wg := sync.WaitGroup{}
-	dbErr := dberr{}
-	go func(wg *sync.WaitGroup, dbErr *dberr) {
+	// query for user info
+	var wg sync.WaitGroup
+	var u GithubUser
+	var ghErr error
+	go func(wg *sync.WaitGroup, tok string, user *GithubUser, err *error) {
 		wg.Add(1)
 		defer wg.Done()
-		var ref struct {
-			RefreshToken string
+		res, e := gh.New(tok).Get("/user")
+		defer res.Body.Close()
+		if e != nil {
+			*err = e
+			return
 		}
-		dbErr.err = database.NewGorm().
-			Table(database.TableUsers).
-			Select("refresh_token").
-			Where("id = ? AND refresh_token = ?", userID, tok.Value).
-			First(&ref).Error
-	}(&wg, &dbErr)
+		if res.StatusCode != http.StatusBadRequest {
+			*err = fmt.Errorf("GitHub response: %s", res.Status)
+			return
+		}
+		*err = json.NewDecoder(res.Body).Decode(user)
+	}(&wg, accessToken, &u, &ghErr)
 
-	// get user info
-	res, err := gh.New(string(accessToken)).Get("/user")
-	if err != nil {
-		api.NewResponse(w).Error(err.Error())
-		return
-	}
-	defer res.Body.Close()
+	// query db to get refresh token
+	db := database.New()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	if res.StatusCode != http.StatusOK {
-		api.NewResponse(w).ForwardBadRequest(res)
-		return
-	}
+	q := `SELECT refresh_token FROM users WHERE id = ? AND refresh_token = ?`
+	var refreshToken string
 
-	var u GithubUser
-	if err := json.NewDecoder(res.Body).Decode(&u); err != nil {
-		api.NewResponse(w).ServerError(err.Error())
+	err = db.GetContext(ctx, &refreshToken, q, userID, tok.Value)
+	if errors.Is(err, sql.ErrNoRows) {
+		api.NewResponse(w).Status(http.StatusForbidden).Done()
 		return
 	}
 
+	// response
 	clms.ExpiresAt = jwt.NewNumericDate(time.Now().UTC().Add(24 * time.Hour))
 	jwtToken, err := jsonwebtoken.NewEncoder().Encode(
 		userID,
@@ -124,19 +124,13 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wg.Wait()
-	switch err := dbErr.err; err {
+	switch ghErr {
 	case nil:
 		api.NewResponse(w).Status(http.StatusOK).JSON(&userInfo)
 		return
 
-	case gorm.ErrRecordNotFound:
-		api.NewResponse(w).
-			Status(http.StatusForbidden).
-			Error("refresh token not found")
-		return
-
 	default:
-		api.NewResponse(w).ServerError(err.Error())
+		api.NewResponse(w).Status(http.StatusBadRequest).Error("GitHub API failed, try again later.")
 		return
 	}
 }
