@@ -32,7 +32,7 @@ func NewPermission(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newPerm struct {
-		UserIDs []uint64 `json:"userIDs"`
+		UserIDs []uint32 `json:"userIDs"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&newPerm); err != nil {
 		api.NewResponse(w).ServerError(err.Error())
@@ -43,13 +43,13 @@ func NewPermission(w http.ResponseWriter, r *http.Request) {
 	// CHECK TO FOR REPOSITORY OWNER.
 	// query db for github information
 	s := chi.URLParam(r, "repoID")
-	repoID, err := strconv.ParseUint(s, 10, 64)
+	repoID, err := strconv.ParseUint(s, 10, 32)
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
 	}
 
 	var repo struct {
-		UserID uint64
+		UserID uint32
 	}
 	err = db.Model(&database.Repository{}).
 		Select([]string{"user_id"}).
@@ -78,20 +78,20 @@ func NewPermission(w http.ResponseWriter, r *http.Request) {
 	// WRITE NEW ACCESS ENTRY TO TABLE
 	// get all user id with permission
 	var p []struct {
-		UserID uint64
+		UserID uint32
 	}
 	err = db.Model(&database.Permission{}).Where("id = ?", repoID).Find(&p).Error
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-	uids := make([]uint64, len(p))
+	uids := make([]uint32, len(p))
 	for i := range p {
 		uids[i] = p[i].UserID
 	}
 
 	// get diff then write to db
-	err = getPermssionDiff(repo.UserID, uids, newPerm.UserIDs).updatePermissions(repoID)
+	err = getPermssionDiff(repo.UserID, uids, newPerm.UserIDs).updatePermissions(uint32(repoID))
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
@@ -101,11 +101,11 @@ func NewPermission(w http.ResponseWriter, r *http.Request) {
 }
 
 type permDiff struct {
-	revoked []uint64
-	granted []uint64
+	revoked []uint32
+	granted []uint32
 }
 
-func getPermssionDiff(ownerID uint64, dbPerm, reqPerm []uint64) *permDiff {
+func getPermssionDiff(ownerID uint32, dbPerm, reqPerm []uint32) *permDiff {
 	// filter owner id
 	i := 0
 	for ; i < len(dbPerm); i++ {
@@ -146,8 +146,8 @@ func getPermssionDiff(ownerID uint64, dbPerm, reqPerm []uint64) *permDiff {
 
 	// get diff
 	p := permDiff{
-		revoked: make([]uint64, 0, h),
-		granted: make([]uint64, 0, h),
+		revoked: make([]uint32, 0, h),
+		granted: make([]uint32, 0, h),
 	}
 
 	dbI, reqI := 0, 0
@@ -179,11 +179,11 @@ func getPermssionDiff(ownerID uint64, dbPerm, reqPerm []uint64) *permDiff {
 	return &p
 }
 
-func (wa *permDiff) updatePermissions(repoID uint64) error {
+func (wa *permDiff) updatePermissions(repoID uint32) error {
 	return db.Transaction(func(tx *gorm.DB) error {
 		type Permision struct {
-			RepositoryID uint64
-			UserID       uint64
+			RepositoryID uint32
+			UserID       uint32
 		}
 
 		p := make([]database.Permission, len(wa.revoked))

@@ -30,7 +30,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get repo info
-	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 64)
+	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 32)
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
@@ -38,7 +38,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repo := database.Repository{ID: repoID}
+	repo := database.Repository{ID: uint32(repoID)}
 	err = db.Find(&repo).Error
 	switch err {
 	case nil:
@@ -55,11 +55,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	env := make([]database.Variable, 0)
 
-	err = db.getVariables(&env, repo.ID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		api.NewResponse(w).ServerError(err.Error())
-		return
-	}
+	// err = db.getVariables(&env, repo.ID)
+	// if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	// 	api.NewResponse(w).ServerError(err.Error())
+	// 	return
+	// }
 	for i := range env {
 		err = env[i].DecryptValue()
 		if err != nil {

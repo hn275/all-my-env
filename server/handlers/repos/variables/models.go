@@ -35,7 +35,7 @@ func (db *model) getWriteAccess(userID, repoID uint64, perm *database.Permission
 	return err
 }
 
-func (db *model) hasWriteAccess(userID, repoID uint64) (bool, error) {
+func (db *model) hasWriteAccess(userID, repoID uint32) (bool, error) {
 	err := db.
 		Where("user_id = ? AND repository_id = ?", userID, repoID).
 		First(&database.Permission{}).

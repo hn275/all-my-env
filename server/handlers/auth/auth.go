@@ -19,7 +19,7 @@ func init() {
 type GithubUser struct {
 	// for db
 	Login string `json:"login"`
-	ID    uint64 `json:"id"`
+	ID    uint32 `json:"id"`
 	Email string `json:"email"`
 	// for display
 	Bio               string `json:"bio"`
@@ -27,8 +27,8 @@ type GithubUser struct {
 	AvatarURL         string `json:"avatar_url"`
 	HTMLURL           string `json:"html_url"`
 	PublicRepos       uint16 `json:"public_repos"`
-	TotalPrivateRepos uint16  `json:"total_private_repos"`
-	OwnedPrivateRepos uint16  `json:"owned_private_repos"`
+	TotalPrivateRepos uint16 `json:"total_private_repos"`
+	OwnedPrivateRepos uint16 `json:"owned_private_repos"`
 	CreatedAt         string `json:"created_at"`
 	UpdatedAt         string `json:"updated_at"`
 	/* unused fields

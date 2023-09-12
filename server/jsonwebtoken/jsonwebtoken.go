@@ -65,7 +65,7 @@ func (d *decoder) Decode(token string) (*AuthClaim, error) {
 }
 
 type JsonWebTokenEncoder interface {
-	Encode(userID uint64, maskedToken, aud string) (string, error)
+	Encode(userID uint32, maskedToken, aud string) (string, error)
 }
 type encoder struct{}
 
@@ -73,7 +73,7 @@ func NewEncoder() JsonWebTokenEncoder {
 	return enc
 }
 
-func (e *encoder) Encode(userID uint64, maskedToken, aud string) (string, error) {
+func (e *encoder) Encode(userID uint32, maskedToken, aud string) (string, error) {
 	c := AuthClaim{
 		AccessToken: maskedToken,
 		RegisteredClaims: &jwt.RegisteredClaims{

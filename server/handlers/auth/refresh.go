@@ -53,13 +53,13 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get user info
-	userID, err := strconv.ParseUint(clms.Subject, 10, 64)
+	userID, err := strconv.ParseUint(clms.Subject, 10, 32)
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
 	}
 
-	accessToken, err := decodeAccessToken(userID, clms.AccessToken)
+	accessToken, err := decodeAccessToken(uint32(userID), clms.AccessToken)
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
@@ -102,7 +102,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	// response
 	clms.ExpiresAt = jwt.NewNumericDate(time.Now().UTC().Add(24 * time.Hour))
 	jwtToken, err := jsonwebtoken.NewEncoder().Encode(
-		userID,
+		uint32(userID),
 		clms.AccessToken,
 		clms.Audience[0],
 	)

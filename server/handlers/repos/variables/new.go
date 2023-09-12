@@ -29,7 +29,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 64)
+	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 32)
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
 		return
@@ -50,7 +50,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 			Error("unable to serialize variable: missing key or value.")
 		return
 	}
-	variable.RepositoryID = repoID
+	variable.RepositoryID = uint32(repoID)
 	if err := variable.GenID(); err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
@@ -62,7 +62,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 	go serializeVariable(&wg, &variable, serializeErr)
 
 	// CHECK FOR WRITE ACCESS
-	wa, err := db.hasWriteAccess(user.ID, repoID)
+	wa, err := db.hasWriteAccess(user.ID, uint32(repoID))
 	if !wa {
 		api.NewResponse(w).
 			Status(http.StatusForbidden).

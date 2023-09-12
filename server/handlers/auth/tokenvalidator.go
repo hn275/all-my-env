@@ -39,12 +39,12 @@ func TokenValidator(next http.Handler) http.Handler {
 		}
 
 		// GETTING GITHUB TOKEN FROM REQUEST
-		userID, err := strconv.ParseUint(token.Subject, 10, 64)
+		userID, err := strconv.ParseUint(token.Subject, 10, 32)
 		if err != nil {
 			api.NewResponse(w).ServerError(err.Error())
 			return
 		}
-		userToken, err := decodeAccessToken(userID, token.AccessToken)
+		userToken, err := decodeAccessToken(uint32(userID), token.AccessToken)
 		if err != nil {
 			api.NewResponse(w).Status(http.StatusUnauthorized).Error(err.Error())
 			return
@@ -52,7 +52,7 @@ func TokenValidator(next http.Handler) http.Handler {
 		userLogin := token.Audience[0]
 
 		// ATTACH TO REQUEST
-		ctx := api.NewContext(r).SetUser(userID, userToken, userLogin)
+		ctx := api.NewContext(r).SetUser(uint32(userID), userToken, userLogin)
 		next.ServeHTTP(w, ctx.Request)
 	})
 }

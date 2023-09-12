@@ -16,7 +16,7 @@ type RequestCtx struct {
 }
 
 type UserContext struct {
-	ID    uint64
+	ID    uint32
 	Token string
 	Login string
 }
@@ -25,7 +25,7 @@ func NewContext(r *http.Request) *RequestCtx {
 	return &RequestCtx{r}
 }
 
-func (r *RequestCtx) SetUser(userID uint64, userToken, userLogin string) *RequestCtx {
+func (r *RequestCtx) SetUser(userID uint32, userToken, userLogin string) *RequestCtx {
 	u := &UserContext{userID, userToken, userLogin}
 	ctx := context.WithValue(r.Context(), appCtx, u)
 	return &RequestCtx{r.WithContext(ctx)}

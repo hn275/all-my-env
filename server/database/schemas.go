@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	idCounterMap map[uint64]uint16
+	idCounterMap map[uint32]uint16
 	m            sync.Mutex
 
 	ErrRepoMissingRepoID = errors.New("repository id not set")
@@ -22,22 +22,22 @@ var (
 )
 
 func init() {
-	idCounterMap = make(map[uint64]uint16)
+	idCounterMap = make(map[uint32]uint16)
 	m = sync.Mutex{}
 }
 
 type User struct {
-	ID           uint64 `db:"id"`
+	ID           uint32 `db:"id"`
 	Login        string `db:"login"`
 	RefreshToken string `db:"refresh_token"`
 	Email        string `db:"email"`
 }
 
 type Repository struct {
-	ID        uint64 `db:"id"`
+	ID        uint32 `db:"id"`
 	CreatedAt string `db:"created_at"`
 	FullName  string `db:"full_name"` // ie: hn275/envhub
-	UserID    uint64 `db:"user_id"`
+	UserID    uint32 `db:"user_id"`
 }
 
 // This table contains all the environment variables.
@@ -50,7 +50,7 @@ type Variable struct {
 	UpdatedAt    string `db:"updated_at"`
 	Key          string `db:"key"`
 	Value        string `db:"value"`
-	RepositoryID uint64 `db:"repository_id"`
+	RepositoryID uint32 `db:"repository_id"`
 }
 
 func (v *Variable) DecryptValue() error {
@@ -87,18 +87,18 @@ func (v *Variable) GenID() error {
 
 	var buf [16]byte
 
-	binary.LittleEndian.PutUint64(buf[:8], v.RepositoryID)
+	binary.LittleEndian.PutUint32(buf[:4], v.RepositoryID)
 
 	t := time.Now().UTC().Unix()
-	binary.BigEndian.PutUint32(buf[8:12], uint32(t))
+	binary.BigEndian.PutUint32(buf[4:8], uint32(t))
 
 	counter := idCounterMap[v.RepositoryID]
 	m.Lock()
 	idCounterMap[v.RepositoryID] = counter + 1
 	m.Unlock()
-	binary.BigEndian.PutUint16(buf[12:14], counter)
+	binary.BigEndian.PutUint16(buf[8:10], counter)
 
-	if _, err := io.ReadFull(rand.Reader, buf[14:]); err != nil {
+	if _, err := io.ReadFull(rand.Reader, buf[10:]); err != nil {
 		return err
 	}
 
@@ -133,7 +133,7 @@ func (v *Variable) EncryptValue() error {
 func RefreshVariableCounter() {
 	for {
 		m.Lock()
-		idCounterMap = make(map[uint64]uint16)
+		idCounterMap = make(map[uint32]uint16)
 		m.Unlock()
 		time.Sleep(time.Second)
 	}
@@ -144,7 +144,7 @@ func RefreshVariableCounter() {
 // This table only holds records for write access, including the repo owner, which
 // the access entry should be written when they link up the repository
 type Permission struct {
-	ID           uint64 `db:"id"`
-	RepositoryID uint64 `db:"repository_id"`
-	UserID       uint64 `db:"user_id"`
+	ID           uint32 `db:"id"`
+	RepositoryID uint32 `db:"repository_id"`
+	UserID       uint32 `db:"user_id"`
 }

@@ -1,14 +1,16 @@
 package repos
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
-	"gorm.io/gorm"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -60,20 +62,29 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ids := make([]uint64, len(repos))
+	ids := make([]uint32, len(repos))
 	for i, repo := range repos {
 		ids[i] = repo.ID
 		repos[i].IsOwner = repo.Owner.ID == user.ID
 	}
 
 	// GET REPO ID's FROM DB
-	dbRepos, err := db.findRepo(user.ID, ids[:])
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	q := `SELECT id FROM repositories WHERE user_id = ? AND id IN (?)`
+	var savedReposIDs []uint32
+	db := database.New()
+	err = db.GetContext(ctx, savedReposIDs, q, user.ID, ids)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	repoMap := repoMap(dbRepos)
+	repoMap := make(map[uint32]interface{})
+	for i := range repos {
+		repoMap[repos[i].ID] = struct{}{}
+	}
+
 	for i := range repos {
 		_, ok := repoMap[repos[i].ID]
 		repos[i].Linked = ok
@@ -83,12 +94,4 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		Header("Cache-Control", "max-age=15").
 		Status(http.StatusOK).
 		JSON(&repos)
-}
-
-func repoMap(r []database.Repository) map[uint64]interface{} {
-	m := make(map[uint64]interface{})
-	for _, v := range r {
-		m[v.ID] = struct{}{}
-	}
-	return m
 }

@@ -12,10 +12,10 @@ import (
 	"github.com/hn275/envhub/server/crypto"
 )
 
-func refreshToken(userID uint64) (string, error) {
+func refreshToken(userID uint32) (string, error) {
 	var buf [16]byte
-	binary.BigEndian.PutUint64(buf[:8], userID)
-	binary.LittleEndian.PutUint64(buf[8:16], uint64(time.Now().UTC().Unix()))
+	binary.BigEndian.PutUint32(buf[:4], userID)
+	binary.LittleEndian.PutUint64(buf[4:12], uint64(time.Now().UTC().Unix()))
 
 	// truncating leading - trailing 0s
 	l := 0
@@ -45,9 +45,9 @@ func refreshToken(userID uint64) (string, error) {
 	return base64.RawStdEncoding.EncodeToString(buf[:]), nil
 }
 
-func encodeAccessToken(userID uint64, accessToken string) (string, error) {
-	var buf [8]byte
-	binary.BigEndian.PutUint64(buf[:], userID)
+func encodeAccessToken(userID uint32, accessToken string) (string, error) {
+	var buf [4]byte
+	binary.BigEndian.PutUint32(buf[:], userID)
 	tok, err := crypto.Encrypt(crypto.UserTokenKey, []byte(accessToken), buf[:])
 	if err != nil {
 		return "", err
@@ -55,14 +55,14 @@ func encodeAccessToken(userID uint64, accessToken string) (string, error) {
 	return base64.StdEncoding.EncodeToString(tok), nil
 }
 
-func decodeAccessToken(userID uint64, maskedToken string) (string, error) {
+func decodeAccessToken(userID uint32, maskedToken string) (string, error) {
 	accessToken, err := base64.StdEncoding.DecodeString(maskedToken)
 	if err != nil {
 		return "", err
 	}
 
-	var buf [8]byte
-	binary.BigEndian.PutUint64(buf[:], userID)
+	var buf [4]byte
+	binary.BigEndian.PutUint32(buf[:], userID)
 
 	tok, err := crypto.Decrypt(crypto.UserTokenKey, []byte(accessToken), buf[:])
 	if err != nil {
