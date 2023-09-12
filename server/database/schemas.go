@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"io"
 	"sync"
@@ -27,36 +26,18 @@ func init() {
 	m = sync.Mutex{}
 }
 
-// UTC time stamp RFC3339
-type TimeStamp = time.Time
-type HexEncodedID = string
-
 type User struct {
-	ID           uint64 `gorm:"primaryKey"`
-	Login        string `gorm:"not null,unique"`
-	RefreshToken string
-	Email        string
-
-	// relation
-	Repositories []Repository
+	ID           uint64 `db:"id"`
+	Login        string `db:"login"`
+	RefreshToken string `db:"refresh_token"`
+	Email        string `db:"email"`
 }
 
 type Repository struct {
-	ID        uint64    `gorm:"primaryKey" json:"id"`
-	CreatedAt TimeStamp `json:"created_at"`
-
-	// ie: hn275/envhub
-	FullName string `gorm:"not null" json:"full_name"`
-	// ie: https://github.com/hn275/envhub
-	Url           string `gorm:"not null" json:"url"`
-	VariableCount uint8  `gorm:"default:0"`
-
-	// relation
-	User   User   `json:"-"`
-	UserID uint64 `gorm:"foreignKey" json:"-"`
-
-	Variables  []Variable   `gorm:"constraint:OnDelete:CASCADE" json:"-"`
-	Permission []Permission `gorm:"constraint:OnDelete:CASCADE" json:"-"`
+	ID        uint64 `db:"id"`
+	CreatedAt string `db:"created_at"`
+	FullName  string `db:"full_name"` // ie: hn275/envhub
+	UserID    uint64 `db:"user_id"`
 }
 
 // This table contains all the environment variables.
@@ -64,15 +45,12 @@ type Repository struct {
 // `Value`'s are never saved raw. always the base64 encoding of the ciphered text,
 // and the `ad` is the base64 decoded value of it's ID
 type Variable struct {
-	ID        HexEncodedID `gorm:"primaryKey" json:"id,omitempty"`
-	CreatedAt TimeStamp    `gorm:"not null" json:"created_at,omitempty"`
-	UpdatedAt TimeStamp    `gorm:"not null" json:"updated_at,omitempty"`
-	Key       string       `gorm:"not null;uniqueIndex:unique_key_repo" json:"key,omitempty" validate:"required"`
-	Value     string       `gorm:"not null" json:"value,omitempty" validate:"required"`
-
-	// relation
-	Repository   Repository `json:"-"`
-	RepositoryID uint64     `gorm:"foreignKey;uniqueIndex:unique_key_repo" json:"-"`
+	ID           string `db:"id"`
+	CreatedAt    string `db:"created_at"`
+	UpdatedAt    string `db:"updated_at"`
+	Key          string `db:"key"`
+	Value        string `db:"value"`
+	RepositoryID uint64 `db:"repository_id"`
 }
 
 func (v *Variable) DecryptValue() error {
@@ -124,7 +102,7 @@ func (v *Variable) GenID() error {
 		return err
 	}
 
-	v.ID = hex.EncodeToString(buf[:])
+	v.ID = base64.StdEncoding.EncodeToString(buf[:])
 	return nil
 }
 
@@ -162,19 +140,11 @@ func RefreshVariableCounter() {
 }
 
 // This table describes the type of access an user have for each repo.
-//
 // By default all users would have read-only access (that is if github api says so).
-//
-// This table only holds records for write access.
-// If gorm query returns a `gorm.ErrRecordNotFound`, user doesn't have read access.
+// This table only holds records for write access, including the repo owner, which
+// the access entry should be written when they link up the repository
 type Permission struct {
-	ID uint64 `gorm:"primaryKey"`
-
-	// relation
-	Repository   Repository
-	RepositoryID uint64 `gorm:"foreignKey;unique_user_repo"`
-
-	// this does not have to be a foreign key since
-	// since I don't care if the user has an account with envhub or not.
-	UserID uint64
+	ID           uint64 `db:"id"`
+	RepositoryID uint64 `db:"repository_id"`
+	UserID       uint64 `db:"user_id"`
 }

@@ -14,7 +14,7 @@ CREATE TABLE repositories (
 );
 
 CREATE TABLE variables (
-    id INT NOT NULL PRIMARY KEY,
+    id CHAR(25) NOT NULL PRIMARY KEY,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NULL,
     variable_key CHAR(255) NOT NULL,
