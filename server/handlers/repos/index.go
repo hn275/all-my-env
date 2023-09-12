@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/hn275/envhub/server/api"
@@ -62,32 +64,38 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ids := make([]uint32, len(repos))
+	// GET REPO ID's FROM DB
+	// NOTE: since `repo.ID` is from github and is only of type uint32
+	// string interpolation is fine, even though is bad practice, it is what it is :(
+	ids := make([]string, len(repos))
 	for i, repo := range repos {
-		ids[i] = repo.ID
-		repos[i].IsOwner = repo.Owner.ID == user.ID
+		ids[i] = fmt.Sprintf("%d", repo.ID)
 	}
 
-	// GET REPO ID's FROM DB
+	q := `SELECT id FROM repositories WHERE user_id = ? AND id IN (?)`
+	arr := fmt.Sprintf("[%s]", strings.Join(ids, ","))
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	q := `SELECT id FROM repositories WHERE user_id = ? AND id IN (?)`
-	var savedReposIDs []uint32
+
 	db := database.New()
-	err = db.GetContext(ctx, savedReposIDs, q, user.ID, ids)
+	var savedReposIDs []uint32
+
+	err = db.GetContext(ctx, &savedReposIDs, q, user.ID, arr)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
 	repoMap := make(map[uint32]interface{})
-	for i := range repos {
+	for i := range savedReposIDs {
 		repoMap[repos[i].ID] = struct{}{}
 	}
 
-	for i := range repos {
-		_, ok := repoMap[repos[i].ID]
+	for i, repo := range repos {
+		_, ok := repoMap[repo.ID]
 		repos[i].Linked = ok
+		repos[i].IsOwner = repo.Owner.ID == user.ID
 	}
 
 	api.NewResponse(w).
