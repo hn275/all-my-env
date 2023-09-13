@@ -16,6 +16,13 @@ func init() {
 	authClient = &http.Client{}
 }
 
+type UserAuthData struct {
+	AccessToken string `json:"access_token"`
+	Name        string `json:"name"`
+	AvatarUrl   string `json:"avatar_url"`
+	Login       string `json:"login"`
+}
+
 type GithubUser struct {
 	// for db
 	Login string `json:"login"`

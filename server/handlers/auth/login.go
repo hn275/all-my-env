@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -92,7 +93,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		ID:           u.ID,
 		Login:        u.Login,
 		Email:        u.Email,
-		RefreshToken: refreshToken,
+		RefreshToken: sql.NullString{String: refreshToken, Valid: true},
 	}
 
 	db := database.New()
@@ -127,12 +128,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 
 	// SET RESPONSES
 	// TODO: move this type to auth.go or something
-	userInfo := struct {
-		AccessToken string `json:"access_token"`
-		Name        string `json:"name"`
-		AvatarUrl   string `json:"avatar_url"`
-		Login       string `json:"login"`
-	}{
+	userInfo := UserAuthData{
 		AccessToken: accessJWT,
 		Name:        u.Name,
 		AvatarUrl:   u.AvatarURL,

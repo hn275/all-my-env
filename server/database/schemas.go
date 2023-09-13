@@ -2,6 +2,7 @@ package database
 
 import (
 	"crypto/rand"
+	"database/sql"
 	"encoding/base64"
 	"encoding/binary"
 	"errors"
@@ -27,10 +28,10 @@ func init() {
 }
 
 type User struct {
-	ID           uint32 `db:"id"`
-	Login        string `db:"login"`
-	RefreshToken string `db:"refresh_token"`
-	Email        string `db:"email"`
+	ID           uint32         `db:"id"`
+	Login        string         `db:"login"`
+	RefreshToken sql.NullString `db:"refresh_token"`
+	Email        string         `db:"email"`
 }
 
 type Repository struct {
