@@ -1,17 +1,21 @@
 package variables
 
 import (
+	"bytes"
+	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
-	"sync"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
 	"github.com/hn275/envhub/server/gh"
-	"gorm.io/gorm"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -29,123 +33,155 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// get repo info
 	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 32)
 	if err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
-			Error("failed to parse repository id: %s", err.Error())
+			Error("Invalid repository id")
 		return
 	}
 
+	// GET VARIABLES
+	db := database.New()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// get repository
 	repo := database.Repository{ID: uint32(repoID)}
-	err = db.Find(&repo).Error
-	switch err {
-	case nil:
-		break
-
-	case gorm.ErrRecordNotFound:
-		api.NewResponse(w).Status(http.StatusNotFound).Error("repository not found")
-		return
-
-	default:
+	q := `SELECT full_name,user_id FROM repositories WHERE id = ?`
+	err = db.QueryRowxContext(ctx, q, repoID).StructScan(&repo)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			api.NewResponse(w).Status(http.StatusNotFound).Error("Repository not found")
+			return
+		}
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	env := make([]database.Variable, 0)
+	// get variables
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	// err = db.getVariables(&env, repo.ID)
-	// if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	api.NewResponse(w).ServerError(err.Error())
-	// 	return
-	// }
-	for i := range env {
-		err = env[i].DecryptValue()
-		if err != nil {
+	variables := make([]database.Variable, 0)
+	q = `
+	SELECT
+		id,
+		created_at,
+		updated_at,
+		variable_key,
+		variable_value
+	FROM variables
+	WHERE repository_id = ?;
+	`
+
+	rows, err := db.QueryxContext(ctx, q, repo.ID)
+	defer rows.Close()
+
+	for rows.Next() {
+		var v database.Variable
+		if err := rows.Scan(&v); err != nil {
 			api.NewResponse(w).ServerError(err.Error())
+			return
+		}
+		if err := v.DecryptValue(); err != nil {
+			api.NewResponse(w).ServerError(err.Error())
+			return
+		}
+		variables = append(variables, v)
+	}
+
+	// get contributor
+	contributors, err := getContributors(user, repo.FullName)
+	if err != nil {
+		api.NewResponse(w).Status(http.StatusBadGateway).Error(err.Error())
+		return
+	}
+
+	// check for access
+	isOwner := repo.UserID == user.ID
+	if !isOwner {
+		accessOK := false
+		for i := range contributors {
+			if contributors[i].ID == uint32(user.ID) {
+				accessOK = true
+			}
+		}
+
+		if !accessOK {
+			api.NewResponse(w).Status(http.StatusForbidden).Error("Not a contributors.")
 			return
 		}
 	}
 
-	// GET CONTRIBUTOR LIST
-	var contributors []contributor
-	var wg sync.WaitGroup
-	var apiError error
-	go getContributors(&wg, user.Token, repo.FullName, &contributors, apiError)
-
-	// get all contributors
-	var u []struct {
-		UserID int64
-	}
-
 	// get contributors with write access
-	err = db.Table(database.TablePermissions).
-		Select("user_id").
-		Where("repository_id = ?", repoID).Find(&u).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	writeAccess := make(map[uint32]bool)
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	q = `SELECT id FROM permissions WHERE repository_id = ? ORDER BY user_id`
+	rows, err = db.QueryxContext(ctx, q, repo.ID)
+	defer rows.Close()
+
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	accessMap := make(map[int64]interface{})
-	for _, user := range u {
-		accessMap[user.UserID] = struct{}{}
-	}
-
-	wg.Wait()
-	// check for repo access
-	hasAccess := false
-	for _, u := range u {
-		if u.UserID == int64(user.ID) {
-			hasAccess = true
-			break
+	for rows.Next() {
+		var u uint32
+		if err := rows.Scan(&u); err != nil {
+			api.NewResponse(w).ServerError(err.Error())
+			return
 		}
-	}
-	if !hasAccess {
-		api.NewResponse(w).Status(http.StatusForbidden).Error("not a contributor.")
-		return
+		writeAccess[u] = true
 	}
 
 	// combine data from gh api and database
 	for i, u := range contributors {
-		_, ok := accessMap[int64(u.ID)]
+		_, ok := writeAccess[uint32(u.ID)]
 		contributors[i].WriteAccess = ok
 	}
 
-	response := map[string]any{
-		"variables":    env,
-		"write_access": !errors.Is(err, gorm.ErrRecordNotFound),
-		"owner_id":     repo.UserID,
-		"is_owner":     repo.UserID == user.ID,
-		"contributors": contributors,
+	response := struct {
+		Variables    []database.Variable `json:"variables"`
+		WriteAccess  bool                `json:"write_access"`
+		OwnerID      uint32              `json:"owner_id"`
+		IsOwner      bool                `json:"is_owner"`
+		Contributors []gh.Contributor    `json:"contributors"`
+	}{
+		Variables:    variables,
+		WriteAccess:  isOwner || writeAccess[user.ID],
+		IsOwner:      isOwner,
+		OwnerID:      repo.UserID,
+		Contributors: contributors,
 	}
 
 	api.NewResponse(w).
-		Header("Cache-Control", "max-age=10").
+		Header("Cache-Control", "max-age=20").
 		Status(http.StatusOK).
 		JSON(&response)
 }
 
-type contributor struct {
-	Login       string `json:"login"`
-	ID          uint64 `json:"id"`
-	AvatarUrl   string `json:"avatar_url"`
-	WriteAccess bool   `json:"write_access"`
-}
-
-func getContributors(wg *sync.WaitGroup, token, repoFullName string, c *[]contributor, err error) {
-	wg.Add(1)
-	defer wg.Done()
-
-	var res *http.Response
-	res, err = gh.New(token).Get("/repos/%s/collaborators", repoFullName)
-	if err != nil {
-		return
-	}
+func getContributors(user *api.UserContext, repo string) ([]gh.Contributor, error) {
+	res, err := gh.New(user.Token).Get("/repos/%s/collaborators", repo)
 	defer res.Body.Close()
-
-	if err = json.NewDecoder(res.Body).Decode(c); err != nil {
-		return
+	if err != nil {
+		return nil, err
 	}
+
+	if res.StatusCode != http.StatusOK {
+		var buf bytes.Buffer
+		buf.ReadFrom(res.Body)
+		fmt.Fprintf(os.Stderr, "GitHub API response %s - %v\n", res.Status, buf.String())
+		return nil, errors.New("Github API failed.")
+	}
+
+	var c []gh.Contributor
+	if err := json.NewDecoder(res.Body).Decode(&c); err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }

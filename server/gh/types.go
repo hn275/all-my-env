@@ -1,5 +1,12 @@
 package gh
 
+type Contributor struct {
+	Login       string `json:"login"`
+	ID          uint32 `json:"id"`
+	AvatarUrl   string `json:"avatar_url"`
+	WriteAccess bool   `json:"write_access"`
+}
+
 type GithubUser struct {
 	// for db
 	Login string `json:"login"`

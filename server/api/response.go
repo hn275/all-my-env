@@ -70,6 +70,7 @@ func (r *Response) Error(m string, a ...any) {
 
 func (r *Response) ServerError(m string, a ...any) {
 	fmt.Fprintf(os.Stderr, m, a...)
+	fmt.Println()
 	r.Status(http.StatusInternalServerError).Error("Something went wrong.")
 }
 
