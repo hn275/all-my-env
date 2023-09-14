@@ -47,7 +47,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 	if err := v.Struct(&variable); err != nil {
 		api.NewResponse(w).
 			Status(http.StatusBadRequest).
-			Error("unable to serialize variable: missing key or value.")
+			Error("Missing one or more required fields: key, value.")
 		return
 	}
 	variable.RepositoryID = uint32(repoID)
@@ -69,6 +69,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 			Error("you do not have write access, please contact the repository owner.")
 		return
 	}
+	log.Println(wa, err)
 
 	// WRITE TO DB
 	wg.Wait()

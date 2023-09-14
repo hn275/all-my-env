@@ -1,54 +1,57 @@
 package variables
 
 import (
+	"context"
+	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/hn275/envhub/server/database"
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
 )
 
 type model struct {
-	*gorm.DB
+	*sqlx.DB
 }
 
 var db *model
 
 func init() {
-	db = &model{database.NewGorm()}
+	db = &model{database.New()}
 }
 
 func (db *model) getVariables(v *[]database.Variable, repoID uint64) error {
-	return db.Table(database.TableVariables).
-		Where("repository_id = ?", repoID).
-		Find(&v).Error
+	// return db.Table(database.TableVariables).
+	// 	Where("repository_id = ?", repoID).
+	// 	Find(&v).Error
+	return nil
 }
 
 // deprecated: no need to pass in the additional `perm` param, use `hasWriteAccess` instead
 func (db *model) getWriteAccess(userID, repoID uint64, perm *database.Permission) error {
-	err := db.
-		Where("user_id = ? AND repository_id = ?", userID, repoID).
-		First(&perm).
-		Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil
-	}
-	return err
+	return nil
+	// err := db.
+	// 	Where("user_id = ? AND repository_id = ?", userID, repoID).
+	// 	First(&perm).
+	// 	Error
+	// if errors.Is(err, gorm.ErrRecordNotFound) {
+	// 	return nil
+	// }
+	// return err
 }
 
 func (db *model) hasWriteAccess(userID, repoID uint32) (bool, error) {
-	err := db.
-		Where("user_id = ? AND repository_id = ?", userID, repoID).
-		First(&database.Permission{}).
-		Error
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	switch err {
-	case nil:
-		return true, nil
-
-	case gorm.ErrRecordNotFound:
-		return false, nil
-
-	default:
+	q := `SELECT (id) FROM permissions WHERE (user_id = ? AND repository_id = ?);`
+	_, err := db.QueryxContext(ctx, q, userID, repoID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
 		return false, err
 	}
+
+	return true, nil
 }
