@@ -67,7 +67,6 @@ func Link(w http.ResponseWriter, r *http.Request) {
 	// SAVE TO DB
 	repo.UserID = user.ID
 	repo.ID = repoInfo.ID
-	repo.CreatedAt = time.Now().UTC()
 
 	db := database.New()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -91,12 +90,6 @@ func Link(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = adminWriteAccess(tx, repo.ID, repo.UserID)
-	if err != nil {
-		api.NewResponse(w).ServerError(err.Error())
-		return
-	}
-
 	err = tx.Commit()
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
@@ -107,21 +100,26 @@ func Link(w http.ResponseWriter, r *http.Request) {
 }
 
 func createRepo(tx *sqlx.Tx, repo *database.Repository) error {
+	// write to `repositories`
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	q := `INSERT INTO repositories (id,full_name,user_id) VALUES (:id,:full_name,:user_id);`
 	_, err := tx.NamedExecContext(ctx, q, repo)
-	return err
-}
+	if err != nil {
+		return err
+	}
 
-func adminWriteAccess(tx *sqlx.Tx, repoID, userID uint32) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// write owner id to `permissions`
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+	q = `INSERT INTO permissions (user_id,repository_id) VALUES (?,?);`
+	_, err = tx.ExecContext(ctx, q, repo.UserID, repo.ID)
+	if err != nil {
+		return err
+	}
 
-	q := `INSERT INTO permissions (repository_id,user_id) VALUES (?,?);`
-	_, err := tx.ExecContext(ctx, q, repoID, userID)
-	return err
+	return nil
 }
 
 func (cx *githubClient) getRepo(repoName, userToken string, repo *Repository) (int, error) {
