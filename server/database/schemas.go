@@ -46,12 +46,12 @@ type Repository struct {
 // `Value`'s are never saved raw. always the base64 encoding of the ciphered text,
 // and the `ad` is the base64 decoded value of it's ID
 type Variable struct {
-	ID           string     `db:"id" json:"id"`
-	CreatedAt    time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt    *time.Time `db:"updated_at" json:"updated_at"`
-	Key          string     `db:"variable_key" json:"key"`
-	Value        string     `db:"variable_value" json:"value"`
-	RepositoryID uint32     `db:"repository_id" json:"repository_id,omitempty"`
+	ID           string       `db:"id" json:"id"`
+	CreatedAt    time.Time    `db:"created_at" json:"created_at"`
+	UpdatedAt    sql.NullTime `db:"updated_at" json:"updated_at"`
+	Key          string       `db:"variable_key" json:"key,required"`
+	Value        string       `db:"variable_value" json:"value,required"`
+	RepositoryID uint32       `db:"repository_id" json:"repository_id,omitempty"`
 }
 
 func (v *Variable) DecryptValue() error {

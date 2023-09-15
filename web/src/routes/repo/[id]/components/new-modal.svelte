@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { afterUpdate, onMount } from "svelte";
 	import type { NewVariable, RepositoryEnv } from "../store";
-	import cn from "classnames";
 	import { writeNewVariable } from "../requests";
 	import { store } from "../store";
 
@@ -66,6 +65,7 @@
 		method="dialog"
 		class="modal-box"
 		on:submit={handleSubmit}
+		autocomplete="off"
 	>
 		<h3 class="text-gradient mb-3 text-lg font-bold">New variable</h3>
 		<div>
@@ -77,6 +77,7 @@
 					Key*
 				</label>
 				<input
+					autocomplete="off"
 					required
 					id="key"
 					type="text"
@@ -99,6 +100,7 @@
 					Value*
 				</label>
 				<input
+					autocomplete="off"
 					required
 					id="value"
 					type="text"
@@ -118,7 +120,7 @@
 				Cancel
 			</button>
 			<button
-				class={cn(["btn btn-primary w-28"])}
+				class="btn btn-primary w-28"
 				type="submit"
 				disabled={loading || v.key === "" || v.value === ""}
 			>

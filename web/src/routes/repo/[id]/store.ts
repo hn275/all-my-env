@@ -1,36 +1,39 @@
 import { writable } from "svelte/store";
 
 export type NewVariable = {
-    key: string;
-    value: string;
+	key: string;
+	value: string;
 };
 
 export interface Variable extends NewVariable {
-    id: string;
-    created_at: string;
-    updated_at: string;
+	id: string;
+	created_at: string;
+	updated_at: {
+		Time: string;
+		Valid: boolean;
+	};
 }
 
 export type Contributor = {
-    id: number;
-    login: string;
-    avatar_url: string;
-    write_access: boolean;
-}
+	id: number;
+	login: string;
+	avatar_url: string;
+	write_access: boolean;
+};
 
 export type RepositoryEnv = {
-    write_access: boolean;
-    owner_id: number;
-    is_owner: boolean;
-    variables: Array<Variable>;
-    repoID?: number;
-    contributors: Array<Contributor>;
+	write_access: boolean;
+	owner_id: number;
+	is_owner: boolean;
+	variables: Array<Variable>;
+	repoID?: number;
+	contributors: Array<Contributor>;
 };
 
 export const store = writable<RepositoryEnv>({
-    write_access: false,
-    owner_id: 0,
-    variables: [],
-    contributors: [],
-    is_owner: false
+	write_access: false,
+	owner_id: 0,
+	variables: [],
+	contributors: [],
+	is_owner: false,
 });

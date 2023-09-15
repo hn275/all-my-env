@@ -40,9 +40,8 @@ export async function handleEdit(
 	newKey: string,
 	newValue: string,
 ): Promise<void> {
-	const url = makeUrl(`/repos/${repoID}/variables/edit`);
+	const url = makeUrl(`/repos/${repoID}/variables/${variableID}`);
 	const body: BodyInit = JSON.stringify({
-		id: variableID,
 		key: newKey,
 		value: newValue,
 	});

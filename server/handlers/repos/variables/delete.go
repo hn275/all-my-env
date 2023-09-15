@@ -2,7 +2,6 @@ package variables
 
 import (
 	"context"
-	"database/sql"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,11 +11,6 @@ import (
 )
 
 func handleDelete(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodDelete {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
 	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 64)
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
@@ -54,19 +48,21 @@ func handleDelete(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	q := `DELETE FROM variables WHERE id = ? AND repository_id = ?`
-	_, err = db.ExecContext(ctx, q, variableID, repoID)
-
-	switch err {
-	case nil:
-		api.NewResponse(w).Status(http.StatusNoContent).Done()
-		return
-
-	case sql.ErrNoRows:
-		api.NewResponse(w).Status(http.StatusNotFound).Error("Variable not found.")
-		return
-
-	default:
+	result, err := db.ExecContext(ctx, q, variableID, repoID)
+	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
+		return
 	}
 
+	row, err := result.RowsAffected()
+	if err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+
+	if row == 0 {
+		api.NewResponse(w).Status(http.StatusNotFound).Error("Variable not found.")
+	}
+
+	api.NewResponse(w).Status(http.StatusNoContent).Done()
 }

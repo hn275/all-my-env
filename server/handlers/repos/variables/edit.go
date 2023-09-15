@@ -1,26 +1,24 @@
 package variables
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"sync"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
 )
 
-func Edit(w http.ResponseWriter, r *http.Request) {
-	// validate request
-	if r.Method != http.MethodPut {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
+// method: PUT
+// jsson body: {key: string, value: string}
+func handleEdit(w http.ResponseWriter, r *http.Request) {
 	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 32)
 	if err != nil {
-		api.NewResponse(w).ServerError(err.Error())
+		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
 		return
 	}
 
@@ -30,25 +28,26 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	variableID := chi.URLParam(r, "variableID")
+	if variableID == "" {
+		api.NewResponse(w).Status(http.StatusBadRequest).Error("Variable ID not found.")
+		return
+	}
+
 	var variable database.Variable
 	if err := json.NewDecoder(r.Body).Decode(&variable); err != nil {
 		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
 		return
 	}
 
-	// serialize
-	var serializeErr error
-	wg := sync.WaitGroup{}
-	go serializeVariable(&wg, &variable, serializeErr)
-
 	// check access
-	writeAccess, err := db.hasWriteAccess(user.ID, uint32(repoID))
+	wa, err := db.hasWriteAccess(user.ID, uint32(repoID))
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	if !writeAccess {
+	if !wa {
 		api.
 			NewResponse(w).
 			Status(http.StatusForbidden).
@@ -56,29 +55,50 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// updates and writes back to db
-	wg.Wait()
+	// serialize
+	variable.RepositoryID = uint32(repoID)
+	variable.ID = variableID
+	variable.UpdatedAt = sql.NullTime{Time: time.Now().UTC(), Valid: true}
 
-	u := map[string]any{
-		"key":        variable.Key,
-		"value":      variable.Value,
-		"updated_at": database.TimeNow(),
+	err = variable.EncryptValue()
+	if err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
 	}
-	// result := db.Model(&variable).
-	// 	Where("id = ? AND repository_id = ?", variable.ID, repoID).
-	// 	Updates(u)
-	//
-	// if result.Error != nil {
-	// 	api.NewResponse(w).ServerError(result.Error.Error())
-	// 	return
-	// }
-	//
-	// if result.RowsAffected == 0 {
-	// 	api.NewResponse(w).Status(http.StatusNotFound).Error("variable not found.")
-	// 	return
-	// }
 
-	delete(u, "value")
-	delete(u, "key")
-	api.NewResponse(w).Status(http.StatusOK).JSON(u)
+	// updates and writes back to db
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	q := `
+	UPDATE variables SET variable_key = ?, variable_value = ?, updated_at = ?
+	WHERE id = ? AND repository_id = ?;
+	`
+
+	result, err := db.ExecContext(
+		ctx,
+		q,
+		variable.Key,
+		variable.Value,
+		variable.UpdatedAt,
+		variable.ID,
+		variable.RepositoryID,
+	)
+	if err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+
+	row, err := result.RowsAffected()
+	if err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+
+	if row == 0 {
+		api.NewResponse(w).Status(http.StatusNotFound).Error("Variable not found.")
+		return
+	}
+
+	api.NewResponse(w).Status(http.StatusOK).JSON(map[string]time.Time{"updated_at": variable.UpdatedAt.Time})
 }

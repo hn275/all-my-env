@@ -10,7 +10,7 @@
 	import { formatTime } from "../../services";
 
 	export let created_at: string;
-	export let updated_at: string;
+	export let updated_at: { Time: string; Valid: boolean };
 	export let key: string;
 	export let value: string;
 	export let id: string;
@@ -22,7 +22,7 @@
 	let createdAt: string = formatTime(new Date(created_at));
 
 	let updatedAt: string;
-	$: updatedAt = formatTime(new Date(updated_at));
+	$: updatedAt = formatTime(new Date(updated_at.Time));
 
 	let copyOK: boolean = false;
 	function copy() {
@@ -139,7 +139,9 @@
 
 	<p class="text-base-content/70 text-sm">{createdAt}</p>
 
-	<p class="text-base-content/70 text-sm">{updatedAt}</p>
+	<p class="text-base-content/70 text-sm">
+		{updated_at.Valid ? updatedAt : "n/a"}
+	</p>
 
 	{#if copyOK}
 		<div class="toast toast-start">

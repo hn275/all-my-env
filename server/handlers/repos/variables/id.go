@@ -7,6 +7,11 @@ func ID(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		handleDelete(w, r)
 		return
+
+	case http.MethodPut:
+		handleEdit(w, r)
+		return
+
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
