@@ -58,7 +58,7 @@ func New() *chi.Mux {
 			r.Handle("/", http.HandlerFunc(variables.Index))
 			r.Route("/variables", func(r chi.Router) {
 				r.Handle("/new", http.HandlerFunc(variables.NewVariable))
-				r.Handle("/delete", http.HandlerFunc(variables.Delete))
+				r.Handle("/{variableID}", http.HandlerFunc(variables.ID))
 				r.Handle("/edit", http.HandlerFunc(variables.Edit))
 			})
 			r.Route("/permissions", func(r chi.Router) {

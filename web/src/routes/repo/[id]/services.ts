@@ -78,7 +78,7 @@ export async function handleEdit(
 }
 
 export async function handleDelete(repoID: number, vID: string): Promise<void> {
-	const url = makeUrl(`/repos/${repoID}/variables/delete`, { id: vID });
+	const url = makeUrl(`/repos/${repoID}/variables/${vID}`);
 	const rsp = await apiFetch(url, { method: "DELETE" });
 	if (rsp.status !== 204) {
 		const err: EnvHub.Error = await rsp.json();
