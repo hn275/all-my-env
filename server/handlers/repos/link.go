@@ -77,11 +77,11 @@ func Link(w http.ResponseWriter, r *http.Request) {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
+
 	err = createRepo(tx, &repo)
 	if err != nil {
 		e, ok := err.(*mysql.MySQLError)
-		duplicateKeyCode := uint16(1062)
-		if !ok || e.Number != duplicateKeyCode {
+		if !ok || e.Number != database.ErrDuplicateEntry {
 			api.NewResponse(w).ServerError(err.Error())
 			return
 		}

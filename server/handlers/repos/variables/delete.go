@@ -1,12 +1,12 @@
 package variables
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
-	"github.com/hn275/envhub/server/database"
 	"gorm.io/gorm"
 )
 
@@ -27,6 +27,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		api.NewResponse(w).Status(http.StatusForbidden).Error(err.Error())
 		return
 	}
+	log.Println(user)
 
 	variableID := r.URL.Query().Get("id")
 	if variableID == "" {
@@ -35,9 +36,9 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check for user's write access
-	err = db.Where("repository_id = ? AND user_id = ?", repoID, user.ID).
-		First(&database.Permission{}).
-		Error
+	// err = db.Where("repository_id = ? AND user_id = ?", repoID, user.ID).
+	// 	First(&database.Permission{}).
+	// 	Error
 	switch err {
 	case gorm.ErrRecordNotFound:
 		api.NewResponse(w).
@@ -70,25 +71,28 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteVariable(varID string, repoID uint64) error {
-	return db.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("id = ?", varID).Delete(&database.Variable{})
-		if err := result.Error; err != nil {
-			return err
-		}
-		if result.RowsAffected == 0 {
-			return gorm.ErrRecordNotFound
-		}
+	return nil
+	/*
+		return db.Transaction(func(tx *gorm.DB) error {
+			result := tx.Where("id = ?", varID).Delete(&database.Variable{})
+			if err := result.Error; err != nil {
+				return err
+			}
+			if result.RowsAffected == 0 {
+				return gorm.ErrRecordNotFound
+			}
 
-		var repo database.Repository
-		err := tx.Where("id = ?", repoID).First(&repo).Error
-		if err != nil {
-			return err
-		}
+			var repo database.Repository
+			err := tx.Where("id = ?", repoID).First(&repo).Error
+			if err != nil {
+				return err
+			}
 
-		if result.RowsAffected == 0 {
-			return gorm.ErrRecordNotFound
-		}
+			if result.RowsAffected == 0 {
+				return gorm.ErrRecordNotFound
+			}
 
-		return nil
-	})
+			return nil
+		})
+	*/
 }

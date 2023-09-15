@@ -1,19 +1,18 @@
 package variables
 
 import (
+	"context"
 	"encoding/json"
-	"log"
 	"net/http"
+	"os"
 	"strconv"
-	"sync"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	"github.com/go-sql-driver/mysql"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
-	"github.com/jackc/pgerrcode"
-	"github.com/jackc/pgx/v5/pgconn"
-	"gorm.io/gorm"
 )
 
 // request body: { key: string, value: string }
@@ -43,6 +42,7 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 			Error(err.Error())
 		return
 	}
+
 	v := validator.New()
 	if err := v.Struct(&variable); err != nil {
 		api.NewResponse(w).
@@ -50,16 +50,21 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 			Error("Missing one or more required fields: key, value.")
 		return
 	}
+
+	// SERIALIZE VARIABLE
 	variable.RepositoryID = uint32(repoID)
+
 	if err := variable.GenID(); err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	// SERIALIZE VARIABLE
-	var wg sync.WaitGroup
-	var serializeErr error
-	go serializeVariable(&wg, &variable, serializeErr)
+	if err := variable.EncryptValue(); err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+
+	variable.CreatedAt = time.Now().UTC()
 
 	// CHECK FOR WRITE ACCESS
 	wa, err := db.hasWriteAccess(user.ID, uint32(repoID))
@@ -69,66 +74,42 @@ func NewVariable(w http.ResponseWriter, r *http.Request) {
 			Error("you do not have write access, please contact the repository owner.")
 		return
 	}
-	log.Println(wa, err)
 
 	// WRITE TO DB
-	wg.Wait()
-
-	if serializeErr != nil {
-		api.NewResponse(w).ServerError(serializeErr.Error())
-		return
-	}
-
 	// time
-	err = newVariable(&variable)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	q := `
+		INSERT INTO variables (id,created_at,variable_key,variable_value,repository_id) 
+			VALUES (:id,:created_at,:variable_key,:variable_value,:repository_id);
+	`
+
+	_, err = db.NamedExecContext(ctx, q, &variable)
 	if err == nil {
 		api.NewResponse(w).Status(http.StatusCreated).JSON(&variable)
 		return
 	}
 
-	pgErr, ok := err.(*pgconn.PgError)
+	sqlErr, ok := err.(*mysql.MySQLError)
 	if !ok {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	log.Println(pgErr)
-	if pgErr.Code == pgerrcode.UniqueViolation {
+	switch sqlErr.Number {
+
+	case database.ErrDuplicateEntry:
 		api.NewResponse(w).
 			Status(http.StatusConflict).
-			Error(pgErr.Error())
+			Error("Variable `%s` exists", variable.Key)
+		return
+
+	default:
+		os.Stderr.Write([]byte(sqlErr.Error()))
+		api.NewResponse(w).
+			Status(http.StatusInternalServerError).
+			Error("Failed to insert to database, try again later.")
 		return
 	}
-
-	api.NewResponse(w).ServerError(pgErr.Error())
-}
-
-// writes new variable to db and update the `variable_count` of column of the same repo
-func newVariable(v *database.Variable) error {
-	return db.Transaction(func(tx *gorm.DB) error {
-		defer func(tx *gorm.DB) {
-			err, ok := recover().(string)
-			if ok {
-				tx.Rollback()
-				log.Println(err)
-			}
-		}(tx)
-
-		var err error = nil
-		err = tx.Create(v).Error
-		if err != nil {
-			return err
-		}
-
-		var repo database.Repository
-		err = tx.Where("id = ?", v.RepositoryID).First(&repo).Error
-		if err != nil {
-			return err
-		}
-
-		return tx.Table(database.TableRepos).
-			Where("id = ?", repo.ID).
-			Updates(&repo).
-			Error
-	})
 }

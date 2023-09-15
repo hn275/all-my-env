@@ -81,7 +81,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var v database.Variable
-		if err := rows.Scan(&v); err != nil {
+		if err := rows.StructScan(&v); err != nil {
 			api.NewResponse(w).ServerError(err.Error())
 			return
 		}

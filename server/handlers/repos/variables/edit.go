@@ -64,19 +64,19 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		"value":      variable.Value,
 		"updated_at": database.TimeNow(),
 	}
-	result := db.Model(&variable).
-		Where("id = ? AND repository_id = ?", variable.ID, repoID).
-		Updates(u)
-
-	if result.Error != nil {
-		api.NewResponse(w).ServerError(result.Error.Error())
-		return
-	}
-
-	if result.RowsAffected == 0 {
-		api.NewResponse(w).Status(http.StatusNotFound).Error("variable not found.")
-		return
-	}
+	// result := db.Model(&variable).
+	// 	Where("id = ? AND repository_id = ?", variable.ID, repoID).
+	// 	Updates(u)
+	//
+	// if result.Error != nil {
+	// 	api.NewResponse(w).ServerError(result.Error.Error())
+	// 	return
+	// }
+	//
+	// if result.RowsAffected == 0 {
+	// 	api.NewResponse(w).Status(http.StatusNotFound).Error("variable not found.")
+	// 	return
+	// }
 
 	delete(u, "value")
 	delete(u, "key")
