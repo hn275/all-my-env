@@ -20,26 +20,6 @@ func init() {
 	db = &model{database.New()}
 }
 
-func (db *model) getVariables(v *[]database.Variable, repoID uint64) error {
-	// return db.Table(database.TableVariables).
-	// 	Where("repository_id = ?", repoID).
-	// 	Find(&v).Error
-	return nil
-}
-
-// deprecated: no need to pass in the additional `perm` param, use `hasWriteAccess` instead
-func (db *model) getWriteAccess(userID, repoID uint64, perm *database.Permission) error {
-	return nil
-	// err := db.
-	// 	Where("user_id = ? AND repository_id = ?", userID, repoID).
-	// 	First(&perm).
-	// 	Error
-	// if errors.Is(err, gorm.ErrRecordNotFound) {
-	// 	return nil
-	// }
-	// return err
-}
-
 func (db *model) hasWriteAccess(userID, repoID uint32) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
