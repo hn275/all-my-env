@@ -2,22 +2,35 @@
 	import { store, type Contributor } from "../../store";
 	import { onMount } from "svelte";
 	import AccessControl from "./access-control.svelte";
+	import Unlink from "./unlink.svelte";
 
 	export let repoName: string;
-	const modalID: string = "access-control";
+	const accessControl: string = "access-control";
+	const unlinkRepo: string = "unlink-repo";
 
-	let modal: HTMLDialogElement | undefined;
+	let accessControlModal: HTMLDialogElement | undefined;
+	let unlinkRepoModal: HTMLDialogElement | undefined;
 	onMount(() => {
-		modal = document.getElementById(modalID) as HTMLDialogElement;
+		accessControlModal = document.getElementById(
+			accessControl,
+		) as HTMLDialogElement;
+		unlinkRepoModal = document.getElementById(
+			unlinkRepo,
+		) as HTMLDialogElement;
 	});
 
 	let contributors: Array<Contributor>;
 	$: contributors = structuredClone($store.contributors);
 
-	function handleOpen() {
+	function handleOpenAccessControl() {
 		contributors = structuredClone($store.contributors);
 		document.querySelector("body")?.classList.add("overflow-y-hidden");
-		modal?.showModal();
+		accessControlModal?.showModal();
+	}
+
+	function handleOpenUnlinkRepo() {
+		document.querySelector("body")?.classList.add("overflow-y-hidden");
+		unlinkRepoModal?.showModal();
 	}
 </script>
 
@@ -29,7 +42,7 @@
 		class="dropdown-content menu bg-neutral rounded-box z-[1] w-52 p-2 shadow"
 	>
 		<li>
-			<button on:click={handleOpen}>
+			<button on:click={handleOpenAccessControl}>
 				<i class="fa-solid fa-user w-5"></i>
 				Contributors
 			</button>
@@ -44,11 +57,28 @@
 				Git Repository
 			</a>
 		</li>
+		{#if $store.is_owner}
+			<button
+				class="btn btn-outline"
+				type="button"
+				on:click={handleOpenUnlinkRepo}
+			>
+				<span>
+					<i class="fa-solid fa-link-slash w-5"></i>
+				</span>
+				Unlink Repository
+			</button>
+		{/if}
 	</ul>
 </div>
 
 <AccessControl
-	{modalID}
+	modalID={accessControl}
 	{repoName}
 	{contributors}
+/>
+
+<Unlink
+	id={unlinkRepo}
+	{repoName}
 />

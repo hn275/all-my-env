@@ -38,9 +38,6 @@
 			<div class="flex gap-3">
 				<Contributors />
 				<Dropdown {repoName} />
-				{#if $store.is_owner}
-					<DeleteRepo {repoName} />
-				{/if}
 				{#if $store.write_access}
 					<NewModal />
 				{/if}
