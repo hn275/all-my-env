@@ -120,7 +120,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	q = `SELECT id FROM permissions WHERE repository_id = ? ORDER BY user_id`
+	q = `SELECT user_id FROM permissions WHERE repository_id = ? ORDER BY user_id`
 	rows, err = db.QueryxContext(ctx, q, repo.ID)
 	defer rows.Close()
 

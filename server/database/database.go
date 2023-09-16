@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	TableRepos = ""
+	TableRepos       = ""
 	TablePermissions = ""
-	TableUsers = ""
-	TableVariables = ""
+	TableUsers       = ""
+	TableVariables   = ""
 )
 
 var (
@@ -32,10 +32,6 @@ func init() {
 
 func New() *sqlx.DB {
 	return dbx
-}
-
-func NewGorm() *gorm.DB {
-	return db
 }
 
 func autoMigrate(db *gorm.DB, d interface{}) {

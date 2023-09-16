@@ -1,15 +1,20 @@
 package permission
 
 import (
+	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
-	"sort"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/hn275/envhub/server/api"
 	"github.com/hn275/envhub/server/database"
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
 )
 
 // request json contains all the user ids that should have write access:
@@ -26,73 +31,114 @@ func NewPermission(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type NewAccessRequest struct {
-		UserID uint64
-		RepoID uint64
-	}
-
 	var newPerm struct {
 		UserIDs []uint32 `json:"userIDs"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&newPerm); err != nil {
-		api.NewResponse(w).ServerError(err.Error())
+		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
 		return
 	}
-	// filter out repo owner id
 
-	// CHECK TO FOR REPOSITORY OWNER.
-	// query db for github information
-	s := chi.URLParam(r, "repoID")
-	repoID, err := strconv.ParseUint(s, 10, 32)
+	// check to for repository owner.
+	repoID, err := strconv.ParseUint(chi.URLParam(r, "repoID"), 10, 32)
 	if err != nil {
 		api.NewResponse(w).Status(http.StatusBadRequest).Error(err.Error())
 	}
 
-	var repo struct {
-		UserID uint32
-	}
-	err = db.Model(&database.Repository{}).
-		Select([]string{"user_id"}).
-		Where("id = ?", repoID).
-		First(&repo).
-		Error
+	db := database.New()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	switch err {
-	case nil:
-		break
-
-	case gorm.ErrRecordNotFound:
-		api.NewResponse(w).Status(http.StatusNotFound).Error("repository not found")
-		return
-
-	default:
-		api.NewResponse(w).Status(http.StatusInternalServerError).Error(err.Error())
+	var repoOwner uint32
+	q := `SELECT user_id FROM repositories WHERE id = ?;`
+	err = db.QueryRowxContext(ctx, q, repoID).Scan(&repoOwner)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			api.NewResponse(w).Status(http.StatusForbidden).Error("You are not repository owner")
+			return
+		}
+		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
 
-	if repo.UserID != user.ID {
-		api.NewResponse(w).Status(http.StatusForbidden).Error("not repository owner.")
+	// get existing users with write access
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var waUsers []uint32
+	q = `SELECT user_id FROM permissions WHERE repository_id = ? AND NOT user_id = ?;`
+	row, err := db.QueryxContext(ctx, q, repoID, user.ID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-
-	// WRITE NEW ACCESS ENTRY TO TABLE
-	// get all user id with permission
-	var p []struct {
-		UserID uint32
+	for row.Next() {
+		var i uint32
+		if err := row.Scan(&i); err != nil {
+			api.NewResponse(w).ServerError(err.Error())
+			return
+		}
+		waUsers = append(waUsers, i)
 	}
-	err = db.Model(&database.Permission{}).Where("id = ?", repoID).Find(&p).Error
+
+	// get user ids without write access
+	revokeWa := make([]uint32, 0, len(waUsers))
+	for _, userID := range waUsers {
+		if !contains(newPerm.UserIDs, userID) {
+			revokeWa = append(revokeWa, userID)
+		}
+	}
+
+	// update database
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	tx, err := db.BeginTxx(ctx, &sql.TxOptions{
+		Isolation: 0,
+		ReadOnly:  false,
+	})
+
 	if err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
-	uids := make([]uint32, len(p))
-	for i := range p {
-		uids[i] = p[i].UserID
+
+	// delete revoked-access entries
+	revokeWa = append(revokeWa, 1234)
+	if len(revokeWa) != 0 {
+		q = `DELETE FROM permissions WHERE repository_id = ? AND user_id IN (?);`
+		deleteQuery, args, err := sqlx.In(q, repoID, revokeWa)
+		if err != nil {
+			api.NewResponse(w).ServerError(err.Error())
+			return
+		}
+
+		_, err = tx.ExecContext(ctx, deleteQuery, args...)
+		if err != nil {
+			api.NewResponse(w).ServerError(err.Error())
+			return
+		}
 	}
 
-	// get diff then write to db
-	err = getPermssionDiff(repo.UserID, uids, newPerm.UserIDs).updatePermissions(uint32(repoID))
-	if err != nil {
+	// insert to db
+	// NOTE: since all id's are uint, safe for string interpolation
+	param := make([]string, len(newPerm.UserIDs))
+	for i, userID := range newPerm.UserIDs {
+		param[i] = fmt.Sprintf("(%d,%d)", repoID, userID)
+	}
+
+	q = `
+	INSERT INTO permissions (repository_id, user_id) VALUES %s as new
+	ON DUPLICATE KEY UPDATE repository_id = new.repository_id;
+	`
+	q = fmt.Sprintf(q, strings.Join(param, ","))
+
+	if _, err := tx.ExecContext(ctx, q); err != nil {
+		api.NewResponse(w).ServerError(err.Error())
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
 		api.NewResponse(w).ServerError(err.Error())
 		return
 	}
@@ -100,113 +146,11 @@ func NewPermission(w http.ResponseWriter, r *http.Request) {
 	api.NewResponse(w).Status(http.StatusOK).Done()
 }
 
-type permDiff struct {
-	revoked []uint32
-	granted []uint32
-}
-
-func getPermssionDiff(ownerID uint32, dbPerm, reqPerm []uint32) *permDiff {
-	// filter owner id
-	i := 0
-	for ; i < len(dbPerm); i++ {
-		if dbPerm[i] == ownerID {
-			break
+func contains(src []uint32, i uint32) bool {
+	for _, j := range src {
+		if i == j {
+			return true
 		}
-		i++
 	}
-	if i < len(dbPerm)-1 && i > 0 {
-		dbPerm = append(dbPerm[:i], dbPerm[i+1:]...)
-	}
-
-	i = 0
-	for ; i < len(reqPerm); i++ {
-		if reqPerm[i] == ownerID {
-			break
-		}
-		i++
-	}
-	if i < len(reqPerm)-1 && i > 0 {
-		reqPerm = append(reqPerm[:i], reqPerm[i+1:]...)
-	}
-
-	// sort
-	sort.SliceStable(dbPerm, func(i, j int) bool {
-		return dbPerm[i] < dbPerm[j]
-	})
-
-	sort.SliceStable(reqPerm, func(i, j int) bool {
-		return reqPerm[i] < reqPerm[j]
-	})
-
-	// get lower and upperbound length
-	h, l := len(dbPerm), len(reqPerm)
-	if h < l {
-		l, h = h, l
-	}
-
-	// get diff
-	p := permDiff{
-		revoked: make([]uint32, 0, h),
-		granted: make([]uint32, 0, h),
-	}
-
-	dbI, reqI := 0, 0
-	for dbI < l && reqI < l {
-		dbP, reqP := dbPerm[dbI], reqPerm[reqI]
-		if dbP == reqP {
-			dbI++
-			reqI++
-		} else if dbP < reqP {
-			p.revoked = append(p.revoked, dbP)
-			dbI++
-		} else {
-			p.granted = append(p.granted, reqP)
-			reqI++
-		}
-
-	}
-
-	// the remainder of db permission is revoked
-	for ; dbI < len(dbPerm); dbI++ {
-		p.revoked = append(p.revoked, dbPerm[dbI])
-	}
-
-	// the remainder of req permission is granted
-	for ; reqI < len(reqPerm); reqI++ {
-		p.granted = append(p.granted, reqPerm[reqI])
-	}
-
-	return &p
-}
-
-func (wa *permDiff) updatePermissions(repoID uint32) error {
-	return db.Transaction(func(tx *gorm.DB) error {
-		type Permision struct {
-			RepositoryID uint32
-			UserID       uint32
-		}
-
-		p := make([]database.Permission, len(wa.revoked))
-		for i := range wa.revoked {
-			p[i] = database.Permission{
-				RepositoryID: repoID,
-				UserID:       wa.granted[i],
-			}
-		}
-
-		err := tx.Where("repository_id = ?", repoID).Delete(&p).Error
-		if err != nil {
-			return err
-		}
-
-		p = make([]database.Permission, len(wa.granted))
-		for i := range wa.granted {
-			p[i] = database.Permission{
-				RepositoryID: repoID,
-				UserID:       wa.granted[i],
-			}
-		}
-
-		return tx.Create(&p).Error
-	})
+	return false
 }
