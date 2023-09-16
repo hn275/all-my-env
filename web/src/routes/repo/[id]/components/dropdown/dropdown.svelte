@@ -58,16 +58,18 @@
 			</a>
 		</li>
 		{#if $store.is_owner}
-			<button
-				class="btn btn-outline"
-				type="button"
-				on:click={handleOpenUnlinkRepo}
-			>
-				<span>
-					<i class="fa-solid fa-link-slash w-5"></i>
-				</span>
-				Unlink Repository
-			</button>
+			<li>
+				<button
+					type="button"
+					on:click={handleOpenUnlinkRepo}
+					class="text-error hover:text-error-content hover:bg-error"
+				>
+					<span>
+						<i class="fa-solid fa-link-slash w-5"></i>
+					</span>
+					Unlink Repository
+				</button>
+			</li>
 		{/if}
 	</ul>
 </div>

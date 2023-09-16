@@ -20,7 +20,7 @@
 		e.preventDefault();
 		try {
 			loading = true;
-			const url: string = makeUrl(`/repos/${$store.repoID}/delete`);
+			const url: string = makeUrl(`/repos/${$store.repoID}`);
 			const r: RequestInit = { method: "DELETE" };
 			const res = await apiFetch(url, r);
 			if (res.status === 204) {
