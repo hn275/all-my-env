@@ -14,7 +14,7 @@ export default {
 					200: "#262626",
 				},
 				light: "#d4d4d4",
-                accent: "#F250A3"
+				accent: "#F250A3",
 			},
 		},
 	},
