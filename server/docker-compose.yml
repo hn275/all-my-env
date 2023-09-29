@@ -11,7 +11,8 @@ services:
     volumes:
       - .:/app
     environment:
-      MYSQL_DSN: "envhubuser:envhubpassword@tcp(db)/envhub?interpolateParams=true&parseTime=true"
+      # MYSQL_DSN: "envhubuser:envhubpassword@tcp(db)/envhub?interpolateParams=true&parseTime=true"
+      MYSQL_DSN:
       GITHUB_CLIENT_ID:
       GITHUB_CLIENT_SECRET:
       JWT_SECRET:

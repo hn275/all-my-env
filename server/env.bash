@@ -23,7 +23,7 @@ function gotest() {
 }
 
 # db related functions
-[[ -z $MYSQL ]] && export MYSQL="mysql://envhubuser:envhubpassword@tcp(127.0.0.1:3306)/envhub?interpolateParams=true"
+[[ -z $MYSQL_DSN ]] && export MYSQL_DSN="mysql://envhubuser:envhubpassword@tcp(127.0.0.1:3306)/envhub?interpolateParams=true"
 MIGRATION_DIR="${ENVHUB_PATH}/database/migrations"
 
 function db() {
@@ -49,16 +49,16 @@ function db() {
         migrate)
             case $2 in
                  force)
-                     migrate -verbose -path ${MIGRATION_DIR} -database ${MYSQL} force $3
+                     migrate -verbose -path ${MIGRATION_DIR} -database ${MYSQL_DSN} force $3
                      ;;
                  new)
                      migrate -verbose create -ext sql -dir ${MIGRATION_DIR} -seq $3
                      ;;
                  up)
-                     migrate -verbose -database ${MYSQL} -path ${MIGRATION_DIR} up 1
+                     migrate -verbose -database ${MYSQL_DSN} -path ${MIGRATION_DIR} up 1
                      ;;
                  down)
-                     migrate -verbose -database ${MYSQL} -path ${MIGRATION_DIR} down 1
+                     migrate -verbose -database ${MYSQL_DSN} -path ${MIGRATION_DIR} down 1
                      ;;
                  *)
                      echo "usage: [force|new|up|down]"

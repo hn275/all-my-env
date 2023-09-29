@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"io"
 	"sync"
@@ -103,7 +104,7 @@ func (v *Variable) GenID() error {
 		return err
 	}
 
-	v.ID = base64.StdEncoding.EncodeToString(buf[:])
+	v.ID = hex.EncodeToString(buf[:])
 	return nil
 }
 
